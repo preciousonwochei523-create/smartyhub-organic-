@@ -145,7 +145,6 @@ function collect(){
 }
 function addGroup(){collect();E.o.push({t:"",k:"r",c:[]});sheet()}
 function rmGroup(i){collect();E.o.splice(i,1);sheet()}
-async function pickImg(inp){const f=inp.files[0];if(!f)return;try{collect();E.img=await toDataURL(f);sheet()}catch(e){toast("Could not read that image")}}
 async function saveItem(){
   collect();if(!E.n){toast("Add a name");return}
   const btn=$("#f button.flex-1");if(btn){btn.disabled=true;btn.textContent="Saving…"}
@@ -164,23 +163,6 @@ async function delItem(){
 async function pickImg(inp){const f=inp.files[0];if(!f)return;try{collect();toast("Uploading photo…");E.img=await upload(f,800);sheet();toast("Photo uploaded")}catch(e){toast("Upload failed: "+(e.message||"check bucket policies"))}}
 function closeSheet(){$("#sheet").innerHTML=""}
 addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
-
-/* ---------- categories & hero ---------- */
-function catsView(){
-  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Menu categories</h2><p class="text-xs text-neutral-500">One per line. If you rename one, also re-pick it on the items that used the old name.</p>
-  <textarea id="ec" rows="5" class="mt-2">${esc(D.eatCats.join("\n"))}</textarea>
-  <h2 class="mt-5 font-extrabold">Supplement categories</h2><textarea id="sc" rows="7" class="mt-2">${esc(D.suppCats.join("\n"))}</textarea>
-  <button class="btn mt-3 bg-g2 text-white" onclick="saveCats()">Save categories</button></div>
-  <div class="mt-5 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Supplements hero slideshow</h2><p class="text-xs text-neutral-500">Photos rotate on the Supplements page, each with the SmartyHub Organic watermark. Use photos you own or that are licensed for commercial use.</p>
-  <div class="mt-3 grid grid-cols-3 gap-3">${D.hero.map((u,i)=>`<div class="relative"><img src="${esc(u)}" class="aspect-[3/4] w-full rounded-xl bg-green-50 object-cover" onerror="this.style.opacity=.2"/>
-    <button class="absolute right-1 top-1 rounded-full bg-white p-1 shadow" onclick="heroRm(${i})" aria-label="Remove">${X}</button>
-    ${i?`<button class="absolute bottom-1 left-1 rounded-full bg-white px-2 text-xs font-bold shadow" onclick="heroUp(${i})">◀</button>`:""}</div>`).join("")}</div>
-  <label class="btn mt-3 inline-block cursor-pointer bg-g2 text-center !text-white">+ Upload photos<input type="file" accept="image/*" multiple class="hidden" onchange="heroAdd(this)"/></label></div>`;
-}
-function saveCats(){const p=id=>$(id).value.split("\n").map(s=>s.trim()).filter(Boolean);D.eatCats=p("#ec");D.suppCats=p("#sc");persist();toast("Categories saved to draft")}
-async function heroAdd(inp){for(const f of inp.files){try{D.hero.push(await toDataURL(f,900))}catch(e){}}persist();draw()}
-function heroRm(i){D.hero.splice(i,1);persist();draw()}
-function heroUp(i){[D.hero[i-1],D.hero[i]]=[D.hero[i],D.hero[i-1]];persist();draw()}
 
 /* ---------- categories & hero ---------- */
 function catsView(){
@@ -295,3 +277,6 @@ async function saveOps(){
 }
 
 init();
+</script>
+</body>
+</html>
