@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>if(location.hash.indexOf("type=recovery")>-1)location.replace("admin.html"+location.hash);</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>SmartyHub Organic — Fresh Organic Meals &amp; Wellness Supplements · Lagos</title>
@@ -31,6 +32,11 @@ input[type=range]{accent-color:#2E7D32}
 .hs-slide.on{opacity:1}
 .hs-wm{pointer-events:none;position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='120'%3E%3Ctext x='85' y='62' text-anchor='middle' transform='rotate(-28 85 60)' font-family='sans-serif' font-weight='700' font-size='14' fill='white' fill-opacity='.5' stroke='black' stroke-opacity='.18' stroke-width='.6'%3ESmartyHub Organic%3C/text%3E%3C/svg%3E")}
 .hs-stamp{pointer-events:none;position:absolute;right:.6rem;bottom:.6rem;border-radius:9999px;background:rgba(27,94,32,.85);color:#fff;padding:.2rem .6rem;font-size:.65rem;font-weight:800;letter-spacing:.04em}
+.hb-slide{position:absolute;inset:0;height:100%;width:100%;object-fit:cover;opacity:0;transition:opacity 1s ease}
+.hb-slide.on{opacity:1}
+.hb-dot{height:.5rem;width:.5rem;border-radius:9999px;background:rgba(255,255,255,.5);transition:all .3s}
+.hb-dot.on{width:1.5rem;background:#fff}
+body{overflow-x:hidden}
 </style>
 </head>
 <body class="bg-white font-sans text-neutral-900 antialiased">
@@ -132,6 +138,8 @@ const stars=r=>`<span class="flex items-center gap-1 text-xs font-semibold"><spa
 const pillCls=on=>`pill shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${on?"border-g2 bg-g2 text-white shadow-[0_6px_18px_-6px_rgba(76,175,80,.8)]":"border-neutral-200 bg-white text-neutral-700 hover:border-g3"}`;
 
 /* ---------- VIEWS ---------- */
+const HB_SLIDES=["img/hero-1-breakfast-home.svg","img/hero-2-breakfast-office.svg","img/hero-3-supplements-home.svg","img/hero-4-supplements-office.svg","img/hero-5-order-from-home.svg"];
+setInterval(()=>{const sl=document.querySelectorAll("#hb .hb-slide"),d=document.querySelectorAll("#hb .hb-dot");if(sl.length<2||matchMedia("(prefers-reduced-motion: reduce)").matches)return;let i=[...sl].findIndex(x=>x.classList.contains("on"));i=i<0?0:i;const n=(i+1)%sl.length;sl[i].classList.remove("on");sl[n].classList.add("on");d.forEach((x,k)=>x.classList.toggle("on",k===n))},4200);
 const LOGO=`<img src="logo.png" alt="SmartyHub Organic" width="490" height="468" class="h-auto w-56 shrink-0 sm:w-72 lg:w-80"/>`;
 function render(){
   const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold sm:flex-none ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
@@ -143,15 +151,18 @@ function render(){
   badge();ic();
 }
 function eatsView(){return `
-<section class="flex flex-col-reverse items-center gap-8 py-10 sm:py-16 md:flex-row md:justify-between">
-  <div>
-  <h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] sm:text-6xl">Organic breakfast, delivered fresh.</h1>
-  <p class="mt-5 max-w-lg text-lg text-neutral-600">Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos.</p>
-  <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
-    <span class="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
-    <span class="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every order</span>
-  </div></div>
-  ${LOGO}
+<section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Organic breakfast delivered fresh">
+  <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
+  <div class="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20"></div>
+  <div class="relative mx-auto flex min-h-[420px] max-w-6xl flex-col justify-center px-4 py-14 sm:min-h-[480px] sm:py-20">
+    <h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] text-white sm:text-6xl">Organic breakfast, delivered fresh.</h1>
+    <p class="mt-5 max-w-lg text-lg text-white/90">Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.</p>
+    <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
+      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
+      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every order</span>
+    </div>
+  </div>
+  <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>
 <div class="sticky top-[118px] z-20 -mx-4 bg-white/95 px-4 py-3 backdrop-blur sm:top-[69px]"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
 <div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>${eatsStory()}`}
