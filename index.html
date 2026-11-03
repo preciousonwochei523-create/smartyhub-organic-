@@ -165,13 +165,24 @@ function eatsView(){return `
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>
 <div class="sticky top-[118px] z-20 -mx-4 bg-white/95 px-4 py-3 backdrop-blur sm:top-[69px]"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
-<div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>${eatsStory()}`}
+<div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div><div id="pager"></div>${eatsStory()}`}
 
+const PER=8;
+function pg(L){
+  const k=[S.eco,S.cat,S.goal,S.max,S.min,[...S.ing].join(),S.q].join("|");
+  if(k!==S.fk){S.fk=k;S.pg=1}
+  const n=Math.max(1,Math.ceil(L.length/PER));
+  S.pg=Math.min(Math.max(1,S.pg||1),n);
+  const el=$("#pager"),b="pill rounded-full px-5 py-2.5 text-sm font-bold disabled:pointer-events-none disabled:opacity-40";
+  if(el)el.innerHTML=n>1?`<nav class="mt-8 flex items-center justify-between gap-3" aria-label="Pagination"><button type="button" data-a="pg" data-v="-1" ${S.pg<=1?"disabled":""} class="${b} border border-neutral-200 bg-white text-neutral-700 hover:border-g3">&larr; Previous</button><span class="text-sm font-semibold text-neutral-500">Page ${S.pg} of ${n}</span><button type="button" data-a="pg" data-v="1" ${S.pg>=n?"disabled":""} class="${b} bg-g2 text-white hover:bg-g1">Next &rarr;</button></nav>`:"";
+  return L.slice((S.pg-1)*PER,S.pg*PER)
+}
 function drawEats(){
   const q=S.q.toLowerCase(), L=EATS.filter(x=>!x.hide&&(S.cat==="All"||x.cat===S.cat)&&(x.n+x.d).toLowerCase().includes(q));
-  $("#grid").innerHTML=L.length?L.map(x=>`
-  <article class="rise flex gap-4 rounded-3xl border border-neutral-100 bg-white p-4 shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
-    <div class="tile flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-g2">${x.img?`<img src="${x.img}" alt="${x.n}" loading="lazy" class="h-full w-full ${(x.fit||(x.id[0]==='d'?'contain':'cover'))==='contain'?'object-contain':'object-cover'}"/>`:`<i data-lucide="${x.i}" class="h-10 w-10"></i>`}</div>
+  const V=pg(L);
+  $("#grid").innerHTML=L.length?V.map(x=>`
+  <article ${x.soon?"":`data-a="custom" data-v="${x.id}" role="button" tabindex="0" aria-label="View ${x.n} details"`} class="rise flex ${x.soon?"":"cursor-pointer"} gap-4 rounded-3xl border border-neutral-100 bg-white p-4 shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
+    <div class="tile relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-g2">${imgsOf(x)[0]?`<img src="${imgsOf(x)[0]}" alt="${x.n}" loading="lazy" class="h-full w-full ${(x.fit||(x.id[0]==='d'?'contain':'cover'))==='contain'?'object-contain':'object-cover'}"/>`:`<i data-lucide="${x.i}" class="h-10 w-10"></i>`}${imgsOf(x).length>1?`<span class="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">${imgsOf(x).length} photos</span>`:""}</div>
     <div class="flex min-w-0 flex-1 flex-col">
       <h3 class="font-serif text-lg font-bold leading-tight">${x.n}</h3>
       <p class="mt-1 text-sm text-neutral-500">${x.d}</p>
@@ -212,7 +223,7 @@ function suppView(){return `
     <div><h2 class="mb-2 text-sm font-bold">Ingredient</h2><div class="flex flex-wrap gap-2">${INGS.map(g=>`<button data-a="ing" data-v="${g}" class="${pillCls(S.ing.has(g))} !px-3 !py-1.5 !text-xs">${g}</button>`).join("")}</div></div>
     <button data-a="reset" class="text-sm font-bold text-g2 underline">Clear filters</button>
   </aside>
-  <div class="min-w-0 flex-1"><p id="count" class="mb-3 text-sm font-semibold text-neutral-500"></p><div id="grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"></div></div>
+  <div class="min-w-0 flex-1"><p id="count" class="mb-3 text-sm font-semibold text-neutral-500"></p><div id="grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"></div><div id="pager"></div></div>
 </div>
 ${suppStory()}`}
 
@@ -220,9 +231,10 @@ function drawSupp(){
   const q=S.q.toLowerCase();
   const L=SUPP.filter(x=>!x.hide&&(S.goal==="All"||x.g===S.goal)&&x.p<=S.max&&x.r>=S.min&&[...S.ing].every(i=>x.ing.includes(i))&&(x.n+(x.b||"")+x.ing.join()).toLowerCase().includes(q));
   $("#count").textContent=`${L.length} product${L.length===1?"":"s"}`;
-  $("#grid").innerHTML=L.length?L.map(x=>`
-  <article class="rise flex flex-col overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
-    <div class="tile relative flex h-36 items-center justify-center text-g2">${x.img?`<img src="${x.img}" alt="${x.n}" loading="lazy" class="h-full w-full object-contain p-2"/>`:`<i data-lucide="${x.i}" class="h-12 w-12"></i>`}
+  const V=pg(L);
+  $("#grid").innerHTML=L.length?V.map(x=>`
+  <article data-a="qv" data-v="${x.id}" role="button" tabindex="0" aria-label="View ${x.n} details" class="rise flex cursor-pointer flex-col overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
+    <div class="tile relative flex h-36 items-center justify-center text-g2">${imgsOf(x)[0]?`<img src="${imgsOf(x)[0]}" alt="${x.n}" loading="lazy" class="h-full w-full object-contain p-2"/>`:`<i data-lucide="${x.i}" class="h-12 w-12"></i>`}${imgsOf(x).length>1?`<span class="absolute bottom-2 right-3 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">${imgsOf(x).length} photos</span>`:""}
       <span class="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-g1 shadow-sm">${x.dose}</span></div>
     <div class="flex flex-1 flex-col p-4">
       <p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p>
@@ -310,9 +322,55 @@ function openCart(o){const d=$("#drawer");d.classList.toggle("translate-x-full",
 /* ---------- MODALS ---------- */
 function modal(h){if(!h){$("#modal").classList.add("hidden");$("#modal").classList.remove("flex");if($("#drawer").classList.contains("translate-x-full"))$("#ov").classList.add("hidden");return}
   $("#mbox").innerHTML=h;$("#modal").classList.remove("hidden");$("#modal").classList.add("flex");$("#ov").classList.remove("hidden");ic()}
+/* ---------- PHOTO GALLERY + LIGHTBOX ---------- */
+const imgsOf=x=>(x.imgs&&x.imgs.length?x.imgs:(x.img?[x.img]:[])).filter(Boolean);
+const fitOf=x=>(x.fit||(String(x.id)[0]==="d"?"contain":"cover"))==="contain"?"object-contain p-2":"object-cover";
+let GL={list:[],i:0,sw:0};
+function gallery(x,fit){
+  const L=imgsOf(x);GL.list=L;GL.i=0;
+  if(!L.length)return `<div class="tile mt-4 flex h-40 items-center justify-center overflow-hidden rounded-2xl text-g2"><i data-lucide="${x.i||"leaf"}" class="h-14 w-14"></i></div>`;
+  const m=L.length>1,arrow=(a,d,ic)=>`<button type="button" data-a="${a}" class="absolute top-1/2 ${d}-2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md hover:bg-white" aria-label="${a==="gp"?"Previous photo":"Next photo"}"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></button>`;
+  return `<div class="gal relative mt-4 overflow-hidden rounded-2xl bg-green-50" data-n="${L.length}" data-i="0">
+    <div class="gal-track flex transition-transform duration-300 ease-out" style="transform:translateX(0)">${L.map((u,i)=>`<button type="button" data-a="lb" data-v="${i}" class="h-64 w-full shrink-0 cursor-zoom-in sm:h-72" aria-label="Enlarge photo ${i+1} of ${L.length}"><img src="${u}" alt="${x.n} photo ${i+1}" loading="${i?"lazy":"eager"}" draggable="false" class="h-full w-full ${fit||"object-cover"}"/></button>`).join("")}</div>
+    ${m?arrow("gp","left",'<path d="m15 18-6-6 6-6"/>')+arrow("gn","right",'<path d="m9 18 6-6-6-6"/>')+`<span class="gal-ct absolute bottom-2 right-2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">1/${L.length}</span>`:""}
+  </div>
+  ${m?`<div class="noscroll mt-2 flex gap-2 overflow-x-auto pb-1">${L.map((u,i)=>`<button type="button" data-a="gt" data-v="${i}" class="gal-th h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 ${i?"border-transparent opacity-70":"border-g3"}" aria-label="Show photo ${i+1}"><img src="${u}" alt="" loading="lazy" class="h-full w-full object-cover"/></button>`).join("")}</div>`:""}`;
+}
+function galSet(i){
+  const g=$(".gal");if(!g)return;const n=+g.dataset.n;i=(i%n+n)%n;g.dataset.i=i;GL.i=i;
+  g.querySelector(".gal-track").style.transform=`translateX(-${i*100}%)`;
+  const c=g.querySelector(".gal-ct");if(c)c.textContent=`${i+1}/${n}`;
+  document.querySelectorAll(".gal-th").forEach((b,k)=>{b.classList.toggle("border-g3",k===i);b.classList.toggle("border-transparent",k!==i);b.classList.toggle("opacity-70",k!==i);if(k===i)b.scrollIntoView({block:"nearest",inline:"nearest"})});
+}
+const galStep=d=>{const g=$(".gal");if(g)galSet(+g.dataset.i+d)};
+function lbDraw(){
+  const L=GL.list,el=$("#lb");if(!el)return;const m=L.length>1,bt="absolute z-10 rounded-full bg-white/90 p-3 shadow-lg hover:bg-white";
+  const ar=(a,pos,ic)=>`<button type="button" data-a="${a}" class="${bt} ${pos} top-1/2 -translate-y-1/2" aria-label="${a==="lbp"?"Previous photo":"Next photo"}"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></button>`;
+  el.innerHTML=`<button type="button" data-a="lbx" class="${bt} right-3 top-3" aria-label="Close photo"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  ${m?ar("lbp","left-3",'<path d="m15 18-6-6 6-6"/>')+ar("lbn","right-3",'<path d="m9 18 6-6-6-6"/>')+`<span class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-sm font-bold text-white">${GL.i+1} / ${L.length}</span>`:""}
+  <img src="${L[GL.i]}" alt="Photo ${GL.i+1} of ${L.length}" draggable="false" class="max-h-[88vh] max-w-[94vw] select-none object-contain"/>`;
+}
+function lbOpen(i){
+  GL.i=i;let el=$("#lb");
+  if(!el){el=document.createElement("div");el.id="lb";el.className="fixed inset-0 z-[90] flex items-center justify-center bg-black/90";el.setAttribute("role","dialog");el.setAttribute("aria-label","Photo viewer");document.body.appendChild(el)}
+  lbDraw();
+}
+function lbClose(){const el=$("#lb");if(el){el.remove();galSet(GL.i)}}
+function lbStep(d){const n=GL.list.length;if(n<2)return;GL.i=(GL.i+d+n)%n;lbDraw()}
+let TX=null;
+document.addEventListener("touchstart",e=>{const g=e.target.closest(".gal,#lb");TX=g?{x:e.touches[0].clientX,y:e.touches[0].clientY,lb:!!e.target.closest("#lb")}:null},{passive:true});
+document.addEventListener("touchend",e=>{if(!TX)return;const t=e.changedTouches[0],dx=t.clientX-TX.x,dy=t.clientY-TX.y,lb=TX.lb;TX=null;
+  if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.4){GL.sw=Date.now();lb?lbStep(dx<0?1:-1):galStep(dx<0?1:-1)}},{passive:true});
+addEventListener("keydown",e=>{
+  if($("#lb")){if(e.key==="Escape"){e.stopImmediatePropagation();lbClose()}else if(e.key==="ArrowRight")lbStep(1);else if(e.key==="ArrowLeft")lbStep(-1);return}
+  if($(".gal")&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){if(e.key==="ArrowRight")galStep(1);else if(e.key==="ArrowLeft")galStep(-1)}
+},true);
+document.addEventListener("click",e=>{if(e.target.id==="lb")lbClose()});
 function customModal(id){
   const x=EATS.find(e=>e.id===id);
-  modal(`<div class="flex items-start justify-between"><div><h2 class="font-serif text-2xl font-bold">${x.n}</h2><p class="mt-1 text-sm text-neutral-500">${x.d}</p></div><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+  modal(`<div class="flex items-start justify-between"><div>${x.cat?`<p class="text-xs font-semibold text-neutral-500">${x.cat}</p>`:""}<h2 class="font-serif text-2xl font-bold">${x.n}</h2><p class="mt-1 text-lg font-bold text-g2">${fmt(x.p)}${x.o&&x.o.length?' <span class="text-xs font-medium text-neutral-400">starting price</span>':""}</p></div><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+  ${gallery(x,fitOf(x))}
+  <p class="mt-4 whitespace-pre-line text-neutral-600">${x.d}</p>
   <form id="cf" data-id="${id}" data-q="1" class="mt-5 space-y-5">${x.o.map((g,gi)=>`<fieldset><legend class="mb-2 text-sm font-bold">${g.t}${g.k==="c"?' <span class="font-medium text-neutral-400">(optional)</span>':""}</legend><div class="space-y-2">${g.c.map((c,ci)=>`
     <label class="flex cursor-pointer items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 text-sm has-[:checked]:border-g3 has-[:checked]:bg-green-50"><span class="flex items-center gap-3"><input type="${g.k==="r"?"radio":"checkbox"}" name="g${gi}" value="${c[0]}" data-p="${c[1]}" ${g.k==="r"&&ci===0?"checked":""} class="h-4 w-4 accent-green-700"/>${c[0]}</span><span class="text-neutral-500">${c[1]?"+"+fmt(c[1]):"Included"}</span></label>`).join("")}</div></fieldset>`).join("")}
   <div class="flex items-center gap-3"><div class="flex items-center gap-3 rounded-full bg-neutral-100 p-1.5"><button type="button" data-a="mq" data-v="-1" class="rounded-full bg-white p-2 shadow-sm" aria-label="Decrease quantity"><i data-lucide="minus" class="h-4 w-4"></i></button><span id="mqn" class="w-5 text-center font-bold">1</span><button type="button" data-a="mq" data-v="1" class="rounded-full bg-white p-2 shadow-sm" aria-label="Increase quantity"><i data-lucide="plus" class="h-4 w-4"></i></button></div>
@@ -323,8 +381,8 @@ function calc(){const f=$("#cf");if(!f)return;const x=EATS.find(e=>e.id===f.data
 function quickView(id){
   const x=SUPP.find(e=>e.id===id);
   modal(`<div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p><h2 class="font-serif text-2xl font-bold">${x.n}</h2><div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">${x.rv} reviews</span></div></div><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
-  <div class="tile mt-4 flex h-40 items-center justify-center overflow-hidden rounded-2xl text-g2">${x.img?`<img src="${x.img}" alt="${x.n}" class="h-full w-full object-contain p-2"/>`:`<i data-lucide="${x.i}" class="h-14 w-14"></i>`}</div>
-  <p class="mt-4 text-neutral-600">${x.d}</p>
+  ${gallery(x,"object-contain p-2")}
+  <p class="mt-4 whitespace-pre-line text-neutral-600">${x.d}</p>
   <dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div class="rounded-2xl bg-neutral-50 p-3"><dt class="text-neutral-500">Dosage</dt><dd class="font-bold">${x.dose}</dd></div><div class="rounded-2xl bg-neutral-50 p-3"><dt class="text-neutral-500">Key ingredients</dt><dd class="font-bold">${x.ing.join(", ")}</dd></div></dl>
   <p class="mt-3 text-xs text-neutral-500">Supplements do not replace a varied diet. Speak to your doctor or pharmacist before use if you are pregnant, nursing or on medication.</p>
   ${x.out?`<span class="mt-5 block w-full rounded-full bg-neutral-100 py-3.5 text-center font-bold text-neutral-500">Sold out</span>`:`<button data-a="addp" data-v="${x.id}" data-c="1" class="pill mt-5 w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Add to cart · ${fmt(x.p)}</button>`}`);
@@ -367,6 +425,14 @@ document.addEventListener("click",e=>{
   else if(a==="goal"){S.goal=v;render();$("#filters").classList.remove("hidden")}
   else if(a==="ing"){S.ing.has(v)?S.ing.delete(v):S.ing.add(v);render();$("#filters").classList.remove("hidden")}
   else if(a==="reset"){S.goal="All";S.max=8000;S.min=0;S.ing.clear();render()}
+  else if(a==="pg"){S.pg=(S.pg||1)+ +v;S.eco==="eats"?drawEats():drawSupp();const g=$("#grid");scrollTo({top:Math.max(0,g.getBoundingClientRect().top+scrollY-150),behavior:"smooth"})}
+  else if(a==="gp")galStep(-1);
+  else if(a==="gn")galStep(1);
+  else if(a==="gt")galSet(+v);
+  else if(a==="lb"){if(Date.now()-GL.sw>350)lbOpen(+v)}
+  else if(a==="lbx")lbClose();
+  else if(a==="lbp")lbStep(-1);
+  else if(a==="lbn")lbStep(1);
   else if(a==="tf")$("#filters").classList.toggle("hidden");
   else if(a==="custom")customModal(v);
   else if(a==="qv")quickView(v);
@@ -388,6 +454,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="mx"){S.max=+e.target.value;$("#mxv").textContent=fmt(S.max);drawSupp()}
   if(e.target.id==="mn"){S.min=+e.target.value;drawSupp()}
 });
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click()}});
 document.addEventListener("submit",e=>{if(e.target.id==="co"){e.preventDefault();done(Object.fromEntries(new FormData(e.target)))}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){openCart(false);modal()}});
 addEventListener("hashchange",()=>{const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
