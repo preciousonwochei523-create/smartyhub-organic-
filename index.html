@@ -190,15 +190,20 @@ function drawEats(){
 let HERO_SLIDES=["supps-hero.jpg","supps-2.jpg","supps-3.jpg","supps-4.jpg","supps-5.jpg"];
 setInterval(()=>{const sl=document.querySelectorAll("#hs .hs-slide");if(sl.length<2||matchMedia("(prefers-reduced-motion: reduce)").matches)return;let i=[...sl].findIndex(x=>x.classList.contains("on"));sl[i<0?0:i].classList.remove("on");sl[(i+1)%sl.length].classList.add("on")},3800);
 function suppView(){return `
-<section class="flex flex-col-reverse items-center gap-8 py-10 sm:py-14 md:flex-row md:justify-between">
-  <div><h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] sm:text-5xl">Wellness supplements you can trust.</h1>
-  <p class="mt-4 max-w-lg text-lg text-neutral-600">Browse by health goal, ingredient and price. NAFDAC-cleared brands, delivered in Lagos.</p></div>
-  <div id="hs" class="relative aspect-[3/4] w-48 shrink-0 overflow-hidden rounded-3xl bg-green-50 sm:w-60" role="img" aria-label="Quality supplements">
-    ${HERO_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hs-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}
-    <div class="hs-wm"></div><span class="hs-stamp">SmartyHub Organic</span>
+<section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Wellness supplements you can trust">
+  <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
+  <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
+  <div class="relative mx-auto flex min-h-[420px] max-w-6xl flex-col justify-center px-4 py-14 sm:min-h-[480px] sm:py-20">
+    <h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] text-white sm:text-6xl">Wellness supplements you can trust.</h1>
+    <p class="mt-5 max-w-lg text-lg text-white/90">Browse by health goal, ingredient and price. NAFDAC-cleared brands, delivered in Lagos.</p>
+    <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
+      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
+      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every food order</span>
+    </div>
   </div>
+  <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>
-<div class="flex flex-col gap-6 lg:flex-row">
+<div class="mt-8 flex flex-col gap-6 lg:flex-row">
   <button data-a="tf" class="pill flex items-center justify-center gap-2 rounded-full border border-neutral-200 py-2.5 text-sm font-bold lg:hidden"><i data-lucide="sliders-horizontal" class="h-4 w-4"></i>Filters</button>
   <aside id="filters" class="hidden w-full shrink-0 space-y-6 lg:sticky lg:top-24 lg:block lg:w-64 lg:self-start">
     <div><h2 class="mb-2 text-sm font-bold">Health goal</h2><div class="flex flex-wrap gap-2">${GOALS.map(g=>`<button data-a="goal" data-v="${g}" class="${pillCls(g===S.goal)} !px-3 !py-1.5 !text-xs">${g}</button>`).join("")}</div></div>
