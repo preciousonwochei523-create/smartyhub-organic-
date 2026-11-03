@@ -37,10 +37,7 @@ input[type=range]{accent-color:#2E7D32}
 <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/90 backdrop-blur">
   <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
     <a href="#eats" class="flex items-center gap-2" aria-label="SmartyHub Organic home" data-a="eco" data-v="eats">
-      <svg viewBox="0 0 40 40" class="h-10 w-10" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1B5E20"/><stop offset=".5" stop-color="#2E7D32"/><stop offset="1" stop-color="#4CAF50"/></linearGradient></defs>
-        <path d="M11 13l3 12h17l3-11H12.5" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="17.5" cy="31.5" r="2.3" fill="#000"/><circle cx="28" cy="31.5" r="2.3" fill="#000"/>
-        <path d="M11 13C5 13 2.5 9 2.5 3c6.5 0 8.5 4 8.5 10z" fill="url(#lg)"/></svg>
+      <span role="img" aria-label="SmartyHub Organic logo" class="block h-10 w-11 shrink-0" style="background:url(logo.png) no-repeat;background-size:65.3px auto;background-position:-14.9px -4.3px"></span>
       <span class="leading-none"><span class="block font-serif text-xl font-bold">SmartyHub</span><span class="block text-xs font-bold text-g2">Organic</span></span>
     </a>
     <nav class="order-3 flex w-full rounded-full bg-neutral-100 p-1 sm:order-none sm:w-auto" aria-label="Ecosystem">
@@ -53,7 +50,7 @@ input[type=range]{accent-color:#2E7D32}
       <input id="q" type="search" placeholder="Search menu" class="w-full rounded-full border border-neutral-200 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:border-g3"/>
     </label>
     <button data-a="cart" class="pill relative rounded-full bg-black p-3 text-white" aria-label="Open cart">
-      <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+      <i data-lucide="shopping-bag" class="h-5 w-5"></i>
       <span id="badge" class="absolute -right-1 -top-1 hidden min-w-[20px] rounded-full bg-g3 px-1 text-center text-[11px] font-bold leading-5 text-white">0</span>
     </button>
   </div>
@@ -78,21 +75,21 @@ const WA="2348066611017", $=s=>document.querySelector(s), fmt=n=>"₦"+n.toLocal
 const SIZES={t:"Size",k:"r",c:[["Regular (500ml)",0],["Large (750ml)",300]]};
 const SPICE={t:"Spice level",k:"r",c:[["Mild",0],["Medium",0],["Hot",0]]};
 const EATS=[
- {id:"d1",cat:"Tiger Nut Drinks",n:"Classic Energy",p:800,i:"cup-soda",d:"Cold-pressed tiger nut, naturally sweet and filling.",o:[SIZES]},
- {id:"d2",cat:"Tiger Nut Drinks",n:"Honey Gold",p:1000,i:"cup-soda",d:"Tiger nut finished with natural honey.",o:[SIZES]},
- {id:"d3",cat:"Tiger Nut Drinks",n:"Citrus Boost",p:1200,i:"cup-soda",d:"Tiger nut with a bright citrus lift.",o:[SIZES]},
- {id:"b1",cat:"Breakfast Combos",n:"Power Start Combo",p:1800,i:"sunrise",d:"A balanced breakfast to start the day right.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
- {id:"b2",cat:"Breakfast Combos",n:"Sardine Energy Combo",p:2100,i:"fish",d:"Sardine-based breakfast built for a busy morning.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
- {id:"b3",cat:"Breakfast Combos",n:"Fruits Salad Combo",p:2400,i:"salad",d:"Fresh fruit salad combo, light and refreshing.",o:[{t:"Add a side",k:"c",c:[["Honey drizzle",200],["Classic Energy tiger nut drink",800]]}]},
- {id:"b4",cat:"Breakfast Combos",n:"Hearty Fit Combo",p:2700,i:"dumbbell",d:"Our fullest breakfast for a long, active day.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
- {id:"s1",cat:"Shawarma",n:"Chicken Shawarma",p:1500,i:"sandwich",d:"Classic grilled chicken shawarma.",o:[SPICE]},
- {id:"s2",cat:"Shawarma",n:"Beef Shawarma",p:1500,i:"sandwich",d:"Classic grilled beef shawarma.",o:[SPICE]},
- {id:"s3",cat:"Shawarma",n:"Bellefull Combo",p:2000,i:"sandwich",d:"The bigger shawarma combo for a proper meal.",o:[SPICE]},
- {id:"s4",cat:"Shawarma",n:"Asun Shawarma",p:2500,i:"flame",d:"Spicy peppered asun in a shawarma wrap.",o:[SPICE]},
- {id:"s5",cat:"Shawarma",n:"Dodo Shawarma",p:1000,i:"sandwich",d:"Sweet fried plantain shawarma.",o:[SPICE]},
- {id:"s6",cat:"Shawarma",n:"Honey Mix Chicken Shawarma",p:1500,i:"sandwich",d:"Chicken shawarma with a honey mix.",o:[SPICE]},
- {id:"s7",cat:"Shawarma",n:"Honey Mix Beef Shawarma",p:1500,i:"sandwich",d:"Beef shawarma with a honey mix.",o:[SPICE]},
- {id:"s8",cat:"Shawarma",n:"Crunchy Suya Shawarma",p:0,i:"sandwich",d:"Suya spice and a crunch. On the way.",soon:1}
+ {id:"d1",img:"img/d1.jpg",cat:"Tiger Nut Drinks",n:"Classic Energy",p:800,i:"cup-soda",d:"Cold-pressed tiger nut, naturally sweet and filling.",o:[SIZES]},
+ {id:"d2",img:"img/d2.jpg",cat:"Tiger Nut Drinks",n:"Honey Gold",p:1000,i:"cup-soda",d:"Tiger nut finished with natural honey.",o:[SIZES]},
+ {id:"d3",img:"img/d3.jpg",cat:"Tiger Nut Drinks",n:"Citrus Boost",p:1200,i:"cup-soda",d:"Tiger nut with a bright citrus lift.",o:[SIZES]},
+ {id:"b1",img:"img/b1.jpg",cat:"Breakfast Combos",n:"Power Start Combo",p:1800,i:"sunrise",d:"A balanced breakfast to start the day right.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
+ {id:"b2",img:"img/b2.jpg",cat:"Breakfast Combos",n:"Sardine Energy Combo",p:2100,i:"fish",d:"Sardine-based breakfast built for a busy morning.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
+ {id:"b3",img:"img/b3.jpg",cat:"Breakfast Combos",n:"Fruits Salad Combo",p:2400,i:"salad",d:"Fresh fruit salad combo, light and refreshing.",o:[{t:"Add a side",k:"c",c:[["Honey drizzle",200],["Classic Energy tiger nut drink",800]]}]},
+ {id:"b4",img:"img/b4.jpg",cat:"Breakfast Combos",n:"Hearty Fit Combo",p:2700,i:"dumbbell",d:"Our fullest breakfast for a long, active day.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
+ {id:"s1",img:"img/s1.jpg",cat:"Shawarma",n:"Chicken Shawarma",p:1500,i:"sandwich",d:"Classic grilled chicken shawarma.",o:[SPICE]},
+ {id:"s2",img:"img/s2.jpg",cat:"Shawarma",n:"Beef Shawarma",p:1500,i:"sandwich",d:"Classic grilled beef shawarma.",o:[SPICE]},
+ {id:"s3",img:"img/s3.jpg",cat:"Shawarma",n:"Bellefull Combo",p:2000,i:"sandwich",d:"The bigger shawarma combo for a proper meal.",o:[SPICE]},
+ {id:"s4",img:"img/s4.jpg",cat:"Shawarma",n:"Asun Shawarma",p:2500,i:"flame",d:"Spicy peppered asun in a shawarma wrap.",o:[SPICE]},
+ {id:"s5",img:"img/s5.jpg",cat:"Shawarma",n:"Dodo Shawarma",p:1000,i:"sandwich",d:"Sweet fried plantain shawarma.",o:[SPICE]},
+ {id:"s6",img:"img/s6.jpg",cat:"Shawarma",n:"Honey Mix Chicken Shawarma",p:1500,i:"sandwich",d:"Chicken shawarma with a honey mix.",o:[SPICE]},
+ {id:"s7",img:"img/s7.jpg",cat:"Shawarma",n:"Honey Mix Beef Shawarma",p:1500,i:"sandwich",d:"Beef shawarma with a honey mix.",o:[SPICE]},
+ {id:"s8",img:"img/s8.jpg",cat:"Shawarma",n:"Crunchy Suya Shawarma",p:0,i:"sandwich",d:"Suya spice and a crunch. On the way.",soon:1}
 ];
 const ECATS=["All","Tiger Nut Drinks","Breakfast Combos","Shawarma"];
 /* Sample catalog: prices, ratings and reviews for items marked * are placeholders. Replace with real data. */
@@ -101,9 +98,9 @@ const SUPP=[
  {id:"p2",n:"Immune Defence Complex*",g:"Immunity",p:3200,dose:"2 capsules daily",r:4.4,rv:61,ing:["Vitamin C","Vitamin D3","Zinc"],i:"shield-check",d:"Everyday immune support in a single daily routine."},
  {id:"p3",n:"Osteocare",b:"Vitabiotics",g:"Bone & Joint",p:4200,dose:"2 tablets daily",r:4.7,rv:94,ing:["Calcium","Vitamin D3","Magnesium"],i:"bone",d:"Calcium, Vitamin D and Magnesium for bone health."},
  {id:"p4",n:"Glucosamine & Chondroitin*",g:"Bone & Joint",p:5600,dose:"1 tablet daily",r:4.3,rv:47,ing:["Glucosamine","Calcium"],i:"bone",d:"Joint comfort support for active adults."},
- {id:"p5",n:"Omega-3 Fish Oil",b:"Nature's Field",g:"Heart & Brain",p:2800,dose:"1 softgel daily",r:4.8,rv:212,ing:["Omega-3"],i:"heart-pulse",d:"Heart, brain and joint support from high-quality fish oil."},
+ {id:"p5",img:"img/p5.jpg",n:"Omega 3 Fish Oil 1000mg",b:"Nature's Field",g:"Heart & Brain",p:2800,dose:"1 softgel daily",r:4.8,rv:212,ing:["Omega-3"],i:"heart-pulse",d:"Fish oil that supports heart, brain and joint health."},
  {id:"p6",n:"CoQ10 100mg*",g:"Heart & Brain",p:6900,dose:"1 capsule daily",r:4.5,rv:38,ing:["CoQ10","Omega-3"],i:"brain",d:"Heart and energy support."},
- {id:"p7",n:"Wellman / Wellwoman",b:"Vitabiotics",g:"Daily Vitamins",p:3500,dose:"1 tablet daily",r:4.7,rv:176,ing:["B Vitamins","Vitamin D3","Zinc"],i:"sun",d:"Complete multivitamin for men or women. Supports energy and wellbeing."},
+ {id:"p7",img:"img/p7.jpg",n:"Wellwoman Original",b:"Vitabiotics",g:"Daily Vitamins",p:3500,dose:"1 capsule daily",r:4.7,rv:176,ing:["B Vitamins","Vitamin D3","Zinc","Iron","Selenium"],i:"sun",d:"One-a-day multivitamin made for women. B6 and B12 support the nervous system, zinc and selenium support immunity, and iron with vitamin C supports energy release. Take with your main meal. Contains vitamin K: if you take warfarin, ask your doctor first."},
  {id:"p8",n:"B-Complex",b:"Nature's Field",g:"Daily Vitamins",p:2200,dose:"1 tablet daily",r:4.5,rv:83,ing:["B Vitamins"],i:"zap",d:"Full-spectrum B vitamins for energy metabolism and stress support."},
  {id:"p9",n:"Pregnacare",b:"Vitabiotics",g:"Daily Vitamins",p:4800,dose:"1 tablet daily",r:4.9,rv:140,ing:["Folic acid","Iron","Omega-3"],i:"baby",d:"Complete prenatal nutrition with folic acid, iron and DHA."},
  {id:"p10",n:"Moringa Leaf Powder*",g:"Organic Powders",p:2500,dose:"1 tsp daily",r:4.6,rv:72,ing:["Moringa"],i:"leaf",d:"Organic moringa powder to stir into smoothies or water."},
@@ -145,13 +142,13 @@ function eatsView(){return `
   ${LOGO}
 </section>
 <div class="sticky top-[118px] z-20 -mx-4 bg-white/95 px-4 py-3 backdrop-blur sm:top-[69px]"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
-<div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>`}
+<div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>${eatsStory()}`}
 
 function drawEats(){
   const q=S.q.toLowerCase(), L=EATS.filter(x=>(S.cat==="All"||x.cat===S.cat)&&(x.n+x.d).toLowerCase().includes(q));
   $("#grid").innerHTML=L.length?L.map(x=>`
   <article class="rise flex gap-4 rounded-3xl border border-neutral-100 bg-white p-4 shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
-    <div class="tile flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl text-g2"><i data-lucide="${x.i}" class="h-10 w-10"></i></div>
+    <div class="tile flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-g2">${x.img?`<img src="${x.img}" alt="${x.n}" loading="lazy" class="h-full w-full ${x.id[0]==='d'?'object-contain':'object-cover'}"/>`:`<i data-lucide="${x.i}" class="h-10 w-10"></i>`}</div>
     <div class="flex min-w-0 flex-1 flex-col">
       <h3 class="font-serif text-lg font-bold leading-tight">${x.n}</h3>
       <p class="mt-1 text-sm text-neutral-500">${x.d}</p>
@@ -169,7 +166,7 @@ function suppView(){return `
 <section class="flex flex-col-reverse items-center gap-8 py-10 sm:py-14 md:flex-row md:justify-between">
   <div><h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] sm:text-5xl">Wellness supplements you can trust.</h1>
   <p class="mt-4 max-w-lg text-lg text-neutral-600">Browse by health goal, ingredient and price. NAFDAC-cleared brands, delivered in Lagos.</p></div>
-  ${LOGO}
+  <img src="img/supps-hero.jpg" alt="Vitabiotics and Nature's Field supplements" class="h-auto w-48 shrink-0 rounded-3xl sm:w-60"/>
 </section>
 <div class="flex flex-col gap-6 lg:flex-row">
   <button data-a="tf" class="pill flex items-center justify-center gap-2 rounded-full border border-neutral-200 py-2.5 text-sm font-bold lg:hidden"><i data-lucide="sliders-horizontal" class="h-4 w-4"></i>Filters</button>
@@ -181,7 +178,8 @@ function suppView(){return `
     <button data-a="reset" class="text-sm font-bold text-g2 underline">Clear filters</button>
   </aside>
   <div class="min-w-0 flex-1"><p id="count" class="mb-3 text-sm font-semibold text-neutral-500"></p><div id="grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"></div></div>
-</div>`}
+</div>
+${suppStory()}`}
 
 function drawSupp(){
   const q=S.q.toLowerCase();
@@ -189,7 +187,7 @@ function drawSupp(){
   $("#count").textContent=`${L.length} product${L.length===1?"":"s"}`;
   $("#grid").innerHTML=L.length?L.map(x=>`
   <article class="rise flex flex-col overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
-    <div class="tile relative flex h-36 items-center justify-center text-g2"><i data-lucide="${x.i}" class="h-12 w-12"></i>
+    <div class="tile relative flex h-36 items-center justify-center text-g2">${x.img?`<img src="${x.img}" alt="${x.n}" loading="lazy" class="h-full w-full object-contain p-2"/>`:`<i data-lucide="${x.i}" class="h-12 w-12"></i>`}
       <span class="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-g1 shadow-sm">${x.dose}</span></div>
     <div class="flex flex-1 flex-col p-4">
       <p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p>
@@ -205,6 +203,53 @@ function drawSupp(){
   </article>`).join(""):`<p class="col-span-full py-16 text-center text-neutral-500">Nothing matches these filters. Clear a filter or raise the max price.</p>`;
   ic();
 }
+
+
+/* ---------- STORY SECTIONS ---------- */
+const BEN=(i,t,d)=>`<div class="flex gap-3 rounded-2xl border border-neutral-100 bg-white p-4"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="${i}" class="h-5 w-5"></i></span><div><h3 class="font-bold">${t}</h3><p class="mt-0.5 text-sm text-neutral-500">${d}</p></div></div>`;
+const SACH=[["Vitamin C","1000mg","Supports immunity and healthy skin","bg-orange-500"],["Vitamin D3","1000 IU","Supports bone health and immunity","bg-yellow-500"],["Omega 3","1000mg","Supports heart health and brain function","bg-blue-600"],["Zinc","15mg","Supports immunity, skin and overall well-being","bg-green-600"]];
+const flyer=(src,t)=>`<button data-a="img" data-v="${src}" class="pill group overflow-hidden rounded-3xl border border-neutral-100 bg-white text-left shadow-sm hover:shadow-md"><img src="${src}" alt="${t}" loading="lazy" class="aspect-[2/3] w-full object-cover object-top transition group-hover:scale-[1.02]"/><span class="block px-4 py-3 text-sm font-bold">${t} <span class="font-medium text-neutral-400">· tap to enlarge</span></span></button>`;
+function eatsStory(){return `
+<section class="mt-16 rounded-[2rem] bg-green-50 px-5 py-10 sm:px-10">
+  <p class="text-sm font-bold uppercase tracking-widest text-g2">Our food story</p>
+  <h2 class="mt-2 max-w-2xl font-serif text-3xl font-bold leading-tight sm:text-4xl">Real food, made fresh, with nothing to hide.</h2>
+  <p class="mt-4 max-w-2xl text-neutral-600">We cook every day with clean, natural ingredients. No preservatives, no artificial additives, no shortcuts. From a tiger nut drink that keeps you going to a shawarma wrapped to order, everything is made to leave you feeling good, not just full.</p>
+  <div class="mt-8 grid gap-4 md:grid-cols-3">
+    ${[["img/b4.jpg","Breakfast that works as hard as you","Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."],["img/d2.jpg","Tiger nut, the natural energy drink","Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost."],["img/s2.jpg","Shawarma, made fresh to order","Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."]].map(c=>`<article class="overflow-hidden rounded-3xl bg-white shadow-sm"><div class="tile flex h-44 items-center justify-center"><img src="${c[0]}" alt="" loading="lazy" class="h-full w-full ${c[0].includes('d2')?'object-contain':'object-cover'}"/></div><div class="p-5"><h3 class="font-serif text-lg font-bold leading-snug">${c[1]}</h3><p class="mt-2 text-sm text-neutral-600">${c[2]}</p></div></article>`).join("")}
+  </div>
+  <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("leaf","100% natural","Made from quality natural ingredients.")}${BEN("flask-conical","No preservatives","No additives. No chemicals.")}${BEN("sprout","Rich in nutrients","Packed with fibre, vitamins and minerals.")}${BEN("zap","Boosts energy","Keeps you active and refreshed all day.")}</div>
+</section>
+<section class="mt-12">
+  <div class="rounded-[2rem] bg-g1 px-5 py-10 text-white sm:px-10">
+    <p class="text-sm font-bold uppercase tracking-widest text-green-200">A little extra with every order</p>
+    <h2 class="mt-2 font-serif text-3xl font-bold sm:text-4xl">Your free sachet of essential vitamins</h2>
+    <p class="mt-3 max-w-2xl text-green-50">Every food order comes with one free vitamin sachet. Better health, every day.</p>
+    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${SACH.map(x=>`<div class="rounded-2xl bg-white/10 p-4"><span class="inline-block rounded-lg ${x[3]} px-3 py-1.5 text-sm font-extrabold">${x[0]} ${x[1]}</span><p class="mt-3 text-sm text-green-50">${x[2]}</p></div>`).join("")}</div>
+  </div>
+</section>
+<section class="mt-12">
+  <h2 class="font-serif text-3xl font-bold">The full menu</h2>
+  <p class="mt-2 text-neutral-600">Prefer to browse the printed menus? Tap one to see it full size. You can also order through Glovo or Chowdeck.</p>
+  <div class="mt-5 grid gap-4 sm:grid-cols-3">${flyer("img/menu-breakfast.jpg","Breakfast menu")}${flyer("img/menu-shawarma.jpg","Shawarma menu")}${flyer("img/menu-promo.jpg","We've evolved")}</div>
+</section>`}
+function suppStory(){return `
+<section class="mt-16 rounded-[2rem] bg-green-50 px-5 py-10 sm:px-10">
+  <p class="text-sm font-bold uppercase tracking-widest text-g2">Our supplement story</p>
+  <h2 class="mt-2 max-w-2xl font-serif text-3xl font-bold leading-tight sm:text-4xl">Good food first. Good supplements to fill the gaps.</h2>
+  <p class="mt-4 max-w-2xl text-neutral-600">SmartyHub Organic began with supplements, and they are still the heart of the brand. We stock trusted, genuine products you can rely on, so the vitamins you take at home match the care we put into every meal.</p>
+  <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("zap","Supports energy","B vitamins, iron and vitamin C help release energy.")}${BEN("shield-check","Boosts immunity","Vitamin C, D3 and zinc support your body's defences.")}${BEN("heart-pulse","Promotes well-being","Omega-3 supports your heart, brain and joints.")}${BEN("badge-check","Authentic products","Genuine brands, checked before they reach you.")}</div>
+</section>
+<section class="mt-12 grid gap-6 md:grid-cols-2">
+  <div class="rounded-3xl border border-neutral-100 p-6"><h2 class="font-serif text-2xl font-bold">How to choose</h2>
+    <ol class="mt-4 space-y-3 text-sm text-neutral-700">
+      <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">1</span>Start with your goal: immunity, bones and joints, heart and brain, or daily vitamins.</li>
+      <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">2</span>Check the key ingredients and the daily dose on each product.</li>
+      <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">3</span>If you are pregnant, nursing or on medication, speak to your doctor or pharmacist first.</li>
+    </ol></div>
+  <div class="rounded-3xl bg-g1 p-6 text-white"><h2 class="font-serif text-2xl font-bold">Good food + good drinks + good health = a better you</h2>
+    <p class="mt-3 text-green-50">Pair your supplements with a fresh breakfast or a tiger nut drink. Every food order also comes with a free vitamin sachet.</p>
+    <button data-a="eco" data-v="eats" class="pill mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-g1">See the food menu</button></div>
+</section>`}
 
 /* ---------- CART ---------- */
 const count=()=>S.cart.reduce((a,x)=>a+x.q,0), sub=()=>S.cart.reduce((a,x)=>a+x.p*x.q,0);
@@ -243,7 +288,7 @@ function calc(){const f=$("#cf");if(!f)return;const x=EATS.find(e=>e.id===f.data
 function quickView(id){
   const x=SUPP.find(e=>e.id===id);
   modal(`<div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p><h2 class="font-serif text-2xl font-bold">${x.n}</h2><div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">${x.rv} reviews</span></div></div><button data-a="mclose" class="rounded-full p-2 hover:bg-neutral-100" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
-  <div class="tile mt-4 flex h-40 items-center justify-center rounded-2xl text-g2"><i data-lucide="${x.i}" class="h-14 w-14"></i></div>
+  <div class="tile mt-4 flex h-40 items-center justify-center overflow-hidden rounded-2xl text-g2">${x.img?`<img src="${x.img}" alt="${x.n}" class="h-full w-full object-contain p-2"/>`:`<i data-lucide="${x.i}" class="h-14 w-14"></i>`}</div>
   <p class="mt-4 text-neutral-600">${x.d}</p>
   <dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div class="rounded-2xl bg-neutral-50 p-3"><dt class="text-neutral-500">Dosage</dt><dd class="font-bold">${x.dose}</dd></div><div class="rounded-2xl bg-neutral-50 p-3"><dt class="text-neutral-500">Key ingredients</dt><dd class="font-bold">${x.ing.join(", ")}</dd></div></dl>
   <p class="mt-3 text-xs text-neutral-500">Supplements do not replace a varied diet. Speak to your doctor or pharmacist before use if you are pregnant, nursing or on medication.</p>
@@ -289,6 +334,7 @@ document.addEventListener("click",e=>{
   else if(a==="cart")openCart(true);
   else if(a==="close"){openCart(false);modal()}
   else if(a==="mclose")modal();
+  else if(a==="img")modal(`<div class="flex justify-end"><button data-a="mclose" class="rounded-full p-2 hover:bg-neutral-100" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div><img src="${v}" alt="Menu" class="mx-auto mt-2 h-auto w-full rounded-2xl"/>`);
   else if(a==="inc"||a==="dec"){const i=S.cart[v];i.q+=a==="inc"?1:-1;if(i.q<1)S.cart.splice(v,1);save();badge();drawCart()}
   else if(a==="checkout")checkout();
 });
