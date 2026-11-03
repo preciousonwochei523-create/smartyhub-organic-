@@ -2,7 +2,7 @@
  "eats": [
   {
    "id": "d1",
-   "img": "img/d1.jpg",
+   "img": "d1.jpg",
    "cat": "Tiger Nut Drinks",
    "n": "Classic Energy",
    "p": 800,
@@ -27,7 +27,7 @@
   },
   {
    "id": "d2",
-   "img": "img/d2.jpg",
+   "img": "d2.jpg",
    "cat": "Tiger Nut Drinks",
    "n": "Honey Gold",
    "p": 1000,
@@ -52,7 +52,7 @@
   },
   {
    "id": "d3",
-   "img": "img/d3.jpg",
+   "img": "d3.jpg",
    "cat": "Tiger Nut Drinks",
    "n": "Citrus Boost",
    "p": 1200,
@@ -77,7 +77,7 @@
   },
   {
    "id": "b1",
-   "img": "img/b1.jpg",
+   "img": "b1.jpg",
    "cat": "Breakfast Combos",
    "n": "Power Start Combo",
    "p": 1800,
@@ -106,7 +106,7 @@
   },
   {
    "id": "b2",
-   "img": "img/b2.jpg",
+   "img": "b2.jpg",
    "cat": "Breakfast Combos",
    "n": "Sardine Energy Combo",
    "p": 2100,
@@ -135,7 +135,7 @@
   },
   {
    "id": "b3",
-   "img": "img/b3.jpg",
+   "img": "b3.jpg",
    "cat": "Breakfast Combos",
    "n": "Fruits Salad Combo",
    "p": 2400,
@@ -160,7 +160,7 @@
   },
   {
    "id": "b4",
-   "img": "img/b4.jpg",
+   "img": "b4.jpg",
    "cat": "Breakfast Combos",
    "n": "Hearty Fit Combo",
    "p": 2700,
@@ -189,7 +189,7 @@
   },
   {
    "id": "s1",
-   "img": "img/s1.jpg",
+   "img": "s1.jpg",
    "cat": "Shawarma",
    "n": "Chicken Shawarma",
    "p": 1500,
@@ -218,7 +218,7 @@
   },
   {
    "id": "s2",
-   "img": "img/s2.jpg",
+   "img": "s2.jpg",
    "cat": "Shawarma",
    "n": "Beef Shawarma",
    "p": 1500,
@@ -247,7 +247,7 @@
   },
   {
    "id": "s3",
-   "img": "img/s3.jpg",
+   "img": "s3.jpg",
    "cat": "Shawarma",
    "n": "Bellefull Combo",
    "p": 2000,
@@ -276,7 +276,7 @@
   },
   {
    "id": "s4",
-   "img": "img/s4.jpg",
+   "img": "s4.jpg",
    "cat": "Shawarma",
    "n": "Asun Shawarma",
    "p": 2500,
@@ -305,7 +305,7 @@
   },
   {
    "id": "s5",
-   "img": "img/s5.jpg",
+   "img": "s5.jpg",
    "cat": "Shawarma",
    "n": "Dodo Shawarma",
    "p": 1000,
@@ -334,7 +334,7 @@
   },
   {
    "id": "s6",
-   "img": "img/s6.jpg",
+   "img": "s6.jpg",
    "cat": "Shawarma",
    "n": "Honey Mix Chicken Shawarma",
    "p": 1500,
@@ -363,7 +363,7 @@
   },
   {
    "id": "s7",
-   "img": "img/s7.jpg",
+   "img": "s7.jpg",
    "cat": "Shawarma",
    "n": "Honey Mix Beef Shawarma",
    "p": 1500,
@@ -392,7 +392,7 @@
   },
   {
    "id": "s8",
-   "img": "img/s8.jpg",
+   "img": "s8.jpg",
    "cat": "Shawarma",
    "n": "Crunchy Suya Shawarma",
    "p": 0,
@@ -468,7 +468,7 @@
   },
   {
    "id": "p5",
-   "img": "img/p5.jpg",
+   "img": "p5.jpg",
    "n": "Omega 3 Fish Oil 1000mg",
    "b": "Nature's Field",
    "g": "Heart & Brain",
@@ -499,7 +499,7 @@
   },
   {
    "id": "p7",
-   "img": "img/p7.jpg",
+   "img": "p7.jpg",
    "n": "Wellwoman Original",
    "b": "Vitabiotics",
    "g": "Daily Vitamins",
@@ -620,10 +620,10 @@
   "Essential Oils"
  ],
  "hero": [
-  "img/supps-hero.jpg",
-  "img/supps-2.jpg",
-  "img/supps-3.jpg",
-  "img/supps-4.jpg",
-  "img/supps-5.jpg"
+  "supps-hero.jpg",
+  "supps-2.jpg",
+  "supps-3.jpg",
+  "supps-4.jpg",
+  "supps-5.jpg"
  ]
 }

@@ -81,21 +81,21 @@ const WA="2348066611017", $=s=>document.querySelector(s), fmt=n=>"₦"+n.toLocal
 const SIZES={t:"Size",k:"r",c:[["Regular (500ml)",0],["Large (750ml)",300]]};
 const SPICE={t:"Spice level",k:"r",c:[["Mild",0],["Medium",0],["Hot",0]]};
 let EATS=[
- {id:"d1",img:"img/d1.jpg",cat:"Tiger Nut Drinks",n:"Classic Energy",p:800,i:"cup-soda",d:"Cold-pressed tiger nut, naturally sweet and filling.",o:[SIZES]},
- {id:"d2",img:"img/d2.jpg",cat:"Tiger Nut Drinks",n:"Honey Gold",p:1000,i:"cup-soda",d:"Tiger nut finished with natural honey.",o:[SIZES]},
- {id:"d3",img:"img/d3.jpg",cat:"Tiger Nut Drinks",n:"Citrus Boost",p:1200,i:"cup-soda",d:"Tiger nut with a bright citrus lift.",o:[SIZES]},
- {id:"b1",img:"img/b1.jpg",cat:"Breakfast Combos",n:"Power Start Combo",p:1800,i:"sunrise",d:"A balanced breakfast to start the day right.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
- {id:"b2",img:"img/b2.jpg",cat:"Breakfast Combos",n:"Sardine Energy Combo",p:2100,i:"fish",d:"Sardine-based breakfast built for a busy morning.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
- {id:"b3",img:"img/b3.jpg",cat:"Breakfast Combos",n:"Fruits Salad Combo",p:2400,i:"salad",d:"Fresh fruit salad combo, light and refreshing.",o:[{t:"Add a side",k:"c",c:[["Honey drizzle",200],["Classic Energy tiger nut drink",800]]}]},
- {id:"b4",img:"img/b4.jpg",cat:"Breakfast Combos",n:"Hearty Fit Combo",p:2700,i:"dumbbell",d:"Our fullest breakfast for a long, active day.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
- {id:"s1",img:"img/s1.jpg",cat:"Shawarma",n:"Chicken Shawarma",p:1500,i:"sandwich",d:"Classic grilled chicken shawarma.",o:[SPICE]},
- {id:"s2",img:"img/s2.jpg",cat:"Shawarma",n:"Beef Shawarma",p:1500,i:"sandwich",d:"Classic grilled beef shawarma.",o:[SPICE]},
- {id:"s3",img:"img/s3.jpg",cat:"Shawarma",n:"Bellefull Combo",p:2000,i:"sandwich",d:"The bigger shawarma combo for a proper meal.",o:[SPICE]},
- {id:"s4",img:"img/s4.jpg",cat:"Shawarma",n:"Asun Shawarma",p:2500,i:"flame",d:"Spicy peppered asun in a shawarma wrap.",o:[SPICE]},
- {id:"s5",img:"img/s5.jpg",cat:"Shawarma",n:"Dodo Shawarma",p:1000,i:"sandwich",d:"Sweet fried plantain shawarma.",o:[SPICE]},
- {id:"s6",img:"img/s6.jpg",cat:"Shawarma",n:"Honey Mix Chicken Shawarma",p:1500,i:"sandwich",d:"Chicken shawarma with a honey mix.",o:[SPICE]},
- {id:"s7",img:"img/s7.jpg",cat:"Shawarma",n:"Honey Mix Beef Shawarma",p:1500,i:"sandwich",d:"Beef shawarma with a honey mix.",o:[SPICE]},
- {id:"s8",img:"img/s8.jpg",cat:"Shawarma",n:"Crunchy Suya Shawarma",p:0,i:"sandwich",d:"Suya spice and a crunch. On the way.",soon:1}
+ {id:"d1",img:"d1.jpg",cat:"Tiger Nut Drinks",n:"Classic Energy",p:800,i:"cup-soda",d:"Cold-pressed tiger nut, naturally sweet and filling.",o:[SIZES]},
+ {id:"d2",img:"d2.jpg",cat:"Tiger Nut Drinks",n:"Honey Gold",p:1000,i:"cup-soda",d:"Tiger nut finished with natural honey.",o:[SIZES]},
+ {id:"d3",img:"d3.jpg",cat:"Tiger Nut Drinks",n:"Citrus Boost",p:1200,i:"cup-soda",d:"Tiger nut with a bright citrus lift.",o:[SIZES]},
+ {id:"b1",img:"b1.jpg",cat:"Breakfast Combos",n:"Power Start Combo",p:1800,i:"sunrise",d:"A balanced breakfast to start the day right.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
+ {id:"b2",img:"b2.jpg",cat:"Breakfast Combos",n:"Sardine Energy Combo",p:2100,i:"fish",d:"Sardine-based breakfast built for a busy morning.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
+ {id:"b3",img:"b3.jpg",cat:"Breakfast Combos",n:"Fruits Salad Combo",p:2400,i:"salad",d:"Fresh fruit salad combo, light and refreshing.",o:[{t:"Add a side",k:"c",c:[["Honey drizzle",200],["Classic Energy tiger nut drink",800]]}]},
+ {id:"b4",img:"b4.jpg",cat:"Breakfast Combos",n:"Hearty Fit Combo",p:2700,i:"dumbbell",d:"Our fullest breakfast for a long, active day.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
+ {id:"s1",img:"s1.jpg",cat:"Shawarma",n:"Chicken Shawarma",p:1500,i:"sandwich",d:"Classic grilled chicken shawarma.",o:[SPICE]},
+ {id:"s2",img:"s2.jpg",cat:"Shawarma",n:"Beef Shawarma",p:1500,i:"sandwich",d:"Classic grilled beef shawarma.",o:[SPICE]},
+ {id:"s3",img:"s3.jpg",cat:"Shawarma",n:"Bellefull Combo",p:2000,i:"sandwich",d:"The bigger shawarma combo for a proper meal.",o:[SPICE]},
+ {id:"s4",img:"s4.jpg",cat:"Shawarma",n:"Asun Shawarma",p:2500,i:"flame",d:"Spicy peppered asun in a shawarma wrap.",o:[SPICE]},
+ {id:"s5",img:"s5.jpg",cat:"Shawarma",n:"Dodo Shawarma",p:1000,i:"sandwich",d:"Sweet fried plantain shawarma.",o:[SPICE]},
+ {id:"s6",img:"s6.jpg",cat:"Shawarma",n:"Honey Mix Chicken Shawarma",p:1500,i:"sandwich",d:"Chicken shawarma with a honey mix.",o:[SPICE]},
+ {id:"s7",img:"s7.jpg",cat:"Shawarma",n:"Honey Mix Beef Shawarma",p:1500,i:"sandwich",d:"Beef shawarma with a honey mix.",o:[SPICE]},
+ {id:"s8",img:"s8.jpg",cat:"Shawarma",n:"Crunchy Suya Shawarma",p:0,i:"sandwich",d:"Suya spice and a crunch. On the way.",soon:1}
 ];
 let ECATS=["All","Tiger Nut Drinks","Breakfast Combos","Shawarma"];
 /* Sample catalog: prices, ratings and reviews for items marked * are placeholders. Replace with real data. */
@@ -104,9 +104,9 @@ let SUPP=[
  {id:"p2",n:"Immune Defence Complex*",g:"Immunity",p:3200,dose:"2 capsules daily",r:4.4,rv:61,ing:["Vitamin C","Vitamin D3","Zinc"],i:"shield-check",d:"Everyday immune support in a single daily routine."},
  {id:"p3",n:"Osteocare",b:"Vitabiotics",g:"Bone & Joint",p:4200,dose:"2 tablets daily",r:4.7,rv:94,ing:["Calcium","Vitamin D3","Magnesium"],i:"bone",d:"Calcium, Vitamin D and Magnesium for bone health."},
  {id:"p4",n:"Glucosamine & Chondroitin*",g:"Bone & Joint",p:5600,dose:"1 tablet daily",r:4.3,rv:47,ing:["Glucosamine","Calcium"],i:"bone",d:"Joint comfort support for active adults."},
- {id:"p5",img:"img/p5.jpg",n:"Omega 3 Fish Oil 1000mg",b:"Nature's Field",g:"Heart & Brain",p:2800,dose:"1 softgel daily",r:4.8,rv:212,ing:["Omega-3"],i:"heart-pulse",d:"Fish oil that supports heart, brain and joint health."},
+ {id:"p5",img:"p5.jpg",n:"Omega 3 Fish Oil 1000mg",b:"Nature's Field",g:"Heart & Brain",p:2800,dose:"1 softgel daily",r:4.8,rv:212,ing:["Omega-3"],i:"heart-pulse",d:"Fish oil that supports heart, brain and joint health."},
  {id:"p6",n:"CoQ10 100mg*",g:"Heart & Brain",p:6900,dose:"1 capsule daily",r:4.5,rv:38,ing:["CoQ10","Omega-3"],i:"brain",d:"Heart and energy support."},
- {id:"p7",img:"img/p7.jpg",n:"Wellwoman Original",b:"Vitabiotics",g:"Daily Vitamins",p:3500,dose:"1 capsule daily",r:4.7,rv:176,ing:["B Vitamins","Vitamin D3","Zinc","Iron","Selenium"],i:"sun",d:"One-a-day multivitamin made for women. B6 and B12 support the nervous system, zinc and selenium support immunity, and iron with vitamin C supports energy release. Take with your main meal. Contains vitamin K: if you take warfarin, ask your doctor first."},
+ {id:"p7",img:"p7.jpg",n:"Wellwoman Original",b:"Vitabiotics",g:"Daily Vitamins",p:3500,dose:"1 capsule daily",r:4.7,rv:176,ing:["B Vitamins","Vitamin D3","Zinc","Iron","Selenium"],i:"sun",d:"One-a-day multivitamin made for women. B6 and B12 support the nervous system, zinc and selenium support immunity, and iron with vitamin C supports energy release. Take with your main meal. Contains vitamin K: if you take warfarin, ask your doctor first."},
  {id:"p8",n:"B-Complex",b:"Nature's Field",g:"Daily Vitamins",p:2200,dose:"1 tablet daily",r:4.5,rv:83,ing:["B Vitamins"],i:"zap",d:"Full-spectrum B vitamins for energy metabolism and stress support."},
  {id:"p9",n:"Pregnacare",b:"Vitabiotics",g:"Daily Vitamins",p:4800,dose:"1 tablet daily",r:4.9,rv:140,ing:["Folic acid","Iron","Omega-3"],i:"baby",d:"Complete prenatal nutrition with folic acid, iron and DHA."},
  {id:"p10",n:"Moringa Leaf Powder*",g:"Organic Powders",p:2500,dose:"1 tsp daily",r:4.6,rv:72,ing:["Moringa"],i:"leaf",d:"Organic moringa powder to stir into smoothies or water."},
@@ -176,7 +176,7 @@ function drawEats(){
 }
 
 /* Hero slideshow: drop your images in /img with these names (any that are missing are skipped) */
-let HERO_SLIDES=["img/supps-hero.jpg","img/supps-2.jpg","img/supps-3.jpg","img/supps-4.jpg","img/supps-5.jpg"];
+let HERO_SLIDES=["supps-hero.jpg","supps-2.jpg","supps-3.jpg","supps-4.jpg","supps-5.jpg"];
 setInterval(()=>{const sl=document.querySelectorAll("#hs .hs-slide");if(sl.length<2||matchMedia("(prefers-reduced-motion: reduce)").matches)return;let i=[...sl].findIndex(x=>x.classList.contains("on"));sl[i<0?0:i].classList.remove("on");sl[(i+1)%sl.length].classList.add("on")},3800);
 function suppView(){return `
 <section class="flex flex-col-reverse items-center gap-8 py-10 sm:py-14 md:flex-row md:justify-between">
@@ -234,7 +234,7 @@ function eatsStory(){return `
   <h2 class="mt-2 max-w-2xl font-serif text-3xl font-bold leading-tight sm:text-4xl">Real food, made fresh, with nothing to hide.</h2>
   <p class="mt-4 max-w-2xl text-neutral-600">We cook every day with clean, natural ingredients. No preservatives, no artificial additives, no shortcuts. From a tiger nut drink that keeps you going to a shawarma wrapped to order, everything is made to leave you feeling good, not just full.</p>
   <div class="mt-8 grid gap-4 md:grid-cols-3">
-    ${[["img/b4.jpg","Breakfast that works as hard as you","Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."],["img/d2.jpg","Tiger nut, the natural energy drink","Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost."],["img/s2.jpg","Shawarma, made fresh to order","Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."]].map(c=>`<article class="overflow-hidden rounded-3xl bg-white shadow-sm"><div class="tile flex h-44 items-center justify-center"><img src="${c[0]}" alt="" loading="lazy" class="h-full w-full ${c[0].includes('d2')?'object-contain':'object-cover'}"/></div><div class="p-5"><h3 class="font-serif text-lg font-bold leading-snug">${c[1]}</h3><p class="mt-2 text-sm text-neutral-600">${c[2]}</p></div></article>`).join("")}
+    ${[["b4.jpg","Breakfast that works as hard as you","Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."],["d2.jpg","Tiger nut, the natural energy drink","Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost."],["s2.jpg","Shawarma, made fresh to order","Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."]].map(c=>`<article class="overflow-hidden rounded-3xl bg-white shadow-sm"><div class="tile flex h-44 items-center justify-center"><img src="${c[0]}" alt="" loading="lazy" class="h-full w-full ${c[0].includes('d2')?'object-contain':'object-cover'}"/></div><div class="p-5"><h3 class="font-serif text-lg font-bold leading-snug">${c[1]}</h3><p class="mt-2 text-sm text-neutral-600">${c[2]}</p></div></article>`).join("")}
   </div>
   <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("leaf","100% natural","Made from quality natural ingredients.")}${BEN("flask-conical","No preservatives","No additives. No chemicals.")}${BEN("sprout","Rich in nutrients","Packed with fibre, vitamins and minerals.")}${BEN("zap","Boosts energy","Keeps you active and refreshed all day.")}</div>
 </section>
@@ -249,7 +249,7 @@ function eatsStory(){return `
 <section class="mt-12">
   <h2 class="font-serif text-3xl font-bold">The full menu</h2>
   <p class="mt-2 text-neutral-600">Prefer to browse the printed menus? Tap one to see it full size. You can also order through Glovo or Chowdeck.</p>
-  <div class="mt-5 grid gap-4 sm:grid-cols-3">${flyer("img/menu-breakfast.jpg","Breakfast menu")}${flyer("img/menu-shawarma.jpg","Shawarma menu")}${flyer("img/menu-promo.jpg","We've evolved")}</div>
+  <div class="mt-5 grid gap-4 sm:grid-cols-3">${flyer("menu-breakfast.jpg","Breakfast menu")}${flyer("menu-shawarma.jpg","Shawarma menu")}${flyer("menu-promo.jpg","We've evolved")}</div>
 </section>`}
 function suppStory(){return `
 <section class="mt-16 rounded-[2rem] bg-green-50 px-5 py-10 sm:px-10">
