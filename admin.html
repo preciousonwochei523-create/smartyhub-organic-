@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>SmartyHub Admin</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script>tailwind.config={theme:{extend:{colors:{g1:'#1B5E20',g2:'#2E7D32',g3:'#4CAF50'}}}}</script>
+<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}input,select,textarea{width:100%;border:1px solid #e5e5e5;border-radius:.75rem;padding:.6rem .75rem;font-size:.95rem;background:#fff}label{display:block;font-size:.75rem;font-weight:700;color:#525252;margin:.9rem 0 .25rem}.btn{border-radius:9999px;padding:.55rem 1rem;font-weight:700;font-size:.85rem}.noscroll::-webkit-scrollbar{display:none}</style>
+</head>
+<body class="bg-neutral-50 text-neutral-900">
+
+<header class="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur">
+  <div class="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3">
+    <h1 class="text-lg font-extrabold text-g1">SmartyHub Admin</h1>
+    <div class="flex gap-2"><a href="./" target="_blank" class="btn border border-neutral-300">View site</a><button id="so" class="btn hidden bg-neutral-800 text-white" onclick="signOut()">Sign out</button></div>
+  </div>
+  <nav id="tabs" class="noscroll mx-auto flex max-w-3xl gap-2 overflow-x-auto px-4 pb-3"></nav>
+</header>
+
+<main id="main" class="mx-auto max-w-3xl px-4 pb-24 pt-4"></main>
+<div id="sheet"></div>
+<div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 translate-y-20 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white opacity-0 transition-all duration-300"></div>
+
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>"₦"+(+n||0).toLocaleString("en-NG");
+const X='<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+let D=null, tab="orders", q="", E=null, EK="", isNew=false, sb=null, SORT={};
+const CFG=window.SHO_SB||{}, BUCKET="product-images";
+
+function toast(t){const e=$("#toast");e.textContent=t;e.style.opacity=1;e.style.transform="translate(-50%,0)";clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translate(-50%,5rem)"},2600)}
+function toBlob(file,max=800){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(),"image/jpeg",.82)};im.onerror=rej;im.src=u})}
+async function upload(file,max){
+  const blob=await toBlob(file,max),path=Date.now()+"-"+Math.random().toString(36).slice(2,7)+".jpg";
+  const {error}=await sb.storage.from(BUCKET).upload(path,blob,{contentType:"image/jpeg",cacheControl:"31536000"});
+  if(error)throw error;return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+/* ---------- start, login, load ---------- */
+async function init(){
+  if(!CFG.url||!CFG.key||/YOUR/.test(CFG.url+CFG.key)){
+    $("#main").innerHTML=`<div class="rounded-2xl bg-white p-5 shadow-sm"><h2 class="font-extrabold">Connect Supabase first</h2><p class="mt-2 text-sm text-neutral-600">Open <code>supabase-config.js</code> and paste your Project URL and anon key (Supabase, Project Settings, API). Then reload this page.</p></div>`;return}
+  sb=supabase.createClient(CFG.url,CFG.key);
+  const {data}=await sb.auth.getSession();
+  data.session?boot():loginView();
+}
+function loginView(){
+  $("#tabs").innerHTML="";$("#so").classList.add("hidden");
+  $("#main").innerHTML=`<form onsubmit="event.preventDefault();login(this)" class="mx-auto mt-6 max-w-sm rounded-2xl bg-white p-5 shadow-sm"><h2 class="text-lg font-extrabold">Admin sign in</h2>
+  <label>Email</label><input name="e" type="email" required autocomplete="username"/><label>Password</label><input name="p" type="password" required autocomplete="current-password"/>
+  <button class="btn mt-4 w-full bg-g2 py-3 text-white">Sign in</button></form>`;
+}
+async function login(f){
+  const {error}=await sb.auth.signInWithPassword({email:f.e.value.trim(),password:f.p.value});
+  error?toast(error.message):boot();
+}
+async function signOut(){await sb.auth.signOut();D=null;loginView()}
+async function boot(){
+  $("#so").classList.remove("hidden");$("#main").innerHTML='<p class="py-16 text-center text-neutral-500">Loading…</p>';
+  await load();draw();if(tab==="orders")ordersLoad();
+}
+async function load(){
+  const [a,b]=await Promise.all([sb.from("items").select("id,kind,data,sort").order("sort"),sb.from("settings").select("key,value")]);
+  if(a.error||b.error)toast("Could not load: "+(a.error||b.error).message);
+  const it=a.data||[],st=Object.fromEntries((b.data||[]).map(r=>[r.key,r.value]));
+  SORT={};it.forEach(r=>SORT[r.id]=r.sort);
+  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],zones:st.zones||[],kitchens:st.kitchens||[],riders:st.riders||[]};
+}
+async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
+
+/* ---------- screens ---------- */
+const TABS=[["orders","Orders"],["eats","Breakfast & Eats"],["supps","Supplements"],["ops","Delivery & Partners"],["cats","Categories & Hero"],["pub","Backup & Import"]];
+function draw(){
+  $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
+  $("#main").innerHTML=tab==="orders"?ordersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="pub"?pubView():listView(tab);
+}
+function go(t){tab=t;q="";draw();if(t==="orders")ordersLoad();scrollTo(0,0)}
+function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
+function listView(k){
+  const L=D[k].filter(x=>(x.n+(x.b||"")+(x.cat||x.g||"")).toLowerCase().includes(q.toLowerCase()));
+  return `<div class="flex gap-2"><input placeholder="Search items" value="${esc(q)}" oninput="q=this.value;$('#lst').innerHTML=rows('${k}')"/><button class="btn shrink-0 bg-g2 text-white" onclick="edit('${k}')">+ Add</button></div>
+  <p class="mt-3 text-xs text-neutral-500">${D[k].length} items. Tap an item to edit price, details, photo or stock.</p>
+  <div id="lst" class="mt-3 space-y-3">${rows(k)}</div>`;
+}
+function rows(k){
+  const L=D[k].filter(x=>(x.n+(x.b||"")+(x.cat||x.g||"")).toLowerCase().includes(q.toLowerCase()));
+  if(!L.length)return '<p class="py-10 text-center text-neutral-500">Nothing here yet.</p>';
+  return L.map(x=>{const [s,c]=status(x);return `<button onclick="edit('${k}','${x.id}')" class="flex w-full items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left shadow-sm">
+    <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-green-50 text-xs text-g2">${x.img?`<img src="${esc(x.img)}" class="h-full w-full object-cover" onerror="this.remove()"/>`:"No photo"}</div>
+    <div class="min-w-0 flex-1"><p class="truncate font-bold">${esc(x.n)}</p><p class="truncate text-xs text-neutral-500">${esc(x.cat||x.g||"")}${x.b?" · "+esc(x.b):""}</p><p class="mt-0.5 font-bold text-g2">${x.soon?"—":fmt(x.p)}</p></div>
+    <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${c}">${s}</span></button>`}).join("");
+}
+
+/* ---------- item editor ---------- */
+function edit(k,id){
+  EK=k;isNew=!id;
+  E=id?JSON.parse(JSON.stringify(D[k].find(x=>x.id===id))):(k==="eats"
+    ?{id:"e"+Date.now().toString(36),cat:D.eatCats[0]||"",n:"",p:0,d:"",img:"",i:"sandwich",o:[]}
+    :{id:"p"+Date.now().toString(36),g:D.suppCats[0]||"",n:"",b:"",p:0,dose:"",r:4.5,rv:0,ing:[],d:"",img:"",i:"leaf"});
+  sheet();
+}
+function stVal(){return E.hide?"hide":E.soon?"soon":E.out?"out":"ok"}
+function sheet(){
+  const eats=EK==="eats", cats=eats?D.eatCats:D.suppCats, cur=eats?E.cat:E.g;
+  $("#sheet").innerHTML=`<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onclick="if(event.target===this)closeSheet()">
+  <form id="f" onsubmit="event.preventDefault();saveItem()" class="flex max-h-[94vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+    <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-3"><h2 class="text-lg font-extrabold">${isNew?"Add":"Edit"} ${eats?"menu item":"supplement"}</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
+    <div class="overflow-y-auto px-5 pb-4">
+      <label>Photo</label>
+      <div class="flex items-center gap-3"><div id="pv" class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-green-50 text-xs text-g2">${E.img?`<img src="${esc(E.img)}" class="h-full w-full object-cover"/>`:"No photo"}</div>
+      <div class="flex flex-wrap gap-2"><label class="btn m-0 cursor-pointer bg-g2 !text-white">Upload<input type="file" accept="image/*" class="hidden" onchange="pickImg(this)"/></label><button type="button" class="btn border border-neutral-300" onclick="E.img='';sheet()">Remove</button></div></div>
+      <label>Name</label><input name="n" required value="${esc(E.n)}"/>
+      ${eats?"":`<label>Brand (optional)</label><input name="b" value="${esc(E.b||"")}"/>`}
+      <label>${eats?"Category":"Health goal / category"}</label><select name="cat">${cats.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>
+      <label>Price (₦)</label><input name="p" type="number" min="0" step="50" inputmode="numeric" value="${E.p}"/>
+      <label>Description</label><textarea name="d" rows="3">${esc(E.d)}</textarea>
+      ${eats?"":`<label>Dosage</label><input name="dose" value="${esc(E.dose||"")}" placeholder="1 tablet daily"/>
+      <label>Key ingredients (comma separated)</label><input name="ing" value="${esc((E.ing||[]).join(", "))}"/>
+      <div class="grid grid-cols-2 gap-3"><div><label>Rating (0 to 5)</label><input name="r" type="number" min="0" max="5" step="0.1" value="${E.r}"/></div><div><label>Number of reviews</label><input name="rv" type="number" min="0" value="${E.rv}"/></div></div>`}
+      <label>Availability</label><select name="st"><option value="ok">Available</option><option value="out">Sold out</option>${eats?'<option value="soon">Coming soon</option>':""}<option value="hide">Hidden from the site</option></select>
+      ${eats?optsEditor():""}
+    </div>
+    <div class="flex gap-2 border-t border-neutral-100 px-5 py-3">${isNew?"":`<button type="button" class="btn border border-red-300 text-red-600" onclick="delItem()">Delete</button>`}<button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div>
+  </form></div>`;
+  $("#f").st.value=stVal();
+}
+function optsEditor(){
+  return `<label>Choices customers pick from (optional)</label>
+  ${E.o.map((g,i)=>`<div class="mb-3 rounded-2xl border border-neutral-200 p-3" data-g="${i}">
+    <div class="flex gap-2"><input class="gt" placeholder="Group title, e.g. Size" value="${esc(g.t)}"/><button type="button" class="rounded-full bg-neutral-100 px-3" onclick="rmGroup(${i})" aria-label="Remove group">${X}</button></div>
+    <select class="gk mt-2"><option value="r" ${g.k==="r"?"selected":""}>Customer must pick one</option><option value="c" ${g.k==="c"?"selected":""}>Optional add-ons (tick any)</option></select>
+    <textarea class="gc mt-2" rows="3" placeholder="One per line: Name | extra price">${esc((g.c||[]).map(c=>c[0]+" | "+c[1]).join("\n"))}</textarea></div>`).join("")}
+  <button type="button" class="btn border border-neutral-300" onclick="addGroup()">+ Add choice group</button>`;
+}
+function collect(){
+  const f=$("#f");if(!f)return;const eats=EK==="eats",v=n=>f.elements[n]?.value;
+  E.n=v("n").trim();E.p=Math.max(0,Math.round(+v("p")||0));E.d=v("d").trim();
+  if(eats)E.cat=v("cat");else{E.g=v("cat");E.b=v("b").trim();if(!E.b)delete E.b;E.dose=v("dose").trim();E.ing=v("ing").split(",").map(s=>s.trim()).filter(Boolean);E.r=Math.min(5,Math.max(0,+v("r")||0));E.rv=Math.max(0,Math.round(+v("rv")||0))}
+  const st=v("st");delete E.hide;delete E.out;delete E.soon;if(st==="hide")E.hide=1;if(st==="out")E.out=1;if(st==="soon")E.soon=1;
+  if(eats)E.o=[...f.querySelectorAll("[data-g]")].map(d=>({t:d.querySelector(".gt").value.trim()||"Options",k:d.querySelector(".gk").value,c:d.querySelector(".gc").value.split("\n").map(l=>l.split("|")).map(a=>[a[0].trim(),Math.round(+(a[1]||0))||0]).filter(a=>a[0])})).filter(g=>g.c.length);
+}
+function addGroup(){collect();E.o.push({t:"",k:"r",c:[]});sheet()}
+function rmGroup(i){collect();E.o.splice(i,1);sheet()}
+async function pickImg(inp){const f=inp.files[0];if(!f)return;try{collect();E.img=await toDataURL(f);sheet()}catch(e){toast("Could not read that image")}}
+async function saveItem(){
+  collect();if(!E.n){toast("Add a name");return}
+  const btn=$("#f button.flex-1");if(btn){btn.disabled=true;btn.textContent="Saving…"}
+  const sort=SORT[E.id]??Math.floor(Date.now()/1000);
+  const {error}=await sb.from("items").upsert({id:E.id,kind:EK==="eats"?"eat":"supp",data:E,sort,updated_at:new Date().toISOString()});
+  if(error){toast("Save failed: "+error.message);if(btn){btn.disabled=false;btn.textContent="Save"}return}
+  SORT[E.id]=sort;const L=D[EK],i=L.findIndex(x=>x.id===E.id);if(i<0)L.push(E);else L[i]=E;
+  closeSheet();draw();toast("Saved. Live on the site now.");
+}
+async function delItem(){
+  if(!confirm("Delete this item from the live site?"))return;
+  const {error}=await sb.from("items").delete().eq("id",E.id);
+  if(error){toast("Delete failed: "+error.message);return}
+  D[EK]=D[EK].filter(x=>x.id!==E.id);closeSheet();draw();toast("Deleted");
+}
+async function pickImg(inp){const f=inp.files[0];if(!f)return;try{collect();toast("Uploading photo…");E.img=await upload(f,800);sheet();toast("Photo uploaded")}catch(e){toast("Upload failed: "+(e.message||"check bucket policies"))}}
+function closeSheet(){$("#sheet").innerHTML=""}
+addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+
+/* ---------- categories & hero ---------- */
+function catsView(){
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Menu categories</h2><p class="text-xs text-neutral-500">One per line. If you rename one, also re-pick it on the items that used the old name.</p>
+  <textarea id="ec" rows="5" class="mt-2">${esc(D.eatCats.join("\n"))}</textarea>
+  <h2 class="mt-5 font-extrabold">Supplement categories</h2><textarea id="sc" rows="7" class="mt-2">${esc(D.suppCats.join("\n"))}</textarea>
+  <button class="btn mt-3 bg-g2 text-white" onclick="saveCats()">Save categories</button></div>
+  <div class="mt-5 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Supplements hero slideshow</h2><p class="text-xs text-neutral-500">Photos rotate on the Supplements page, each with the SmartyHub Organic watermark. Use photos you own or that are licensed for commercial use.</p>
+  <div class="mt-3 grid grid-cols-3 gap-3">${D.hero.map((u,i)=>`<div class="relative"><img src="${esc(u)}" class="aspect-[3/4] w-full rounded-xl bg-green-50 object-cover" onerror="this.style.opacity=.2"/>
+    <button class="absolute right-1 top-1 rounded-full bg-white p-1 shadow" onclick="heroRm(${i})" aria-label="Remove">${X}</button>
+    ${i?`<button class="absolute bottom-1 left-1 rounded-full bg-white px-2 text-xs font-bold shadow" onclick="heroUp(${i})">◀</button>`:""}</div>`).join("")}</div>
+  <label class="btn mt-3 inline-block cursor-pointer bg-g2 text-center !text-white">+ Upload photos<input type="file" accept="image/*" multiple class="hidden" onchange="heroAdd(this)"/></label></div>`;
+}
+function saveCats(){const p=id=>$(id).value.split("\n").map(s=>s.trim()).filter(Boolean);D.eatCats=p("#ec");D.suppCats=p("#sc");persist();toast("Categories saved to draft")}
+async function heroAdd(inp){for(const f of inp.files){try{D.hero.push(await toDataURL(f,900))}catch(e){}}persist();draw()}
+function heroRm(i){D.hero.splice(i,1);persist();draw()}
+function heroUp(i){[D.hero[i-1],D.hero[i]]=[D.hero[i],D.hero[i-1]];persist();draw()}
+
+/* ---------- categories & hero ---------- */
+function catsView(){
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Menu categories</h2><p class="text-xs text-neutral-500">One per line. If you rename one, also re-pick it on the items that used the old name.</p>
+  <textarea id="ec" rows="5" class="mt-2">${esc(D.eatCats.join("\n"))}</textarea>
+  <h2 class="mt-5 font-extrabold">Supplement categories</h2><textarea id="sc" rows="7" class="mt-2">${esc(D.suppCats.join("\n"))}</textarea>
+  <button class="btn mt-3 bg-g2 text-white" onclick="saveCats()">Save categories</button></div>
+  <div class="mt-5 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Supplements hero slideshow</h2><p class="text-xs text-neutral-500">Photos rotate on the Supplements page with the SmartyHub Organic watermark. Use photos you own or that are licensed for commercial use.</p>
+  <div class="mt-3 grid grid-cols-3 gap-3">${D.hero.map((u,i)=>`<div class="relative"><img src="${esc(u)}" class="aspect-[3/4] w-full rounded-xl bg-green-50 object-cover" onerror="this.style.opacity=.2"/>
+    <button class="absolute right-1 top-1 rounded-full bg-white p-1 shadow" onclick="heroRm(${i})" aria-label="Remove">${X}</button>
+    ${i?`<button class="absolute bottom-1 left-1 rounded-full bg-white px-2 text-xs font-bold shadow" onclick="heroUp(${i})">◀</button>`:""}</div>`).join("")}</div>
+  <label class="btn mt-3 inline-block cursor-pointer bg-g2 text-center !text-white">+ Upload photos<input type="file" accept="image/*" multiple class="hidden" onchange="heroAdd(this)"/></label></div>`;
+}
+async function saveCats(){
+  const p=id=>$(id).value.split("\n").map(s=>s.trim()).filter(Boolean);
+  const e=p("#ec"),s=p("#sc");if(await setting("eatCats",e)&&await setting("suppCats",s)){D.eatCats=e;D.suppCats=s;toast("Categories saved. Live now.")}
+}
+async function heroAdd(inp){
+  toast("Uploading…");const n=[...D.hero];
+  for(const f of inp.files){try{n.push(await upload(f,900))}catch(e){toast("Upload failed: "+e.message);break}}
+  if(await setting("hero",n)){D.hero=n;draw();toast("Hero updated")}
+}
+async function heroRm(i){const n=D.hero.filter((_,j)=>j!==i);if(await setting("hero",n)){D.hero=n;draw()}}
+async function heroUp(i){const n=[...D.hero];[n[i-1],n[i]]=[n[i],n[i-1]];if(await setting("hero",n)){D.hero=n;draw()}}
+
+/* ---------- backup & import ---------- */
+function pubView(){
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Live data</h2>
+  <p class="mt-1 text-sm text-neutral-600">${D.eats.length} menu items, ${D.supps.length} supplements, ${D.hero.length} hero photos. Every save here updates the site immediately.</p>
+  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-g2 text-white" onclick="backup()">Download backup</button><button class="btn border border-neutral-300" onclick="boot()">Refresh</button></div></div>
+  <div class="mt-4 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">First-time import</h2>
+  <p class="mt-1 text-sm text-neutral-600">Copy your existing menu and supplements into Supabase. This overwrites items with the same id.</p>
+  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-g2 text-white" onclick="seedSite()">Import site's catalog.json</button>
+  <label class="btn cursor-pointer border border-neutral-300">Import a file<input type="file" accept=".json,application/json" class="hidden" onchange="importFile(this)"/></label></div></div>`;
+}
+function backup(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:"application/json"}));a.download="smartyhub-backup.json";a.click()}
+async function seed(c){
+  if(!Array.isArray(c.eats)||!Array.isArray(c.supps))throw new Error("Not a valid catalog");
+  const rows=[...c.eats.map((x,i)=>({id:x.id,kind:"eat",data:x,sort:i})),...c.supps.map((x,i)=>({id:x.id,kind:"supp",data:x,sort:1000+i}))];
+  const {error}=await sb.from("items").upsert(rows);if(error)throw error;
+  for(const k of["eatCats","suppCats","hero"])if(c[k])await setting(k,c[k]);
+  await boot();toast("Imported "+rows.length+" items");
+}
+async function seedSite(){try{const r=await fetch("catalog.json",{cache:"no-cache"});if(!r.ok)throw new Error("catalog.json not found on the site");await seed(await r.json())}catch(e){toast("Import failed: "+e.message)}}
+async function importFile(inp){try{await seed(JSON.parse(await inp.files[0].text()))}catch(e){toast("Import failed: "+e.message)}}
+
+/* ---------- orders ---------- */
+let ORD=null,OF="active";
+const ST=[["new","New"],["preparing","Preparing"],["out","Out for delivery"],["delivered","Delivered"],["cancelled","Cancelled"]];
+const wn=p=>{p=String(p||"").replace(/\D/g,"");return p.startsWith("0")?"234"+p.slice(1):p};
+const olines=o=>(o.items||[]).map(i=>`${i.q} x ${i.n}${i.o?" ("+i.o+")":""}`);
+function ordersView(){
+  return `<div class="flex flex-wrap items-center gap-2">${[["active","Active"],["delivered","Delivered"],["all","All"]].map(([k,l])=>`<button class="btn ${OF===k?"bg-g2 text-white":"border border-neutral-300 bg-white"}" onclick="OF='${k}';draw()">${l}</button>`).join("")}<button class="btn ml-auto border border-neutral-300 bg-white" onclick="ordersLoad()">Refresh</button></div><div id="ol" class="mt-3 space-y-3">${ordRows()}</div>`;
+}
+async function ordersLoad(){
+  const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(150);
+  if(error)return toast("Could not load orders: "+error.message);
+  ORD=data||[];const l=$("#ol");if(l)l.innerHTML=ordRows();
+}
+setInterval(()=>{if(sb&&D&&tab==="orders"&&!document.hidden&&!document.activeElement?.matches("select"))ordersLoad()},30000);
+const ordOpts=(a,cur)=>`<option value="">Not assigned</option>`+a.map(x=>`<option ${x.name===cur?"selected":""}>${esc(x.name)}</option>`).join("");
+function ordRows(){
+  if(!ORD)return '<p class="py-10 text-center text-neutral-500">Loading…</p>';
+  const L=ORD.filter(o=>OF==="all"||(OF==="active"?!["delivered","cancelled"].includes(o.status):o.status==="delivered"));
+  if(!L.length)return '<p class="py-10 text-center text-neutral-500">No orders here yet.</p>';
+  return L.map(o=>{const paid=o.payment_status==="paid",lab=(ST.find(x=>x[0]===o.status)||[,o.status])[1];
+  return `<div class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+  <div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(o.ref)} <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${o.status==="new"?"bg-amber-100 text-amber-800":"bg-green-100 text-g1"}">${esc(lab)}</span></p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})} · ${esc(o.zone||"")}</p></div><p class="text-right font-extrabold text-g2">${fmt(o.total)}</p></div>
+  <p class="mt-2 text-sm font-semibold">${esc(o.customer_name)} · <a class="text-g2 underline" href="tel:${esc(o.phone)}">${esc(o.phone)}</a></p>
+  <p class="text-sm text-neutral-600">${esc(o.address)}${o.landmark?" (near "+esc(o.landmark)+")":""}</p>
+  <ul class="mt-2 list-disc pl-5 text-sm">${olines(o).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
+  ${o.note?`<p class="mt-1 text-xs text-neutral-500">Note: ${esc(o.note)}</p>`:""}
+  <p class="mt-1 text-xs text-neutral-500">Subtotal ${fmt(o.subtotal)} · Delivery ${fmt(o.delivery_fee)} <button class="underline" onclick="feeSet('${o.id}')">change</button>${o.free_sachet?" · free sachet":""}</p>
+  <div class="mt-3 flex flex-wrap gap-1.5">${ST.map(([k,l])=>`<button class="btn ${o.status===k?"bg-g2 text-white":"border border-neutral-300"}" onclick="ordSet('${o.id}',{status:'${k}'})">${l}</button>`).join("")}</div>
+  <div class="mt-2 grid grid-cols-2 gap-2"><div><label class="!mt-1">Kitchen</label><select onchange="ordSet('${o.id}',{kitchen:this.value})">${ordOpts(D.kitchens,o.kitchen)}</select></div><div><label class="!mt-1">Rider</label><select onchange="ordSet('${o.id}',{rider:this.value})">${ordOpts(D.riders,o.rider)}</select></div></div>
+  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-neutral-800 text-white" onclick="sendK('${o.id}')">Send to kitchen</button><button class="btn bg-neutral-800 text-white" onclick="sendR('${o.id}')">Send to rider</button><button class="btn ${paid?"bg-green-100 text-g1":"border border-neutral-300"}" onclick="ordSet('${o.id}',{payment_status:'${paid?"unpaid":"paid"}'})">${paid?"Paid ✓":"Mark paid"}</button></div></div>`}).join("");
+}
+async function ordSet(id,patch){
+  const {error}=await sb.from("orders").update(patch).eq("id",id);if(error)return toast("Failed: "+error.message);
+  Object.assign(ORD.find(x=>x.id===id),patch);$("#ol").innerHTML=ordRows();
+}
+function feeSet(id){
+  const o=ORD.find(x=>x.id===id),v=prompt("Delivery fee for "+o.ref+" (₦)",o.delivery_fee);if(v===null||isNaN(+v)||v==="")return;
+  ordSet(id,{delivery_fee:+v,total:o.subtotal+ +v});
+}
+function sendK(id){
+  const o=ORD.find(x=>x.id===id),k=D.kitchens.find(x=>x.name===o.kitchen);if(!k||!k.phone)return toast("Assign a kitchen with a phone number first");
+  const t=`New SmartyHub Organic order ${o.ref}\n${olines(o).join("\n")}${o.note?"\nNote: "+o.note:""}\nPack ONLY in SmartyHub packaging.${o.free_sachet?" Add the free vitamin sachet.":""}${o.rider?"\nRider: "+o.rider:""}`;
+  window.open("https://wa.me/"+wn(k.phone)+"?text="+encodeURIComponent(t));
+}
+function sendR(id){
+  const o=ORD.find(x=>x.id===id),r=D.riders.find(x=>x.name===o.rider),k=D.kitchens.find(x=>x.name===o.kitchen);if(!r||!r.phone)return toast("Assign a rider with a phone number first");
+  const t=`Delivery ${o.ref}\nPickup: ${k?k.name+(k.address?", "+k.address:""):"(kitchen not set)"}\nDeliver to: ${o.customer_name}, ${o.phone}\n${o.address}${o.landmark?" (near "+o.landmark+")":""}\n${o.payment_status==="paid"?"Already paid":"Collect: "+fmt(o.total)}`;
+  window.open("https://wa.me/"+wn(r.phone)+"?text="+encodeURIComponent(t));
+}
+
+/* ---------- delivery & partners ---------- */
+function opsView(){
+  const T=(a,f)=>esc(a.map(f).join("\n"));
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Delivery zones</h2><p class="text-xs text-neutral-500">One per line: Area | fee. Leave the fee empty to confirm it on WhatsApp.</p>
+  <textarea id="zn" rows="5" class="mt-2">${T(D.zones,z=>z.name+" | "+(z.fee??""))}</textarea>
+  <h2 class="mt-5 font-extrabold">Partner kitchens</h2><p class="text-xs text-neutral-500">One per line: Name | WhatsApp number | address. Phone numbers stay private.</p>
+  <textarea id="kn" rows="4" class="mt-2">${T(D.kitchens,k=>[k.name,k.phone,k.address].join(" | "))}</textarea>
+  <h2 class="mt-5 font-extrabold">Riders</h2><p class="text-xs text-neutral-500">One per line: Name | WhatsApp number | zone.</p>
+  <textarea id="rn" rows="4" class="mt-2">${T(D.riders,r=>[r.name,r.phone,r.zone].join(" | "))}</textarea>
+  <button class="btn mt-3 bg-g2 text-white" onclick="saveOps()">Save</button></div>`;
+}
+async function saveOps(){
+  const L=id=>$(id).value.split("\n").map(s=>s.split("|").map(x=>x.trim())).filter(a=>a[0]);
+  const z=L("#zn").map(a=>({name:a[0],fee:a[1]&&!isNaN(+a[1])?+a[1]:null})),k=L("#kn").map(a=>({name:a[0],phone:a[1]||"",address:a[2]||""})),r=L("#rn").map(a=>({name:a[0],phone:a[1]||"",zone:a[2]||""}));
+  if(await setting("zones",z)&&await setting("kitchens",k)&&await setting("riders",r)){D.zones=z;D.kitchens=k;D.riders=r;toast("Saved. Live now.")}
+}
+
+init();
