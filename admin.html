@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="supabase-config.js"></script>
 <script>tailwind.config={theme:{extend:{colors:{g1:'#1B5E20',g2:'#2E7D32',g3:'#4CAF50'}}}}</script>
-<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}input,select,textarea{width:100%;border:1px solid #e5e5e5;border-radius:.75rem;padding:.6rem .75rem;font-size:.95rem;background:#fff}label{display:block;font-size:.75rem;font-weight:700;color:#525252;margin:.9rem 0 .25rem}.btn{border-radius:9999px;padding:.55rem 1rem;font-weight:700;font-size:.85rem}.noscroll::-webkit-scrollbar{display:none}</style>
+<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}input,select,textarea{width:100%;border:1px solid #e5e5e5;border-radius:.75rem;padding:.6rem .75rem;font-size:.95rem;background:#fff}label{display:block;font-size:.75rem;font-weight:700;color:#525252;margin:.9rem 0 .25rem}.btn{border-radius:9999px;padding:.55rem 1rem;font-weight:700;font-size:.85rem}.noscroll::-webkit-scrollbar{display:none}@keyframes up{from{transform:translateY(100%)}to{transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}.drawer{animation:up .22s ease-out}.scrim{animation:fade .2s}.blk{border:1px solid #e5e5e5;border-radius:1rem;padding:.25rem 1rem 1rem;margin-top:.9rem;background:#fafafa}.blk h3{font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#2E7D32;margin-top:.9rem}.blk label:first-of-type{margin-top:.5rem}</style>
 </head>
 <body class="bg-neutral-50 text-neutral-900">
 
@@ -30,7 +30,7 @@ const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>
 const fmt=n=>"₦"+(+n||0).toLocaleString("en-NG");
 const X='<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 let D=null, tab="orders", q="", E=null, EK="", isNew=false, sb=null, SORT={};
-const CFG=window.SHO_SB||{}, BUCKET="product-images";
+const REC=/type=recovery/.test(location.hash), CFG=window.SHO_SB||{}, BUCKET="product-images";
 
 function toast(t){const e=$("#toast");e.textContent=t;e.style.opacity=1;e.style.transform="translate(-50%,0)";clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translate(-50%,5rem)"},2600)}
 function toBlob(file,max=800){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(),"image/jpeg",.82)};im.onerror=rej;im.src=u})}
@@ -44,21 +44,62 @@ async function upload(file,max){
 async function init(){
   if(!CFG.url||!CFG.key||/YOUR/.test(CFG.url+CFG.key)){
     $("#main").innerHTML=`<div class="rounded-2xl bg-white p-5 shadow-sm"><h2 class="font-extrabold">Connect Supabase first</h2><p class="mt-2 text-sm text-neutral-600">Open <code>supabase-config.js</code> and paste your Project URL and anon key (Supabase, Project Settings, API). Then reload this page.</p></div>`;return}
+  const REC=/type=recovery/.test(location.hash+location.search);
   sb=supabase.createClient(CFG.url,CFG.key);
+  sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY")pwView(true)});
   const {data}=await sb.auth.getSession();
+  if(REC&&data.session)return pwView(true);
   data.session?boot():loginView();
 }
 function loginView(){
   $("#tabs").innerHTML="";$("#so").classList.add("hidden");
   $("#main").innerHTML=`<form onsubmit="event.preventDefault();login(this)" class="mx-auto mt-6 max-w-sm rounded-2xl bg-white p-5 shadow-sm"><h2 class="text-lg font-extrabold">Admin sign in</h2>
   <label>Email</label><input name="e" type="email" required autocomplete="username"/><label>Password</label><input name="p" type="password" required autocomplete="current-password"/>
-  <button class="btn mt-4 w-full bg-g2 py-3 text-white">Sign in</button></form>`;
+  <button class="btn mt-4 w-full bg-g2 py-3 text-white">Sign in</button>
+  <button type="button" onclick="forgot(this.form)" class="mt-3 w-full text-center text-sm font-semibold text-g2 underline">Forgot password?</button></form>`;
 }
 async function login(f){
   const {error}=await sb.auth.signInWithPassword({email:f.e.value.trim(),password:f.p.value});
   error?toast(error.message):boot();
 }
+async function forgot(f){
+  const e=f.e.value.trim();if(!e)return toast("Type your email first");
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});
+  toast(error?error.message:"Reset link sent. Check your email.");
+}
+function recoveryView(){
+  $("#tabs").innerHTML="";$("#so").classList.add("hidden");
+  $("#main").innerHTML=`<form onsubmit="event.preventDefault();setPw(this)" class="mx-auto mt-6 max-w-sm rounded-2xl bg-white p-5 shadow-sm"><h2 class="text-lg font-extrabold">Set a new password</h2>
+  <label>New password (at least 8 characters)</label><input name="p1" type="password" minlength="8" required autocomplete="new-password"/>
+  <label>Confirm new password</label><input name="p2" type="password" minlength="8" required autocomplete="new-password"/>
+  <button class="btn mt-4 w-full bg-g2 py-3 text-white">Save password</button></form>`;
+}
+async function setPw(f){
+  if(f.p1.value!==f.p2.value)return toast("Passwords do not match");
+  const {error}=await sb.auth.updateUser({password:f.p1.value});
+  if(error)return toast(error.message);
+  history.replaceState(null,"",location.pathname);toast("Password updated");boot();
+}
 async function signOut(){await sb.auth.signOut();D=null;loginView()}
+async function forgot(f){
+  const e=f.e.value.trim();if(!e)return toast("Type your email above first");
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});
+  toast(error?error.message:"If that email is registered, a reset link has been sent. Open it on this device.");
+}
+function pwView(rec){
+  $("#tabs").innerHTML="";$("#so").classList.toggle("hidden",!!rec);
+  $("#main").innerHTML=`<form onsubmit="event.preventDefault();setPw(this)" class="mx-auto mt-6 max-w-sm rounded-2xl bg-white p-5 shadow-sm"><h2 class="text-lg font-extrabold">${rec?"Set a new password":"Change password"}</h2>
+  <label>New password (at least 8 characters)</label><input name="a" type="password" minlength="8" required autocomplete="new-password"/>
+  <label>Repeat new password</label><input name="b" type="password" minlength="8" required autocomplete="new-password"/>
+  <button class="btn mt-4 w-full bg-g2 py-3 text-white">Save password</button>
+  ${rec?"":'<button type="button" onclick="boot()" class="mt-3 w-full text-center text-sm font-semibold text-neutral-500 underline">Cancel</button>'}</form>`;
+}
+async function setPw(f){
+  if(f.a.value!==f.b.value)return toast("Passwords do not match");
+  const {error}=await sb.auth.updateUser({password:f.a.value});
+  if(error)return toast(error.message);
+  history.replaceState(null,"",location.pathname);toast("Password saved");boot();
+}
 async function boot(){
   $("#so").classList.remove("hidden");$("#main").innerHTML='<p class="py-16 text-center text-neutral-500">Loading…</p>';
   await load();draw();if(tab==="orders")ordersLoad();
@@ -192,7 +233,7 @@ async function heroUp(i){const n=[...D.hero];[n[i-1],n[i]]=[n[i],n[i-1]];if(awai
 function pubView(){
   return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Live data</h2>
   <p class="mt-1 text-sm text-neutral-600">${D.eats.length} menu items, ${D.supps.length} supplements, ${D.hero.length} hero photos. Every save here updates the site immediately.</p>
-  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-g2 text-white" onclick="backup()">Download backup</button><button class="btn border border-neutral-300" onclick="boot()">Refresh</button></div></div>
+  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-g2 text-white" onclick="backup()">Download backup</button><button class="btn border border-neutral-300" onclick="boot()">Refresh</button><button class="btn border border-neutral-300" onclick="pwView(false)">Change password</button></div></div>
   <div class="mt-4 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">First-time import</h2>
   <p class="mt-1 text-sm text-neutral-600">Copy your existing menu and supplements into Supabase. This overwrites items with the same id.</p>
   <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-g2 text-white" onclick="seedSite()">Import site's catalog.json</button>
@@ -219,7 +260,7 @@ function ordersView(){
 }
 async function ordersLoad(){
   const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(150);
-  if(error)return toast("Could not load orders: "+error.message);
+  if(error){toast("Could not load orders: "+error.message);const l=$("#ol");if(l)l.innerHTML='<div class="rounded-2xl bg-red-50 p-4 text-sm text-red-700"><b>Could not load orders.</b><br>'+esc(error.message)+'<br><br>Tap Refresh to try again. If it stays, send this message to your developer.</div>';return}
   ORD=data||[];const l=$("#ol");if(l)l.innerHTML=ordRows();
 }
 setInterval(()=>{if(sb&&D&&tab==="orders"&&!document.hidden&&!document.activeElement?.matches("select"))ordersLoad()},30000);
@@ -249,31 +290,60 @@ function feeSet(id){
   ordSet(id,{delivery_fee:+v,total:o.subtotal+ +v});
 }
 function sendK(id){
-  const o=ORD.find(x=>x.id===id),k=D.kitchens.find(x=>x.name===o.kitchen);if(!k||!k.phone)return toast("Assign a kitchen with a phone number first");
-  const t=`New SmartyHub Organic order ${o.ref}\n${olines(o).join("\n")}${o.note?"\nNote: "+o.note:""}\nPack ONLY in SmartyHub packaging.${o.free_sachet?" Add the free vitamin sachet.":""}${o.rider?"\nRider: "+o.rider:""}`;
+  const o=ORD.find(x=>x.id===id),k=D.kitchens.find(x=>x.name===o.kitchen);if(!k||!k.phone)return toast("Assign a kitchen first (add one under Delivery & Partners)");
+  const t=`*NEW ORDER ${o.ref}* - SmartyHub Organic\n\n${olines(o).join("\n")}${o.note?"\n\nNote: "+o.note:""}\n\nPack ONLY in SmartyHub packaging.${o.free_sachet?" Add the FREE vitamin sachet.":""}${o.rider?"\nRider picking up: "+o.rider:""}\n\nReply READY when the order is packed.`;
   window.open("https://wa.me/"+wn(k.phone)+"?text="+encodeURIComponent(t));
 }
 function sendR(id){
-  const o=ORD.find(x=>x.id===id),r=D.riders.find(x=>x.name===o.rider),k=D.kitchens.find(x=>x.name===o.kitchen);if(!r||!r.phone)return toast("Assign a rider with a phone number first");
-  const t=`Delivery ${o.ref}\nPickup: ${k?k.name+(k.address?", "+k.address:""):"(kitchen not set)"}\nDeliver to: ${o.customer_name}, ${o.phone}\n${o.address}${o.landmark?" (near "+o.landmark+")":""}\n${o.payment_status==="paid"?"Already paid":"Collect: "+fmt(o.total)}`;
+  const o=ORD.find(x=>x.id===id),r=D.riders.find(x=>x.name===o.rider),k=D.kitchens.find(x=>x.name===o.kitchen);
+  if(!r||!r.phone)return toast("Assign a rider first (add one under Delivery & Partners)");
+  if(!k)return toast("Assign a kitchen first, so the rider gets the pickup address");
+  const dest=[o.address,o.zone,"Lagos"].filter(Boolean).join(", ");
+  const t=`*DELIVERY ${o.ref}* - SmartyHub Organic\n\n*PICKUP (kitchen)*\n${k.name}\n${k.address||"Address not set"}${k.phone?"\nCall: "+k.phone:""}\n\n*DELIVER TO (customer)*\n${o.customer_name}\nCall: ${o.phone}\n${o.address}${o.landmark?"\nNear: "+o.landmark:""}${o.zone?"\nArea: "+o.zone:""}\nMap: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}\n\n*ITEMS*\n${olines(o).join("\n")}\n\n${o.payment_status==="paid"?"PAID. Do not collect cash.":"*COLLECT CASH: "+fmt(o.total)+"*"}`;
   window.open("https://wa.me/"+wn(r.phone)+"?text="+encodeURIComponent(t));
 }
 
 /* ---------- delivery & partners ---------- */
+let PK="kitchens",PI=-1;
+const PT={kitchens:"kitchen",riders:"rider",zones:"delivery zone"};
 function opsView(){
-  const T=(a,f)=>esc(a.map(f).join("\n"));
-  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Delivery zones</h2><p class="text-xs text-neutral-500">One per line: Area | fee. Leave the fee empty to confirm it on WhatsApp.</p>
-  <textarea id="zn" rows="5" class="mt-2">${T(D.zones,z=>z.name+" | "+(z.fee??""))}</textarea>
-  <h2 class="mt-5 font-extrabold">Partner kitchens</h2><p class="text-xs text-neutral-500">One per line: Name | WhatsApp number | address. Phone numbers stay private.</p>
-  <textarea id="kn" rows="4" class="mt-2">${T(D.kitchens,k=>[k.name,k.phone,k.address].join(" | "))}</textarea>
-  <h2 class="mt-5 font-extrabold">Riders</h2><p class="text-xs text-neutral-500">One per line: Name | WhatsApp number | zone.</p>
-  <textarea id="rn" rows="4" class="mt-2">${T(D.riders,r=>[r.name,r.phone,r.zone].join(" | "))}</textarea>
-  <button class="btn mt-3 bg-g2 text-white" onclick="saveOps()">Save</button></div>`;
+  const sec=(k,title,sub,btn,body)=>`<div class="${k==="kitchens"?"":"mt-4 "}rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-center justify-between gap-2"><h2 class="font-extrabold">${title}</h2><button class="btn shrink-0 bg-g2 text-white" onclick="pEdit('${k}',-1)">+ ${btn}</button></div><p class="mt-1 text-xs text-neutral-500">${sub}</p><div class="mt-3 space-y-2">${body||'<p class="rounded-xl border border-dashed border-neutral-300 py-6 text-center text-sm text-neutral-500">Nothing added yet</p>'}</div></div>`;
+  const row=(k,i,t,s)=>`<button onclick="pEdit('${k}',${i})" class="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left"><div class="min-w-0"><p class="truncate font-bold">${t}</p><p class="truncate text-xs text-neutral-500">${s}</p></div><span class="shrink-0 text-neutral-400">›</span></button>`;
+  const kit=D.kitchens.map((x,i)=>row("kitchens",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
+  const rid=D.riders.map((x,i)=>row("riders",i,esc(x.name),esc(x.phone)+(x.zone?" · "+esc(x.zone):""))).join("");
+  const zon=D.zones.map((x,i)=>row("zones",i,esc(x.name),x.fee==null?"Fee confirmed on WhatsApp":fmt(x.fee))).join("");
+  return sec("kitchens","Partner kitchens","Receive the order on WhatsApp. Their address goes to the rider as the pickup point.","Add kitchen",kit)
+   +sec("riders","Riders","Receive pickup (kitchen) and delivery (customer) details on WhatsApp.","Add rider",rid)
+   +sec("zones","Delivery zones","The server charges the fee for the zone a customer picks at checkout.","Add zone",zon);
 }
-async function saveOps(){
-  const L=id=>$(id).value.split("\n").map(s=>s.split("|").map(x=>x.trim())).filter(a=>a[0]);
-  const z=L("#zn").map(a=>({name:a[0],fee:a[1]&&!isNaN(+a[1])?+a[1]:null})),k=L("#kn").map(a=>({name:a[0],phone:a[1]||"",address:a[2]||""})),r=L("#rn").map(a=>({name:a[0],phone:a[1]||"",zone:a[2]||""}));
-  if(await setting("zones",z)&&await setting("kitchens",k)&&await setting("riders",r)){D.zones=z;D.kitchens=k;D.riders=r;toast("Saved. Live now.")}
+function pEdit(k,i){
+  PK=k;PI=i;const x=i>=0?D[k][i]:{name:"",phone:"",address:"",zone:"",fee:""};
+  const blocks=k==="kitchens"?`<div class="blk"><h3>Kitchen details</h3><label>Kitchen name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Mama Put Kitchen"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>
+    <div class="blk"><h3>Pickup location</h3><label>Full address (sent to riders)</label><textarea name="address" rows="3" required placeholder="Street, area, nearest landmark">${esc(x.address||"")}</textarea></div>`
+  :k==="riders"?`<div class="blk"><h3>Rider details</h3><label>Full name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Tunde Bello"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>
+    <div class="blk"><h3>Coverage</h3><label>Zone or area (optional)</label><input name="zone" value="${esc(x.zone||"")}" placeholder="e.g. Ikeja, Alimosho"/></div>`
+  :`<div class="blk"><h3>Zone details</h3><label>Area name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Ikeja"/><label>Delivery fee (₦)</label><input name="fee" type="number" min="0" step="50" inputmode="numeric" value="${x.fee??""}" placeholder="Leave empty to confirm on WhatsApp"/></div>`;
+  $("#sheet").innerHTML=`<div class="scrim fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onclick="if(event.target===this)closeSheet()">
+  <form id="pf" onsubmit="event.preventDefault();pSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+  <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-neutral-300 sm:hidden"></div>
+  <div class="flex items-center justify-between px-5 py-3"><h2 class="text-lg font-extrabold">${i>=0?"Edit":"Add"} ${PT[k]}</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
+  <div class="overflow-y-auto px-5 pb-4">${blocks}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
+  <div class="flex gap-2 border-t border-neutral-100 px-5 py-3">${i>=0?'<button type="button" class="btn border border-red-300 text-red-600" onclick="pDel()">Delete</button>':'<button type="button" class="btn border border-neutral-300" onclick="closeSheet()">Cancel</button>'}<button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div></form></div>`;
+}
+async function pSave(){
+  const f=$("#pf"),name=f.name.value.trim(),arr=[...D[PK]];let rec;
+  if(D[PK].some((x,i)=>i!==PI&&x.name.toLowerCase()===name.toLowerCase()))return toast("That name already exists");
+  if(PK==="zones"){const v=f.fee.value.trim();rec={name,fee:v===""?null:Math.max(0,Math.round(+v)||0)}}
+  else{const phone=f.phone.value.trim();if(wn(phone).length<11)return toast("Enter a valid WhatsApp number, e.g. 08012345678");
+    rec=PK==="kitchens"?{name,phone,address:f.address.value.trim()}:{name,phone,zone:f.zone.value.trim()}}
+  PI>=0?arr[PI]=rec:arr.push(rec);
+  const btn=f.querySelector("button.flex-1");btn.disabled=true;btn.textContent="Saving…";
+  if(await setting(PK,arr)){D[PK]=arr;closeSheet();draw();toast("Saved")}else{btn.disabled=false;btn.textContent="Save"}
+}
+async function pDel(){
+  if(!confirm("Delete this "+PT[PK]+"?"))return;
+  const arr=D[PK].filter((_,i)=>i!==PI);
+  if(await setting(PK,arr)){D[PK]=arr;closeSheet();draw();toast("Deleted")}
 }
 
 init();
