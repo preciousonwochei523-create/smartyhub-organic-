@@ -3,319 +3,130 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MainTown Realty | Flexible Monthly Rent & Verified Homes in Lagos</title>
+<title>SmartyHub Organic — Supplements &amp; Healthy Food · Lagos</title>
 <link rel="icon" href="favicon.ico" sizes="any"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
-<meta name="description" content="Browse verified apartments, duplexes, and commercial spaces for rent in Lagos, Nigeria. Pay flexible rent and connect directly with vetted landlords via MainTown Realty."/>
-<meta name="keywords" content="houses for rent in lagos, monthly rent apartment lagos, real estate agency victoria island, cheap self contain in yaba, maintown realty, verified landlords nigeria"/>
-
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website"/>
-<meta property="og:url" content="https://www.maintownrealty.com/"/>
-<meta property="og:title" content="MainTown Realty | Flexible Monthly Rent & Verified Homes in Lagos"/>
-<meta property="og:description" content="Browse verified apartments, duplexes, and commercial spaces for rent in Lagos, Nigeria."/>
-
 <link rel="stylesheet" href="style.css"/>
-<link rel="preload" as="image" href="images/hero/lagos-city.jpg"/>
 <style>
-.nav-cta { background:var(--p); }
-.btn-white { background:#fff; color:var(--bk); box-shadow:0 4px 16px rgba(255,255,255,.18); }
-.btn-white:hover { box-shadow:0 8px 26px rgba(255,255,255,.28); }
-.search-bar {
-  position:fixed; top:0; left:0; right:0; z-index:150;
-  background:#0f0c16; border-bottom:1px solid rgba(167,139,250,.18);
-  padding:0; max-height:0; overflow:hidden; transition:max-height .25s ease, padding .25s ease;
+.org-hero {
+  min-height:80vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  padding:9rem 1.5rem 5rem;
+  background:radial-gradient(ellipse 65% 55% at 25% 35%,rgba(46,125,50,.28) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 45% at 80% 70%,rgba(76,175,80,.15) 0%,transparent 55%), var(--bk);
 }
-.search-bar.open { max-height:120px; padding:.9rem 1.5rem; }
-.search-bar-inner { display:flex; gap:.6rem; max-width:1100px; margin:0 auto; align-items:center; }
-#searchInput {
-  flex:1; padding:.7rem 1rem; border-radius:10px; border:1.5px solid rgba(167,139,250,.25);
-  background:rgba(255,255,255,.05); color:#fff; font-family:'DM Sans',sans-serif; font-size:.88rem;
-}
-#searchInput::placeholder { color:rgba(255,255,255,.4); }
-#searchInput:focus { outline:none; border-color:var(--p); background:rgba(255,255,255,.08); }
-.search-go {
-  background:var(--p); color:#fff; border:none; padding:.7rem 1.3rem; border-radius:10px;
-  font-weight:700; font-size:.85rem; cursor:pointer; transition:opacity .2s; white-space:nowrap;
-}
-.search-go:hover { opacity:.88; }
-.search-close {
-  background:transparent; border:1px solid rgba(255,255,255,.2); color:#fff; width:38px; height:38px;
-  border-radius:50%; cursor:pointer; font-size:1rem; flex-shrink:0;
-}
-.search-close:hover { background:rgba(255,255,255,.08); }
-.search-status { max-width:1100px; margin:.5rem auto 0; font-size:.78rem; color:rgba(255,255,255,.5); }
-@media(max-width:600px) {
-  .search-bar-inner { flex-wrap:wrap; }
-  #searchInput { min-width:100%; order:1; }
-  .search-go { order:2; }
-  .search-close { order:3; margin-left:auto; }
-}
-.re-hero {
-  position:relative;
-  min-height:70vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
-  padding:9rem 1.5rem 4rem;
-  overflow:hidden;
-}
-.hero-slideshow { position:absolute; inset:0; z-index:0; }
-.hero-slide {
-  position:absolute; inset:0;
-  background-size:cover; background-position:center 55%;
-  filter:saturate(.92) brightness(.68) contrast(1.05);
-  opacity:0; transition:opacity 1.4s ease-in-out;
-}
-.hero-slide.active { opacity:1; }
-.re-hero::after {
-  content:''; position:absolute; inset:0;
-  background:
-    linear-gradient(180deg, rgba(10,10,10,.75) 0%, rgba(10,10,10,.55) 35%, rgba(10,10,10,.88) 100%),
-    radial-gradient(ellipse 60% 50% at 50% 30%, rgba(124,58,237,.28) 0%, transparent 60%);
-  z-index:1;
-}
-.re-hero > *:not(.hero-slideshow) { position:relative; z-index:2; }
-.hero-dots { display:flex; gap:.5rem; justify-content:center; margin-top:.5rem; }
-.hero-dot {
-  width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.3);
-  border:none; cursor:pointer; padding:0; transition:all .3s;
-}
-.hero-dot.active { background:rgba(255,255,255,.9); width:20px; border-radius:4px; }
-.re-hero-kicker {
-  display:inline-flex; align-items:center; gap:.5rem;
-  font-size:.72rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
-  color:rgba(255,255,255,.65); margin-bottom:1.4rem;
-  border:1px solid rgba(255,255,255,.18); border-radius:50px; padding:.4rem 1rem;
-  background:rgba(255,255,255,.04); backdrop-filter:blur(8px);
-}
-.re-hero-kicker svg { width:13px; height:13px; opacity:.8; }
-.re-hero h1 { font-size:clamp(2.3rem,6vw,5rem); max-width:760px; margin-bottom:.5em; letter-spacing:-.025em; }
-.re-hero h1 span { color:var(--pl); }
-.re-hero p { font-size:clamp(.92rem,1.8vw,1.12rem); color:rgba(255,255,255,.62); max-width:520px; line-height:1.75; margin:0 auto 2rem; }
+.org-hero h1 { font-size:clamp(2.4rem,6vw,5rem); max-width:680px; margin-bottom:.5em; }
+.org-hero h1 span { color:var(--gl); }
+.org-hero p { font-size:clamp(.92rem,1.8vw,1.12rem); color:rgba(255,255,255,.55); max-width:500px; line-height:1.75; margin:0 auto 2rem; }
+.org-hero-btns { display:flex; gap:.9rem; flex-wrap:wrap; justify-content:center; }
 
-/* LISTINGS — GRID (NOT SLIDER) */
-.listings-section { background:#0f0c16; padding:5.5rem 0; }
+/* PRODUCTS */
+.products-section { background:var(--ow); padding:5.5rem 0; }
+.products-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-top:3rem; }
+.prod-card {
+  background:var(--card); border-radius:18px; overflow:hidden;
+  border:1px solid var(--bd); box-shadow:var(--shadow);
+  transition:transform .22s, box-shadow .22s;
+}
+.prod-card:hover { transform:translateY(-5px); box-shadow:var(--shadow-lg); }
+.prod-img {
+  height:140px; display:flex; align-items:center; justify-content:center; color:var(--gl);
+  background:linear-gradient(135deg,rgba(46,125,50,.08),rgba(76,175,80,.06));
+}
+.prod-img svg { width:52px; height:52px; }
+.prod-body { padding:1.3rem 1.4rem 1.5rem; }
+.prod-name { font-family:'Fraunces',serif; font-size:1.02rem; font-weight:900; color:var(--wh); margin-bottom:.3rem; }
+.prod-price { font-size:1.1rem; font-weight:700; color:var(--g); margin-bottom:.6rem; }
+.prod-benefits { font-size:.78rem; color:var(--gr); line-height:1.6; margin-bottom:1rem; }
+.prod-tags { display:flex; flex-wrap:wrap; gap:.35rem; margin-bottom:1rem; }
+.prod-btn { width:100%; justify-content:center; border-radius:12px; }
 
+/* FOOD / FULL MENU */
+.food-section { background:var(--bk2); padding:5.5rem 0; }
 
-.agent-section { background:var(--bk2); padding:3rem 0; }
-.agent-grid { display:flex; flex-wrap:wrap; gap:1rem; }
-.agent-card {
-  width:200px; background:#171220; border:1px solid var(--bd);
-  border-radius:16px; padding:1.3rem 1.1rem; text-align:center; box-shadow:var(--shadow);
+/* Category tabs */
+.menu-tabs { display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:2.5rem; }
+.mtab {
+  padding:.55rem 1.2rem; border-radius:8px; border:1.5px solid rgba(255,255,255,.12);
+  background:transparent; font-size:.82rem; font-weight:600; cursor:pointer;
+  transition:all .2s; color:rgba(255,255,255,.5); font-family:'Inter','DM Sans',sans-serif;
 }
-.agent-photo {
-  width:64px; height:64px; border-radius:50%; object-fit:cover; object-position:center 30%;
-  border:2px solid var(--p); box-shadow:0 0 0 3px rgba(124,58,237,.16); margin-bottom:.7rem;
-}
-.agent-eyebrow { display:inline-block; font-size:.62rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--pl); margin-bottom:.3rem; }
-.agent-name { font-family:'Fraunces',serif; font-size:1rem; color:var(--wh); margin-bottom:.15rem; line-height:1.25; }
-.agent-title { font-size:.76rem; color:var(--pl); font-weight:600; margin-bottom:.6rem; }
-.agent-rating { display:flex; align-items:center; justify-content:center; gap:.3rem; }
-.agent-stars { display:flex; gap:1px; color:var(--pl); }
-.agent-stars svg { width:12px; height:12px; }
-.agent-rating-text { font-size:.66rem; color:var(--gr); font-weight:600; }
-.agent-slot-empty {
-  width:200px; border:1.5px dashed var(--bd); border-radius:16px; display:flex;
-  align-items:center; justify-content:center; text-align:center; padding:1.3rem 1rem;
-  font-size:.76rem; color:var(--gr); min-height:168px;
-}
-.listings-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:1.75rem; margin-top:3rem;
-}
-.prop-card { background:#ffffff; border-radius:18px; overflow:hidden; border:1px solid rgba(0,0,0,.08); box-shadow:0 2px 24px rgba(0,0,0,.08); transition:transform .22s, box-shadow .22s; }
-.prop-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
-.prop-img {
-  height:260px; display:flex; align-items:center; justify-content:center; position:relative;
-  background-size:cover; background-position:center; cursor:pointer;
-}
-.prop-img::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%); pointer-events:none; }
-.prop-img .prop-view-hint {
-  position:absolute; bottom:.8rem; right:.9rem; z-index:2;
-  background:rgba(0,0,0,.55); color:#fff; font-size:.68rem; font-weight:700;
-  padding:.32rem .7rem; border-radius:50px; display:flex; align-items:center; gap:.35rem;
-  backdrop-filter:blur(4px);
-}
-.prop-badge { position:absolute; top:.8rem; left:.8rem; z-index:2; }
-.prop-badge .pill-p { background:#7C3AED; border:1px solid rgba(255,255,255,.25); color:#ffffff; }
-.prop-body { padding:1.4rem 1.5rem 1.6rem; }
-.prop-location { font-size:.74rem; color:var(--gr); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.4rem; display:flex; align-items:center; gap:.3rem; }
-.prop-name { font-family:'Fraunces',serif; font-size:1.15rem; font-weight:900; color:#0b0b0f; margin-bottom:.5rem; }
-.prop-price { font-size:1.2rem; font-weight:700; color:var(--p); margin-bottom:.7rem; }
-.prop-price-note { font-size:.72rem; color:var(--gr); margin-top:-.5rem; margin-bottom:.7rem; line-height:1.5; }
-.prop-features { display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.1rem; }
-.prop-feat { font-size:.72rem; color:#6B7280; background:#F3F4F6; padding:.2rem .55rem; border-radius:50px; }
-.prop-btn { width:100%; justify-content:center; border-radius:12px; }
-.prop-card.unavailable .prop-img { filter:grayscale(1) brightness(.75); cursor:default; }
-.prop-card.unavailable .prop-name,
-.prop-card.unavailable .prop-price { color:#9CA3AF; }
-.prop-card.unavailable .prop-view-hint { display:none; }
-.pill-gray { background:rgba(107,114,128,.12); border:1px solid rgba(107,114,128,.3); color:#6B7280; }
-.prop-btn-disabled {
-  width:100%; text-align:center; padding:.65rem 1rem; border-radius:12px;
-  background:#F3F4F6; color:#9CA3AF; font-weight:700; font-size:.85rem;
-  cursor:not-allowed; border:1px solid rgba(0,0,0,.06);
-}
+.mtab.active, .mtab:hover { background:var(--g); border-color:var(--g); color:#fff; }
 
-@media (max-width:760px) {
-  .listings-grid { grid-template-columns:1fr; }
-  .prop-img { height:220px; }
+/* Menu grid */
+.menu-grid-full { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.2rem; }
+.menu-card {
+  background:var(--bk3); border:1px solid rgba(255,255,255,.07); border-radius:16px;
+  padding:1.3rem 1.5rem; display:flex; align-items:center; gap:1.1rem;
+  transition:border-color .2s, transform .18s;
 }
+.menu-card:hover { border-color:rgba(76,175,80,.3); transform:translateY(-2px); }
+.menu-ico { font-size:2.2rem; flex-shrink:0; }
+.menu-name { font-family:'Fraunces',serif; font-size:1rem; font-weight:900; margin-bottom:.22rem; }
+.menu-desc { font-size:.78rem; color:rgba(255,255,255,.45); line-height:1.5; }
+.menu-price { font-size:.95rem; font-weight:700; color:var(--gl); margin-top:.3rem; }
+.menu-price.tba { color:rgba(255,255,255,.3); font-size:.78rem; font-style:italic; }
+.menu-order-btn {
+  margin-top:.6rem; display:inline-block; background:var(--g); color:#fff;
+  font-size:.72rem; font-weight:700; padding:.3rem .8rem; border-radius:8px;
+  text-decoration:none; transition:opacity .2s;
+}
+.menu-order-btn:hover { opacity:.85; }
+.coming-tag { display:inline-block; font-size:.65rem; font-weight:700; background:rgba(124,58,237,.25); color:#C4B5FD; padding:.15rem .55rem; border-radius:4px; text-transform:uppercase; letter-spacing:.05em; margin-top:.4rem; }
 
-/* PAGINATION */
-.pagination { display:flex; align-items:center; justify-content:center; gap:1.2rem; margin-top:3rem; }
-.page-btn {
-  background:#ffffff; border:1.5px solid rgba(0,0,0,.1); color:#0b0b0f;
-  padding:.65rem 1.4rem; border-radius:50px; font-size:.85rem; font-weight:700;
-  cursor:pointer; transition:all .2s; font-family:'DM Sans',sans-serif;
+/* Combo card */
+.combo-card {
+  background:linear-gradient(135deg,rgba(46,125,50,.22),rgba(76,175,80,.12));
+  border:1.5px solid rgba(76,175,80,.28); border-radius:18px; padding:2rem; margin-top:2.5rem;
 }
-.page-btn:hover:not(:disabled) { border-color:var(--p); color:var(--p); }
-.page-btn:disabled { opacity:.35; cursor:not-allowed; }
-.page-indicator { font-size:.82rem; color:var(--gr); font-weight:600; }
+.combo-badge { display:inline-block; background:var(--g); color:#fff; font-size:.68rem; font-weight:700; padding:.22rem .7rem; border-radius:50px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:.9rem; }
+.combo-card h3 { font-family:'Fraunces',serif; font-size:1.25rem; margin-bottom:.6rem; }
+.combo-card p { font-size:.84rem; color:rgba(255,255,255,.55); line-height:1.65; margin-bottom:1rem; }
+.combo-price { font-size:1.3rem; font-weight:700; color:var(--gl); margin-bottom:1.1rem; }
+.combo-items { display:flex; flex-direction:column; gap:.38rem; margin-bottom:1.3rem; }
+.combo-item { font-size:.8rem; color:rgba(255,255,255,.6); display:flex; align-items:center; gap:.4rem; }
 
-/* LIGHTBOX — FULL SCREEN IMAGE GALLERY SLIDER */
-.lightbox {
-  display:none; position:fixed; inset:0; z-index:999; background:rgba(5,5,5,.96);
-  align-items:center; justify-content:center; flex-direction:column;
+/* B2B */
+.b2b-section { background:var(--ow); padding:5rem 0; }
+.b2b-box {
+  background:var(--card); border-radius:20px; padding:3rem; box-shadow:var(--shadow);
+  display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;
+  border:1px solid var(--bd);
 }
-.lightbox.active { display:flex; }
-.lb-stage { position:relative; width:100%; max-width:960px; height:78vh; display:flex; align-items:center; justify-content:center; touch-action:pan-y; overflow:hidden; }
-.lb-stage img { max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; user-select:none; -webkit-user-drag:none; }
-.lb-close {
-  position:absolute; top:1.3rem; right:1.5rem; z-index:2; background:rgba(255,255,255,.1);
-  border:1px solid rgba(255,255,255,.2); color:#fff; width:42px; height:42px; border-radius:50%;
-  font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
-}
-.lb-close:hover { background:rgba(255,255,255,.2); }
-.lb-arrow {
-  position:absolute; top:50%; transform:translateY(-50%); z-index:2;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff;
-  width:48px; height:48px; border-radius:50%; font-size:1.4rem; cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
-}
-.lb-arrow:hover { background:rgba(255,255,255,.2); }
-.lb-prev { left:1rem; }
-.lb-next { right:1rem; }
-.lb-counter { color:rgba(255,255,255,.6); font-size:.82rem; margin-top:1rem; letter-spacing:.03em; }
-.lb-caption { color:#fff; font-size:.95rem; font-weight:700; margin-top:.3rem; font-family:'Fraunces',serif; }
-@media (max-width:640px) {
-  .lb-stage { height:60vh; }
-  .lb-arrow { width:40px; height:40px; font-size:1.2rem; }
-}
-
-/* ONBOARDING — LANDLORD / AGENT */
-.onb-section { padding:5.5rem 0; }
-.onb-section.landlord { background:var(--bk2); }
-.onb-section.agent { background:#0f0c16; }
-.onb-inner { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:start; }
-.onb-text h2 { font-size:clamp(1.5rem,3vw,2.2rem); margin-bottom:1rem; }
-.onb-section.landlord .onb-text h2 { color:var(--wh); }
-.onb-section.agent .onb-text h2 { color:var(--wh); }
-.onb-text p.onb-desc { font-size:.88rem; line-height:1.75; margin-bottom:1.4rem; }
-.onb-section.landlord .onb-desc { color:rgba(255,255,255,.6); }
-.onb-section.agent .onb-desc { color:var(--gr); }
-.onb-perks { list-style:none; display:flex; flex-direction:column; gap:.7rem; margin-bottom:1.6rem; }
-.onb-perk { display:flex; align-items:center; gap:.7rem; font-size:.85rem; }
-.onb-section.landlord .onb-perk { color:rgba(255,255,255,.7); }
-.onb-section.agent .onb-perk { color:rgba(255,255,255,.75); }
-.onb-perk svg { flex-shrink:0; color:var(--pl); }
-.onb-note { font-size:.76rem; line-height:1.6; border-left:2px solid var(--p); padding-left:.9rem; }
-.onb-section.landlord .onb-note { color:rgba(255,255,255,.4); }
-.onb-section.agent .onb-note { color:var(--gr); }
-
-.onb-card { background:#171220; border-radius:20px; padding:2rem 2.2rem 2.2rem; box-shadow:0 16px 44px rgba(124,58,237,.20); }
-.onb-card h3 { font-family:'Fraunces',serif; font-size:1.15rem; color:var(--wh); margin-bottom:1.4rem; }
-.onb-field { margin-bottom:1.1rem; }
-.onb-field label { display:block; font-size:.74rem; font-weight:700; color:rgba(255,255,255,.72); margin-bottom:.4rem; text-transform:uppercase; letter-spacing:.04em; }
-.onb-field input, .onb-field select {
-  width:100%; padding:.75rem .9rem; border-radius:10px; border:1.5px solid rgba(167,139,250,.22);
-  font-family:'DM Sans',sans-serif; font-size:.88rem; color:var(--wh); background:rgba(255,255,255,.05);
-  transition:border-color .2s;
-}
-.onb-field input:focus, .onb-field select:focus { outline:none; border-color:var(--p); background:rgba(255,255,255,.09); }
-.onb-field input[type="file"] { padding:.6rem .9rem; font-size:.8rem; }
-.onb-submit { width:100%; justify-content:center; margin-top:.4rem; border-radius:12px; }
-.onb-formnote { font-size:.72rem; color:var(--gr); margin-top:.9rem; line-height:1.55; text-align:center; }
-
-.onb-cta-card { text-align:center; padding:2.8rem 2.2rem; }
-.onb-cta-icon { display:flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:14px; background:rgba(124,58,237,.14); border:1px solid rgba(124,58,237,.3); color:var(--pl); margin:0 auto 1.2rem; }
-.onb-cta-card h3 { margin-bottom:.6rem; }
-.onb-cta-sub { font-size:.85rem; color:var(--gr); line-height:1.65; margin-bottom:1.6rem; }
-.onb-cta-card .onb-submit { display:inline-flex; }
-
-/* APP COMING SOON */
-.app-section {
-  background:linear-gradient(135deg,#0A0A0A 0%,#1A0F2E 100%); padding:5.5rem 0; text-align:center;
-  border-top:1px solid rgba(167,139,250,.15);
-}
-.app-badge {
-  display:inline-flex; align-items:center; gap:.5rem; background:rgba(124,58,237,.15);
-  border:1px solid rgba(124,58,237,.35); border-radius:50px; padding:.4rem 1.1rem;
-  font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--pl);
-  margin-bottom:1.3rem;
-}
-.app-section h2 { font-size:clamp(1.7rem,3.4vw,2.5rem); color:var(--wh); margin-bottom:.9rem; }
-.app-section h2 span { color:var(--pl); }
-.app-section p.app-desc { font-size:.9rem; color:rgba(255,255,255,.55); max-width:560px; margin:0 auto 2.2rem; line-height:1.75; }
-.app-features { display:flex; gap:.9rem; flex-wrap:wrap; justify-content:center; margin-bottom:2.4rem; }
-.app-feat {
-  display:flex; align-items:center; gap:.5rem; background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:.7rem 1.1rem;
-  font-size:.82rem; color:rgba(255,255,255,.75); font-weight:600;
-}
-.app-store-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
-.app-store-btn {
-  display:flex; align-items:center; gap:.7rem; background:rgba(255,255,255,.06);
-  border:1.5px solid rgba(255,255,255,.15); color:#fff; padding:.8rem 1.5rem;
-  border-radius:14px; text-decoration:none; transition:all .2s; min-width:190px;
-}
-.app-store-btn:hover { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.3); transform:translateY(-2px); }
-.app-store-btn svg { flex-shrink:0; }
-.app-store-btn .astb-label { text-align:left; }
-.app-store-btn .astb-small { font-size:.62rem; color:rgba(255,255,255,.5); display:block; text-transform:uppercase; letter-spacing:.05em; }
-.app-store-btn .astb-big { font-size:.92rem; font-weight:700; display:block; }
-
-@media(max-width:900px) {
-  .onb-inner { grid-template-columns:1fr; }
-}
-
-/* CANADA — SIMPLE TEASER, LAST SECTION */
-.canada-teaser {
-  background:var(--bk); padding:5rem 0; text-align:center; border-top:3px solid #D52B1E;
-}
-.canada-teaser .flag-pill {
-  display:inline-flex; align-items:center; gap:.5rem; background:rgba(213,43,30,.15);
-  border:1px solid rgba(213,43,30,.4); border-radius:50px; padding:.4rem 1.1rem;
-  font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#EF4444;
-  margin-bottom:1.3rem;
-}
-.canada-teaser h2 { font-size:clamp(1.6rem,3.2vw,2.3rem); color:var(--wh); margin-bottom:.8rem; }
-.canada-teaser p { font-size:.9rem; color:rgba(255,255,255,.5); max-width:480px; margin:0 auto 1.8rem; line-height:1.7; }
-.canada-teaser .btn { background:#D52B1E; color:#fff; }
-.canada-teaser .btn:hover { opacity:.88; }
+.b2b-text h2 { font-size:clamp(1.5rem,3vw,2.1rem); color:var(--wh); margin-bottom:.9rem; }
+.b2b-text p { font-size:.88rem; color:var(--gr); line-height:1.72; margin-bottom:1.2rem; }
+.b2b-list { list-style:none; display:flex; flex-direction:column; gap:.4rem; margin-bottom:1.4rem; }
+.b2b-list li { font-size:.84rem; color:rgba(255,255,255,.75); display:flex; align-items:center; gap:.45rem; }
+.b2b-stats { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.b2b-stat { background:rgba(46,125,50,.07); border:1px solid rgba(46,125,50,.15); border-radius:12px; padding:1.2rem; text-align:center; }
+.b2b-stat-n { font-family:'Fraunces',serif; font-size:1.5rem; font-weight:900; color:var(--g); }
+.b2b-stat-l { font-size:.72rem; color:var(--gr); margin-top:.2rem; }
 
 /* CTA */
-.re-cta { background:linear-gradient(135deg,var(--p) 0%,#4C1D95 100%); padding:4.5rem 0; text-align:center; }
-.re-cta h2 { font-size:clamp(1.6rem,3.5vw,2.4rem); margin-bottom:.8rem; }
-.re-cta p { color:rgba(255,255,255,.65); font-size:.9rem; margin-bottom:1.8rem; }
-.re-cta-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+.org-cta { background:linear-gradient(135deg,var(--g) 0%,#1B5E20 100%); padding:4rem 0; text-align:center; }
+.org-cta h2 { font-size:clamp(1.6rem,3.5vw,2.3rem); margin-bottom:.7rem; }
+.org-cta p { color:rgba(255,255,255,.68); font-size:.9rem; margin-bottom:1.8rem; }
+
+@media(max-width:900px) {
+  .products-grid { grid-template-columns:1fr 1fr; }
+  .food-grid,.b2b-box { grid-template-columns:1fr; }
+}
+@media(max-width:580px) { .products-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
-<div class="wa-float"><a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20find%20a%20property" target="_blank"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="wa-dot"></span></a></div>
+<div class="wa-float"><a href="https://wa.me/2348066611017" target="_blank"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="wa-dot"></span></a></div>
 
 <nav class="nav">
-  <a href="index.html" class="nav-logo"><img src="images/brand/logo-icon.png" alt="MainTown Realty" class="nav-logo-icon"/>MainTown <em>Realty</em></a>
+  <a href="organic.html" class="nav-logo"><span>Smarty<em>Hub</em></span><span>Organic</span></a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="about.html">About</a></li>
-    <li><a href="#listings">Listings</a></li>
-    <li><a href="organic.html">Organic</a></li>
+    <li><a href="organic.html" class="active">Organic</a></li>
+    <li><a href="#food">Menu</a></li>
     <li><a href="logistics.html">Logistics</a></li>
-    <li><a href="index.html" class="active">Realty</a></li>
-    <li><a href="#landlords">List Property</a></li>
-    <li><a href="#agents">Agents</a></li>
-    <li><a href="#canada">Canada</a></li>
+    <li><a href="index.html">Realty</a></li>
   </ul>
-  <button id="navSearchBtn" class="nav-cta" onclick="toggleSearch()">Search</button>
+  <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20from%20SmartyHub%20Organic" class="nav-cta" target="_blank">Order Now</a>
   <button class="nav-toggle" id="navToggle" onclick="toggleNavMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
 <script>
@@ -325,516 +136,465 @@ function toggleNavMenu() {
 }
 </script>
 
-<!-- SEARCH BAR -->
-<div class="search-bar" id="searchBar">
-  <div class="search-bar-inner">
-    <input type="text" id="searchInput" placeholder="Search by area, e.g. Lekki, Ikeja, Yaba..." autocomplete="off"/>
-    <button class="search-go" onclick="runSearch()">Search</button>
-    <button class="search-close" onclick="toggleSearch()" aria-label="Close search">✕</button>
-  </div>
-  <div class="search-status" id="searchStatus"></div>
-</div>
-
 <!-- HERO -->
-<section class="re-hero">
-  <div class="hero-slideshow" id="heroSlideshow">
-    <div class="hero-slide active" style="background-image:url('images/hero/lagos-city.jpg')"></div>
-    <div class="hero-slide" style="background-image:url('images/hero/abuja-city.jpg')"></div>
-    <div class="hero-slide" style="background-image:url('images/hero/lagos-home.jpg')"></div>
-    <div class="hero-slide" style="background-image:url('images/hero/abuja-home.png')"></div>
-  </div>
-  <span class="re-hero-kicker fade-up">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-    MainTown Realty
-  </span>
-  <h1 class="display fade-up delay-1">Flexible Rent. Verified Homes.<br/><span>Anywhere You Want to Live.</span></h1>
-  <p class="fade-up delay-2">Browse verified listings, book inspections, and secure your next home with ease.</p>
-  <div style="display:flex;gap:.9rem;flex-wrap:wrap;justify-content:center" class="fade-up delay-3">
-    <a href="#listings" class="btn btn-p btn-lg">Browse Listings</a>
-    <a href="#landlords" class="btn btn-ghost btn-lg">List Your Property</a>
-  </div>
-  <div class="hero-dots" id="heroDots">
-    <button class="hero-dot active" onclick="goToSlide(0)" aria-label="Lagos City"></button>
-    <button class="hero-dot" onclick="goToSlide(1)" aria-label="Abuja City"></button>
-    <button class="hero-dot" onclick="goToSlide(2)" aria-label="Lagos Home"></button>
-    <button class="hero-dot" onclick="goToSlide(3)" aria-label="Abuja Home"></button>
+<section class="org-hero">
+  <span class="eyebrow eyebrow-g fade-up">SmartyHub Organic</span>
+  <h1 class="display fade-up delay-1">Order Supplements &amp;<br/><span>Healthy Food</span> in Minutes</h1>
+  <p class="fade-up delay-2">NAFDAC-approved supplements and fresh shawarma — all ordered via WhatsApp. No app, no checkout, no waiting.</p>
+  <div class="org-hero-btns fade-up delay-3">
+    <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20supplements" class="btn btn-wa btn-lg" target="_blank">Order Supplements</a>
+    <a href="#food" class="btn btn-ghost btn-lg">See Food Menu</a>
   </div>
 </section>
 
-<!-- NIGERIA PROPERTY LISTINGS -->
-<section class="listings-section" id="listings">
+<!-- SUPPLEMENTS -->
+<section class="products-section">
   <div class="wrap">
     <div class="center">
-      <span class="eyebrow eyebrow-p">Nigeria Listings</span>
-      <h2 style="color:var(--wh);font-size:clamp(1.6rem,3vw,2.3rem)">Properties in Lagos</h2>
-      <p style="color:var(--gr);font-size:.86rem;margin-top:.5rem;max-width:480px;margin-left:auto;margin-right:auto">Tap any property image to view the full photo gallery. WhatsApp us with your budget and preferred area for current availability.</p>
-      <p style="color:var(--pl);font-size:.8rem;margin-top:.7rem;max-width:520px;margin-left:auto;margin-right:auto">We're currently manually vetting and onboarding premium properties across Lagos. New verified listings are added weekly. Want us to find a specific home? Tap "I Want to Rent" to chat with us directly.</p>
+      <span class="eyebrow eyebrow-g">NAFDAC Approved Products</span>
+      <h2 style="color:var(--wh);font-size:clamp(1.6rem,3vw,2.3rem)">Our Supplement Range</h2>
+      <p style="color:var(--gr);font-size:.88rem;margin-top:.5rem;max-width:440px;margin-left:auto;margin-right:auto">All products are from verified, trusted brands. DM us on WhatsApp to confirm availability and pricing.</p>
     </div>
+    <div class="products-grid">
 
-    <div class="listings-grid" id="listingsGrid">
-            <div class="prop-card">
-        <div class="prop-img" style="background-image:url('images/oniru/living-room.jpg')" onclick="openLightbox(0)">
-          <div class="prop-badge"><span class="pill pill-p">Rent Alert</span></div>
-          <div class="prop-view-hint">View Gallery</div>
-        </div>
-        <div class="prop-body">
-          <div class="prop-location">Oniru Estate, Victoria Island, Lagos</div>
-          <div class="prop-name">Fully Serviced 3-Bedroom Apartment</div>
-          <div class="prop-price">₦35,000,000 / year</div>
-          <div class="prop-features"><span class="prop-feat">3 Bedrooms</span><span class="prop-feat">Furnished</span><span class="prop-feat">Serviced Estate</span><span class="prop-feat">BQ Available</span></div>
-          <a href="https://wa.me/2348066611017?text=Hi%2C%20I%27m%20interested%20in%20the%20Fully%20Serviced%203-Bedroom%20Apartment%20in%20Oniru%20Estate%2C%20Victoria%20Island%20(%E2%82%A635M%2Fyear)." class="btn btn-p btn-sm prop-btn" target="_blank">Enquire Now</a>
+      <div class="prod-card">
+        <div class="prod-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg></div>
+        <div class="prod-body">
+          <div class="prod-name">Wellman / Wellwoman — Vitabiotics</div>
+          <div class="prod-price">From ₦3,500</div>
+          <p class="prod-benefits">Complete multivitamin for men or women. Supports energy, immunity and general wellbeing. Trusted UK brand, NAFDAC cleared.</p>
+          <div class="prod-tags"><span class="pill pill-g">Vitabiotics</span><span class="pill pill-g">NAFDAC</span></div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Wellman/Wellwoman" class="btn btn-g prod-btn btn-sm" target="_blank">Order Now</a>
         </div>
       </div>
-      <div class="prop-card unavailable">
-        <div class="prop-img" style="background-image:url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=75')">
-          <div class="prop-badge"><span class="pill pill-gray">Unavailable</span></div>
-        </div>
-        <div class="prop-body">
-          <div class="prop-location">Surulere, Lagos</div>
-          <div class="prop-name">1-Bedroom Flat</div>
-          <div class="prop-price">₦600,000 / year</div>
-          <div class="prop-features"><span class="prop-feat">1 Bed</span><span class="prop-feat">1 Bath</span><span class="prop-feat">Water</span><span class="prop-feat">Secure</span></div>
-          <span class="prop-btn-disabled">Currently Unavailable</span>
-        </div>
-      </div>
-      <div class="prop-card unavailable">
-        <div class="prop-img" style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=75')">
-          <div class="prop-badge"><span class="pill pill-gray">Unavailable</span></div>
-        </div>
-        <div class="prop-body">
-          <div class="prop-location">Yaba, Lagos</div>
-          <div class="prop-name">Shop / Office Space</div>
-          <div class="prop-price">₦800,000 / year</div>
-          <div class="prop-features"><span class="prop-feat">Ground Floor</span><span class="prop-feat">Main Road</span><span class="prop-feat">Utilities</span></div>
-          <span class="prop-btn-disabled">Currently Unavailable</span>
+
+      <div class="prod-card">
+        <div class="prod-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></div>
+        <div class="prod-body">
+          <div class="prod-name">Omega-3 Fish Oil — Nature's Field</div>
+          <div class="prod-price">From ₦2,800</div>
+          <p class="prod-benefits">Heart, brain and joint support. High-quality fish oil capsules from one of Nigeria's most trusted supplement brands.</p>
+          <div class="prod-tags"><span class="pill pill-g">Nature's Field</span><span class="pill pill-g">NAFDAC</span></div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Omega-3" class="btn btn-g prod-btn btn-sm" target="_blank">Order Now</a>
         </div>
       </div>
-      <div class="prop-card unavailable">
-        <div class="prop-img" style="background-image:url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=75')">
-          <div class="prop-badge"><span class="pill pill-gray">Unavailable</span></div>
-        </div>
-        <div class="prop-body">
-          <div class="prop-location">Lekki Phase 1, Lagos</div>
-          <div class="prop-name">3-Bedroom Terrace</div>
-          <div class="prop-price">₦45,000,000</div>
-          <div class="prop-features"><span class="prop-feat">3 Beds</span><span class="prop-feat">3 Baths</span><span class="prop-feat">BQ</span><span class="prop-feat">Estate</span></div>
-          <span class="prop-btn-disabled">Currently Unavailable</span>
-        </div>
-      </div>
-      <div class="prop-card unavailable">
-        <div class="prop-img" style="background-image:url('https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=75')">
-          <div class="prop-badge"><span class="pill pill-gray">Unavailable</span></div>
-        </div>
-        <div class="prop-body">
-          <div class="prop-location">Ojodu Berger, Lagos</div>
-          <div class="prop-name">Self-Contain Studio</div>
-          <div class="prop-price">₦350,000 / year</div>
-          <div class="prop-features"><span class="prop-feat">Self-Contain</span><span class="prop-feat">Water</span><span class="prop-feat">Security</span></div>
-          <span class="prop-btn-disabled">Currently Unavailable</span>
+
+      <div class="prod-card">
+        <div class="prod-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div class="prod-body">
+          <div class="prod-name">Vitamin C + Zinc — Fidson</div>
+          <div class="prod-price">From ₦1,500</div>
+          <p class="prod-benefits">Immune support and faster recovery. Ideal for daily use or during illness. Made by Fidson Healthcare — a Nigerian pharmaceutical leader.</p>
+          <div class="prod-tags"><span class="pill pill-g">Fidson</span><span class="pill pill-g">NAFDAC</span></div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Vitamin%20C%20Zinc" class="btn btn-g prod-btn btn-sm" target="_blank">Order Now</a>
         </div>
       </div>
-      <div class="prop-card">
-        <div class="prop-img" style="background-image:url('images/oniru-vi-duplex/exterior.jpg')" onclick="openLightbox(5)">
-          <div class="prop-badge"><span class="pill pill-p">New Listing</span></div>
-          <div class="prop-view-hint">View Gallery</div>
+
+      <div class="prod-card">
+        <div class="prod-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18a3 3 0 1 1 4.24-4.24l3.52-3.52A3 3 0 1 1 18 6a3 3 0 0 1 4.24 4.24 3 3 0 0 1-4.24 0l-3.52 3.52A3 3 0 1 1 10.24 18 3 3 0 0 1 6 18z"/></svg></div>
+        <div class="prod-body">
+          <div class="prod-name">Osteocare — Vitabiotics</div>
+          <div class="prod-price">From ₦4,200</div>
+          <p class="prod-benefits">Calcium, Vitamin D and Magnesium for bone health. Recommended for adults 35+, pregnant women and active individuals.</p>
+          <div class="prod-tags"><span class="pill pill-g">Vitabiotics</span><span class="pill pill-g">NAFDAC</span></div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Osteocare" class="btn btn-g prod-btn btn-sm" target="_blank">Order Now</a>
         </div>
-        <div class="prop-body">
-          <div class="prop-location">Oniru, Victoria Island, Lagos</div>
-          <div class="prop-name">Unfurnished 4-Bedroom Terrace Duplex</div>
-          <div class="prop-price">₦35,000,000 / year</div>
-          <div class="prop-price-note">+ Service Charge ₦2,500,000 (excl. light &amp; diesel) · Agency 10% · Legal 10% · Caution ₦3,000,000</div>
-          <div class="prop-features"><span class="prop-feat">4 Bedrooms</span><span class="prop-feat">Unfurnished</span><span class="prop-feat">Terrace Duplex</span><span class="prop-feat">Ensuite Rooms</span></div>
-          <a href="https://wa.me/2348066611017?text=Hi%2C%20I%27m%20interested%20in%20the%20Unfurnished%204-Bedroom%20Terrace%20Duplex%20in%20Oniru%2C%20Victoria%20Island%20(%E2%82%A635M%2Fyear%2C%20SC%20%E2%82%A62.5M%2C%20Agency%2010%25%2C%20Legal%2010%25%2C%20Caution%20%E2%82%A63M)." class="btn btn-p btn-sm prop-btn" target="_blank">Enquire Now</a>
+      </div>
+
+      <div class="prod-card">
+        <div class="prod-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="10" y1="11" x2="14" y2="11"/></svg></div>
+        <div class="prod-body">
+          <div class="prod-name">Pregnacare — Vitabiotics</div>
+          <div class="prod-price">From ₦4,800</div>
+          <p class="prod-benefits">Complete prenatal nutrition including folic acid, iron, and DHA. Designed specifically for pregnancy and breastfeeding.</p>
+          <div class="prod-tags"><span class="pill pill-g">Vitabiotics</span><span class="pill pill-g">NAFDAC</span></div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Pregnacare" class="btn btn-g prod-btn btn-sm" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="prod-card">
+        <div class="prod-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="prod-body">
+          <div class="prod-name">B-Complex — Nature's Field</div>
+          <div class="prod-price">From ₦2,200</div>
+          <p class="prod-benefits">Full spectrum B vitamins for energy metabolism, stress relief and nervous system support. Great for busy Lagos professionals.</p>
+          <div class="prod-tags"><span class="pill pill-g">Nature's Field</span><span class="pill pill-g">NAFDAC</span></div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20B-Complex" class="btn btn-g prod-btn btn-sm" target="_blank">Order Now</a>
         </div>
       </div>
 
     </div>
-
-    <div class="pagination">
-      <button class="page-btn" id="prevPage" onclick="changePage(-1)">← Previous</button>
-      <span class="page-indicator" id="pageIndicator">Page 1 of 1</span>
-      <button class="page-btn" id="nextPage" onclick="changePage(1)">Next →</button>
+    <div style="text-align:center;margin-top:2.5rem">
+      <p style="color:var(--gr);font-size:.84rem;margin-bottom:1rem">Don't see what you need? We stock more. Ask us directly.</p>
+      <a href="https://wa.me/2348066611017?text=Hi,%20I%20need%20help%20finding%20a%20specific%20supplement" class="btn btn-g" target="_blank">Ask for Any Product</a>
     </div>
   </div>
 </section>
 
-<!-- MEET YOUR AGENT -->
-<section class="agent-section">
+<!-- FOOD & DRINKS MENU -->
+<section class="food-section" id="food">
   <div class="wrap">
-    <span class="agent-eyebrow" style="margin-bottom:1rem;display:block">Our Agents</span>
-    <div class="agent-grid">
-      <div class="agent-card">
-        <img src="images/team/obinna-jerry.jpg" alt="Mamah Obinna Jerry" class="agent-photo"/>
-        <h3 class="agent-name">Mamah Obinna Jerry</h3>
-        <p class="agent-title">House Agent</p>
-        <div class="agent-rating">
-          <span class="agent-stars">
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-          </span>
-          <span class="agent-rating-text">Verified</span>
+    <div class="center">
+      <span class="eyebrow eyebrow-g">Full Menu</span>
+      <h2 style="font-size:clamp(1.6rem,3vw,2.3rem)">Food, Drinks & Supplements</h2>
+      <p style="color:rgba(255,255,255,.45);font-size:.87rem;margin-top:.5rem;max-width:460px;margin-left:auto;margin-right:auto">Fresh shawarmas, blended smoothies, tiger nut drinks, organic teas and coffee — all ordered via WhatsApp.</p>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="menu-tabs" style="margin-top:2rem">
+      <button class="mtab active" data-cat="all">🍽️ All</button>
+      <button class="mtab" data-cat="breakfast">🍳 Breakfast</button>
+      <button class="mtab" data-cat="shawarma">🌯 Shawarmas</button>
+      <button class="mtab" data-cat="smoothie">🥤 Smoothies & Blends</button>
+      <button class="mtab" data-cat="drinks">☕ Coffee & Tea</button>
+    </div>
+
+    <div class="menu-grid-full">
+
+      <!-- ── BREAKFAST ── -->
+      <div class="menu-card" data-cat="breakfast">
+        <div class="menu-ico">🍞</div>
+        <div>
+          <div class="menu-name">Oat Toast with Sardine or Egg</div>
+          <div class="menu-desc">Wholesome oat bread toasted, served with your choice of fish sardines or scrambled eggs on the side.</div>
+          <div class="menu-price">₦2,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Oat%20Toast%20with%20Sardine%20or%20Egg%20(₦2,000)" class="menu-order-btn" target="_blank">Order Now</a>
         </div>
       </div>
-      <div class="agent-card">
-        <img src="images/team/prismmon-icon.png" alt="Prismmon Enterprises Nig" class="agent-photo"/>
-        <h3 class="agent-name">Prismmon Enterprises Nig</h3>
-        <p class="agent-title">Partner Agency</p>
-        <div class="agent-rating">
-          <span class="agent-stars">
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
-          </span>
-          <span class="agent-rating-text">Verified</span>
+
+      <div class="menu-card" data-cat="breakfast">
+        <div class="menu-ico">🍞</div>
+        <div>
+          <div class="menu-name">Wheat Toast with Sardine or Egg</div>
+          <div class="menu-desc">Hearty wheat bread toasted, served with your choice of fish sardines or scrambled eggs on the side.</div>
+          <div class="menu-price">₦2,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20Wheat%20Toast%20with%20Sardine%20or%20Egg%20(₦2,000)" class="menu-order-btn" target="_blank">Order Now</a>
         </div>
       </div>
+
+      <!-- ── SHAWARMAS ── -->
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🐔</div>
+        <div>
+          <div class="menu-name">Chicken Shawarma</div>
+          <div class="menu-desc">Grilled chicken, fresh veggies, garlic sauce, wrapped in soft bread. Made fresh to order.</div>
+          <div class="menu-price">₦1,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Chicken%20Shawarma%20(₦1,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🥩</div>
+        <div>
+          <div class="menu-name">Beef Shawarma</div>
+          <div class="menu-desc">Seasoned beef strips, crispy onions, cucumber, pepper sauce. Filling and satisfying.</div>
+          <div class="menu-price">₦1,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Beef%20Shawarma%20(₦1,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🌯</div>
+        <div>
+          <div class="menu-name">Bellefull Combo Shawarma (Chicken + Beef)</div>
+          <div class="menu-desc">Best of both — chicken and beef combined in one wrap with all the toppings.</div>
+          <div class="menu-price">₦2,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Bellefull%20Combo%20Shawarma%20(₦2,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🔥</div>
+        <div>
+          <div class="menu-name">Asun Shawarma</div>
+          <div class="menu-desc">Spicy peppered goat meat in a wrap. Our boldest option — not for the faint-hearted. 🌶️</div>
+          <div class="menu-price">₦2,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20an%20Asun%20Shawarma%20(₦2,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🍯</div>
+        <div>
+          <div class="menu-name">Honey Shawarma</div>
+          <div class="menu-desc">Sweet wrap drizzled with natural honey.</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Honey%20Shawarma%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🍌</div>
+        <div>
+          <div class="menu-name">Dodo Shawarma</div>
+          <div class="menu-desc">Wrap filled with sweet fried ripe plantain (dodo).</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Dodo%20Shawarma%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🐔</div>
+        <div>
+          <div class="menu-name">Honey Mix Chicken Shawarma</div>
+          <div class="menu-desc">Grilled chicken shawarma drizzled with natural honey for a sweet-savory twist.</div>
+          <div class="menu-price">₦1,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Honey%20Mix%20Chicken%20Shawarma%20(₦1,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🥩</div>
+        <div>
+          <div class="menu-name">Honey Mix Beef Shawarma</div>
+          <div class="menu-desc">Seasoned beef shawarma drizzled with natural honey for a sweet-savory twist.</div>
+          <div class="menu-price">₦1,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Honey%20Mix%20Beef%20Shawarma%20(₦1,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="shawarma">
+        <div class="menu-ico">🍢</div>
+        <div>
+          <div class="menu-name">Crunchy Suya Shawarma</div>
+          <div class="menu-desc">Classic street suya flavours meet the shawarma wrap — spiced, crunchy, unforgettable.</div>
+          <div class="menu-price tba">Coming Soon</div>
+          <span class="coming-tag">Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- ── SMOOTHIES & BLENDED DRINKS ── -->
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🥛</div>
+        <div>
+          <div class="menu-name">Tiger Nut Drink (Kunu Aya)</div>
+          <div class="menu-desc">Creamy, naturally sweet tiger nut milk. Rich in antioxidants, fibre and natural energy. A Nigerian superfood in a cup.</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Tiger%20Nut%20Drink%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🌰</div>
+        <div>
+          <div class="menu-name">Tiger Nut & Date Blend</div>
+          <div class="menu-desc">Tiger nut milk blended with Medjool dates — naturally sweet, iron-rich and deeply nourishing.</div>
+          <div class="menu-price">₦1,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Tiger%20Nut%20%26%20Date%20Blend%20(₦1,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🍉</div>
+        <div>
+          <div class="menu-name">Watermelon Smoothie</div>
+          <div class="menu-desc">Fresh blended watermelon — hydrating, light and naturally sweet. Zero added sugar.</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Watermelon%20Smoothie%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🥭</div>
+        <div>
+          <div class="menu-name">Mango Smoothie</div>
+          <div class="menu-desc">Thick, tropical mango blend loaded with Vitamin C and natural sweetness. Pure fruit, pure joy.</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Mango%20Smoothie%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🍍</div>
+        <div>
+          <div class="menu-name">Pineapple Smoothie</div>
+          <div class="menu-desc">Tangy, refreshing pineapple blend — anti-inflammatory, aids digestion and tastes incredible.</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Pineapple%20Smoothie%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🍓</div>
+        <div>
+          <div class="menu-name">Strawberry Banana Smoothie</div>
+          <div class="menu-desc">A creamy, energising classic — fresh strawberries and ripe banana blended to perfection.</div>
+          <div class="menu-price">₦1,200</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Strawberry%20Banana%20Smoothie%20(₦1,200)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🥬</div>
+        <div>
+          <div class="menu-name">Green Detox Smoothie</div>
+          <div class="menu-desc">Spinach, cucumber, green apple and ginger — a powerful cleansing blend to reset your body.</div>
+          <div class="menu-price">₦1,200</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Green%20Detox%20Smoothie%20(₦1,200)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🥑</div>
+        <div>
+          <div class="menu-name">Avocado Smoothie</div>
+          <div class="menu-desc">Rich, creamy avocado blended with milk and a hint of honey — packed with healthy fats.</div>
+          <div class="menu-price">₦1,500</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20an%20Avocado%20Smoothie%20(₦1,500)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="smoothie">
+        <div class="menu-ico">🍇</div>
+        <div>
+          <div class="menu-name">Mixed Fruit Blend</div>
+          <div class="menu-desc">Seasonal fruits blended together — ask us what's fresh today. Different every day, always delicious.</div>
+          <div class="menu-price">₦1,200</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Mixed%20Fruit%20Blend%20(₦1,200)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <!-- ── COFFEE & ORGANIC TEA ── -->
+      <div class="menu-card" data-cat="drinks">
+        <div class="menu-ico">☕</div>
+        <div>
+          <div class="menu-name">Organic Black Coffee</div>
+          <div class="menu-desc">Bold, rich and clean. Brewed from quality Arabica beans — no fillers, no additives. Just pure coffee.</div>
+          <div class="menu-price">₦800</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20an%20Organic%20Black%20Coffee%20(₦800)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="drinks">
+        <div class="menu-ico">🟡</div>
+        <div>
+          <div class="menu-name">Turmeric Golden Latte</div>
+          <div class="menu-desc">Turmeric, ginger, cinnamon and warm milk — the ultimate anti-inflammatory drink. Healing in every sip.</div>
+          <div class="menu-price">₦1,000</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Turmeric%20Golden%20Latte%20(₦1,000)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="drinks">
+        <div class="menu-ico">🍋</div>
+        <div>
+          <div class="menu-name">Ginger & Lemon Tea</div>
+          <div class="menu-desc">Fresh ginger root and lemon steeped in hot water — anti-inflammatory, immune-boosting and warming.</div>
+          <div class="menu-price">₦700</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Ginger%20%26%20Lemon%20Tea%20(₦700)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="drinks">
+        <div class="menu-ico">🌿</div>
+        <div>
+          <div class="menu-name">Moringa Green Tea</div>
+          <div class="menu-desc">Nigerian superfood in tea form. Moringa is packed with vitamins A, C and calcium — earthy and refreshing.</div>
+          <div class="menu-price">₦700</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20a%20Moringa%20Green%20Tea%20(₦700)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="drinks">
+        <div class="menu-ico">🌺</div>
+        <div>
+          <div class="menu-name">Organic Zobo (Hibiscus Tea)</div>
+          <div class="menu-desc">Traditional Nigerian zobo with dried hibiscus flowers — antioxidant-rich, sugar-controlled, served chilled.</div>
+          <div class="menu-price">₦700</div>
+          <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20an%20Organic%20Zobo%20(₦700)" class="menu-order-btn" target="_blank">Order Now</a>
+        </div>
+      </div>
+
+      <div class="menu-card" data-cat="drinks">
+        <div class="menu-ico">🧊</div>
+        <div>
+          <div class="menu-name">Cold Brew Coffee</div>
+          <div class="menu-desc">Slow-steeped cold brew — smooth, low-acid and served over ice. The upgrade you didn't know you needed.</div>
+          <div class="menu-price tba">Coming Soon</div>
+          <span class="coming-tag">Coming Soon</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Vitamin Combo Banner -->
+    <div class="combo-card">
+      <div class="combo-badge">Best Value</div>
+      <h3>Energy Combo — Food + Vitamins</h3>
+      <p>One full shawarma of your choice plus a pack of multivitamins. Eat well. Stay healthy. All in one order, delivered by SmartyHub Logistics.</p>
+      <div class="combo-price">From ₦5,500</div>
+      <div class="combo-items">
+        <div class="combo-item"><span>Chicken or Beef Shawarma (your choice)</span></div>
+        <div class="combo-item"><span>Wellman/Wellwoman Multivitamin (1 pack)</span></div>
+        <div class="combo-item"><span>Delivered by SmartyHub Logistics</span></div>
+      </div>
+      <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20the%20Energy%20Combo" class="btn btn-wa" target="_blank" style="display:inline-block">Order Energy Combo</a>
+    </div>
+
+    <div style="text-align:center;margin-top:2rem">
+      <div style="font-size:.78rem;color:rgba(255,255,255,.3);margin-bottom:1rem">Chowdeck listing coming soon. For now, order everything via WhatsApp and we deliver.</div>
     </div>
   </div>
 </section>
 
-<!-- FULL-SCREEN IMAGE GALLERY LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-  <button class="lb-close" onclick="closeLightbox()">✕</button>
-  <div class="lb-stage" id="lbStage">
-    <button class="lb-arrow lb-prev" onclick="lbNav(-1)">‹</button>
-    <img id="lbImage" src="" alt="Property photo"/>
-    <button class="lb-arrow lb-next" onclick="lbNav(1)">›</button>
-  </div>
-  <div class="lb-caption" id="lbCaption"></div>
-  <div class="lb-counter" id="lbCounter"></div>
-</div>
+<script>
+// Menu tab filter
+document.querySelectorAll('.mtab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mtab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const cat = tab.dataset.cat;
+    document.querySelectorAll('.menu-grid-full .menu-card').forEach(card => {
+      card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+    });
+  });
+});
+</script>
 
-<!-- LANDLORD ONBOARDING -->
-<section class="onb-section landlord" id="landlords">
+<!-- B2B -->
+<section class="b2b-section">
   <div class="wrap">
-    <div class="onb-inner">
-      <div class="onb-text">
-        <span class="eyebrow eyebrow-p">List Your Property with Maintown Realty</span>
-        <h2>Earn Consistent Monthly Income from Your Property</h2>
-        <p class="onb-desc">We match your property with verified, background-checked tenants. Skip the stress — let us manage the onboarding manually via WhatsApp, from first enquiry to move-in.</p>
-        <ul class="onb-perks">
-          <li class="onb-perk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Structured monthly rent system</li>
-          <li class="onb-perk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Verified, qualified tenants</li>
-          <li class="onb-perk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Professional listing review process</li>
+    <div class="b2b-box">
+      <div class="b2b-text">
+        <span class="eyebrow eyebrow-g">For Pharmacies &amp; Clinics</span>
+        <h2>Need a Reliable Supplement Supplier?</h2>
+        <p>We supply NAFDAC-approved supplements wholesale to pharmacies, clinics, and wellness centres in Lagos. Bulk pricing available with consistent stock.</p>
+        <ul class="b2b-list">
+          <li><span class="chk-g">✓</span> NAFDAC-verified brands only</li>
+          <li><span class="chk-g">✓</span> Bulk pricing for repeat orders</li>
+          <li><span class="chk-g">✓</span> Delivered directly to your store</li>
+          <li><span class="chk-g">✓</span> Consistent supply relationship</li>
         </ul>
-        <div class="onb-note">All submitted properties are reviewed and must align with Maintown Realty monthly rent structure and listing standards.</div>
+        <a href="https://wa.me/2348066611017?text=Hi,%20I%20am%20a%20pharmacy/clinic%20and%20want%20to%20discuss%20bulk%20supply" class="btn btn-g" target="_blank">Discuss Bulk Supply</a>
       </div>
-      <div class="onb-card onb-cta-card">
-        <div class="onb-cta-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
-        <h3>Submit Your Property</h3>
-        <p class="onb-cta-sub">Ready to list? Send us your property details on WhatsApp and our team will guide you through the rest.</p>
-        <a href="https://wa.me/2348066611017?text=Hi%2C%20I%27d%20like%20to%20list%20my%20property%20with%20Maintown%20Realty." class="btn btn-p onb-submit" target="_blank">Submit Property</a>
-        <div class="onb-formnote">Opens WhatsApp — our listings team will take it from there.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- AGENT PARTNERSHIP -->
-<section class="onb-section agent" id="agents">
-  <div class="wrap">
-    <div class="onb-inner">
-      <div class="onb-card onb-cta-card">
-        <div class="onb-cta-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg></div>
-        <h3>Apply as a Partner Agent</h3>
-        <p class="onb-cta-sub">Ready to partner with us? Reach out on WhatsApp with your listings and our team will get you set up.</p>
-        <a href="https://wa.me/2348066611017?text=Hi%2C%20I%27d%20like%20to%20partner%20as%20an%20agent%20with%20Maintown%20Realty." class="btn btn-p onb-submit" target="_blank">Join as Agent</a>
-        <div class="onb-formnote">Opens WhatsApp — our partnerships team will take it from there.</div>
-      </div>
-      <div class="onb-text">
-        <span class="eyebrow eyebrow-p">Partner as an Agent</span>
-        <h2>Connect Your Listings to Qualified Tenants</h2>
-        <p class="onb-desc">Partner with a platform that values your inventory. We connect your listings with highly qualified, ready-to-move tenants — no wasted showings, no time-wasters.</p>
-        <ul class="onb-perks">
-          <li class="onb-perk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Access to verified tenant demand</li>
-          <li class="onb-perk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Manage listings through one platform</li>
-          <li class="onb-perk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Structured, policy-aligned process</li>
-        </ul>
-        <div class="onb-note">All listings must follow Maintown Realty rent payment guide and policy.</div>
+      <div class="b2b-stats">
+        <div class="b2b-stat"><div class="b2b-stat-n">NAFDAC</div><div class="b2b-stat-l">Approved Only</div></div>
+        <div class="b2b-stat"><div class="b2b-stat-n">3+</div><div class="b2b-stat-l">Trusted Brands</div></div>
+        <div class="b2b-stat"><div class="b2b-stat-n">Lagos</div><div class="b2b-stat-l">Wide Delivery</div></div>
+        <div class="b2b-stat"><div class="b2b-stat-n">B2B</div><div class="b2b-stat-l">Pricing Available</div></div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- APP COMING SOON -->
-<section class="app-section" id="app">
-  <div class="wrap">
-    <span class="app-badge">MainTown Realty App — Coming Soon</span>
-    <h2>Browse, Pay Rent, and <span>Manage It All</span><br/>From One App.</h2>
-    <p class="app-desc">We're building the MainTown Realty app — browse verified listings, chat with landlords and agents, and pay rent straight from your in-app wallet. Be the first to know when it launches.</p>
-    <div class="app-features">
-      <div class="app-feat">In-App Wallet</div>
-      <div class="app-feat">Browse & Save Listings</div>
-      <div class="app-feat">Direct Landlord Chat</div>
-      <div class="app-feat">Digital Agreements</div>
-      <div class="app-feat">Rent Reminders</div>
-    </div>
-    <div class="app-store-btns">
-      <a href="https://wa.me/2348066611017?text=Hi%2C%20please%20notify%20me%20when%20the%20MainTown%20Realty%20app%20launches%20on%20Google%20Play." class="app-store-btn" target="_blank">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M3 3l10.5 9L3 21V3z" fill="#00D9FF"/><path d="M13.5 12l3.5-2 3 2-3 2-3.5-2z" fill="#FFD200"/><path d="M3 3l14 7-3.5 2L3 3z" fill="#00F076"/><path d="M3 21l14-7-3.5-2L3 21z" fill="#FF3A44"/></svg>
-        <span class="astb-label"><span class="astb-small">Notify me on</span><span class="astb-big">Google Play</span></span>
-      </a>
-      <a href="https://wa.me/2348066611017?text=Hi%2C%20please%20notify%20me%20when%20the%20MainTown%20Realty%20app%20launches%20on%20the%20App%20Store." class="app-store-btn" target="_blank">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M16.5 1.5c.1 1.1-.3 2.2-1 3-.7.8-1.9 1.5-3 1.4-.1-1.1.4-2.2 1-3 .7-.8 1.9-1.4 3-1.4zM20.9 17c-.5 1.2-.8 1.7-1.5 2.7-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9s-2.4.9-3.7.9c-1.6 0-2.8-1.5-3.7-2.9C2 16.7 1.6 12 3.3 9.5c1.1-1.7 2.9-2.7 4.5-2.7 1.5 0 2.5 1 3.7 1 1.2 0 1.9-1 3.7-1 1.4 0 2.9.8 4 2.1-3.5 1.9-2.9 6.9 1.7 8.1z"/></svg>
-        <span class="astb-label"><span class="astb-small">Notify me on</span><span class="astb-big">App Store</span></span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- CANADA — LAST, SEPARATE FROM NIGERIA LISTINGS -->
-<section class="canada-teaser" id="canada">
-  <div class="wrap">
-    <span class="flag-pill">Canada Listings</span>
-    <h2>Coming Soon</h2>
-    <p>MainTown Realty is expanding beyond Lagos. Canadian property listings will be available on a dedicated page soon.</p>
-    <a href="Canada.html" class="btn btn-lg">Find Out More</a>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="re-cta">
+<section class="org-cta">
   <div class="wrap">
-    <h2>Ready to Find Your Property?</h2>
-    <p>Tell us your budget and preferred area and we'll handle the search.</p>
-    <div class="re-cta-btns">
-      <a href="https://wa.me/2348066611017?text=Hi,%20I%20am%20looking%20to%20rent%20a%20property%20in%20Lagos.%20My%20budget%20is:" class="btn btn-white btn-lg" target="_blank">I Want to Rent</a>
-      <a href="https://wa.me/2348066611017?text=Hi,%20I%20am%20looking%20to%20buy%20a%20property%20in%20Lagos.%20My%20budget%20is:" class="btn btn-ghost btn-lg" target="_blank">I Want to Buy</a>
-      <a href="#landlords" class="btn btn-p btn-lg">Submit Property</a>
-      <a href="#agents" class="btn btn-p btn-lg">Join as Agent</a>
-    </div>
+    <h2>Ready to Order?</h2>
+    <p>Message us on WhatsApp and we'll confirm availability, pricing and delivery in minutes.</p>
+    <a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20order%20from%20SmartyHub%20Organic" class="btn btn-wa btn-lg" target="_blank">Start Your Order on WhatsApp</a>
   </div>
 </section>
 
 <footer>
-  <div class="footer-logo">MainTown <em>Realty</em></div>
-  <div class="footer-copy">© 2025 MainTown Realty · Lagos, Nigeria · CAC Registered</div>
+  <div class="footer-logo"><a href="smartyhub.html" style="color:inherit;text-decoration:none;">Smarty<em>Hub</em> Group</a></div>
+  <div class="footer-copy">© 2025 SmartyHub Organic · Lagos · NAFDAC Approved Products</div>
   <nav class="footer-nav">
-    <a href="https://instagram.com/maintownrealty" target="_blank">Instagram</a>
+    <a href="smartyhub.html">Home</a>
+    <a href="logistics.html">Logistics</a>
+    <a href="index.html">Realty</a>
+    <a href="https://instagram.com/smartyhuborganic" target="_blank">Instagram</a>
   </nav>
-  <div class="footer-parent">MainTown Realty is a subsidiary of <a href="smartyhub.html">SmartyHub Group</a>.</div>
 </footer>
-
-<script>
-// ---- HERO SLIDESHOW ----
-let heroSlideIdx = 0;
-const heroSlides = document.querySelectorAll('.hero-slide');
-const heroDots = document.querySelectorAll('.hero-dot');
-let heroInterval;
-
-function showSlide(idx) {
-  heroSlides.forEach((s, i) => s.classList.toggle('active', i === idx));
-  heroDots.forEach((d, i) => d.classList.toggle('active', i === idx));
-  heroSlideIdx = idx;
-}
-function nextSlide() {
-  showSlide((heroSlideIdx + 1) % heroSlides.length);
-}
-function goToSlide(idx) {
-  showSlide(idx);
-  resetHeroTimer();
-}
-function resetHeroTimer() {
-  clearInterval(heroInterval);
-  heroInterval = setInterval(nextSlide, 5000);
-}
-showSlide(0);
-resetHeroTimer();
-
-// ---- PROPERTY DATA ----
-const properties = [
-  {
-    location: "Oniru Estate, Victoria Island, Lagos",
-    title: "Fully Serviced 3-Bedroom Apartment",
-    price: "₦35,000,000 / year",
-    badge: "Rent Alert",
-    features: ["3 Bedrooms","Furnished","Serviced Estate","BQ Available"],
-    images: [
-      "images/oniru/living-room.jpg",
-      "images/oniru/bedroom-1.jpg",
-      "images/oniru/bedroom-2.jpg",
-      "images/oniru/bedroom-3.jpg",
-      "images/oniru/exterior-1.jpg",
-      "images/oniru/exterior-2.jpg",
-      "images/oniru/balcony.jpg",
-      "images/oniru/bathroom.jpg"
-    ],
-    wa: "Hi, I'm interested in the Fully Serviced 3-Bedroom Apartment in Oniru Estate, Victoria Island (₦35M/year)."
-  },
-  {
-    location: "Surulere, Lagos",
-    title: "1-Bedroom Flat",
-    price: "₦600,000 / year",
-    badge: "Unavailable",
-    features: ["1 Bed","1 Bath","Water","Secure"],
-    images: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80"],
-    wa: "Hi, I am interested in the 1-bedroom in Surulere"
-  },
-  {
-    location: "Yaba, Lagos",
-    title: "Shop / Office Space",
-    price: "₦800,000 / year",
-    badge: "Unavailable",
-    features: ["Ground Floor","Main Road","Utilities"],
-    images: ["https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80"],
-    wa: "Hi, I am interested in the shop/office space in Yaba"
-  },
-  {
-    location: "Lekki Phase 1, Lagos",
-    title: "3-Bedroom Terrace",
-    price: "₦45,000,000",
-    badge: "Unavailable",
-    features: ["3 Beds","3 Baths","BQ","Estate"],
-    images: ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80"],
-    wa: "Hi, I am interested in the 3-bed terrace in Lekki"
-  },
-  {
-    location: "Ojodu Berger, Lagos",
-    title: "Self-Contain Studio",
-    price: "₦350,000 / year",
-    badge: "Unavailable",
-    features: ["Self-Contain","Water","Security"],
-    images: ["https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80"],
-    wa: "Hi, I am interested in the self-contain in Ojodu"
-  },
-  {
-    location: "Oniru, Victoria Island, Lagos",
-    title: "Unfurnished 4-Bedroom Terrace Duplex",
-    price: "₦35,000,000 / year",
-    badge: "New Listing",
-    features: ["4 Bedrooms","Unfurnished","Terrace Duplex","Ensuite Rooms"],
-    images: [
-      "images/oniru-vi-duplex/exterior.jpg",
-      "images/oniru-vi-duplex/living-room.jpg",
-      "images/oniru-vi-duplex/staircase.jpg",
-      "images/oniru-vi-duplex/bedroom-1.jpg",
-      "images/oniru-vi-duplex/bedroom-2.jpg",
-      "images/oniru-vi-duplex/bedroom-3.jpg",
-      "images/oniru-vi-duplex/wardrobe.jpg",
-      "images/oniru-vi-duplex/kitchen.jpg",
-      "images/oniru-vi-duplex/bathroom.jpg"
-    ],
-    wa: "Hi, I'm interested in the Unfurnished 4-Bedroom Terrace Duplex in Oniru, Victoria Island (₦35M/year, SC ₦2.5M, Agency 10%, Legal 10%, Caution ₦3M)."
-  }
-];
-
-// ---- PAGINATION ----
-const PER_PAGE = 4;
-let currentPage = 1;
-const totalPages = Math.ceil(properties.length / PER_PAGE);
-let searchActive = false;
-
-function renderPage() {
-  if (searchActive) return;
-  document.querySelectorAll('.prop-card').forEach((card, i) => {
-    const page = Math.floor(i / PER_PAGE) + 1;
-    card.style.display = (page === currentPage) ? '' : 'none';
-  });
-  document.getElementById('pageIndicator').textContent = `Page ${currentPage} of ${totalPages}`;
-  document.getElementById('prevPage').disabled = currentPage === 1;
-  document.getElementById('nextPage').disabled = currentPage === totalPages;
-}
-function changePage(dir) {
-  const next = currentPage + dir;
-  if (next < 1 || next > totalPages) return;
-  currentPage = next;
-  renderPage();
-  document.getElementById('listings').scrollIntoView({behavior:'smooth', block:'start'});
-}
-renderPage();
-
-// ---- SEARCH ----
-function toggleSearch() {
-  const bar = document.getElementById('searchBar');
-  const opening = !bar.classList.contains('open');
-  bar.classList.toggle('open');
-  if (opening) {
-    setTimeout(() => document.getElementById('searchInput').focus(), 260);
-  } else {
-    clearSearch();
-  }
-}
-function runSearch() {
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const status = document.getElementById('searchStatus');
-  const cards = document.querySelectorAll('.prop-card');
-  const pagination = document.querySelector('.pagination');
-
-  if (!q) { clearSearch(); return; }
-
-  searchActive = true;
-  let matches = 0;
-  cards.forEach((card, i) => {
-    const p = properties[i];
-    const haystack = [p.location, p.title, p.badge, ...(p.features||[])].join(' ').toLowerCase();
-    const isMatch = haystack.includes(q);
-    card.style.display = isMatch ? '' : 'none';
-    if (isMatch) matches++;
-  });
-  pagination.style.display = 'none';
-  status.textContent = matches
-    ? `${matches} propert${matches === 1 ? 'y' : 'ies'} matching "${q}"`
-    : `No properties found for "${q}" — try a different area or keyword.`;
-  document.getElementById('listings').scrollIntoView({behavior:'smooth', block:'start'});
-}
-function clearSearch() {
-  searchActive = false;
-  document.getElementById('searchInput').value = '';
-  document.getElementById('searchStatus').textContent = '';
-  document.querySelector('.pagination').style.display = '';
-  currentPage = 1;
-  renderPage();
-}
-document.getElementById('searchInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') runSearch();
-});
-
-// ---- LIGHTBOX (FULL-SCREEN GALLERY SLIDER) ----
-let lbPropIdx = 0;
-let lbImgIdx = 0;
-
-function openLightbox(propIdx) {
-  lbPropIdx = propIdx;
-  lbImgIdx = 0;
-  updateLightbox();
-  document.getElementById('lightbox').classList.add('active');
-}
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('active');
-}
-function lbNav(dir) {
-  const imgs = properties[lbPropIdx].images;
-  lbImgIdx = (lbImgIdx + dir + imgs.length) % imgs.length;
-  updateLightbox();
-}
-function updateLightbox() {
-  const prop = properties[lbPropIdx];
-  document.getElementById('lbImage').src = prop.images[lbImgIdx];
-  document.getElementById('lbCaption').textContent = prop.title + ' — ' + prop.location;
-  document.getElementById('lbCounter').textContent = (lbImgIdx + 1) + ' / ' + prop.images.length;
-}
-document.getElementById('lightbox').addEventListener('click', function(e) {
-  if (e.target === this) closeLightbox();
-});
-document.addEventListener('keydown', function(e) {
-  if (!document.getElementById('lightbox').classList.contains('active')) return;
-  if (e.key === 'Escape') closeLightbox();
-  if (e.key === 'ArrowLeft') lbNav(-1);
-  if (e.key === 'ArrowRight') lbNav(1);
-});
-// Swipe support
-let touchStartX = 0;
-const lbStage = document.getElementById('lbStage');
-lbStage.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
-lbStage.addEventListener('touchend', function(e) {
-  const dx = e.changedTouches[0].screenX - touchStartX;
-  if (Math.abs(dx) > 40) lbNav(dx < 0 ? 1 : -1);
-});
-</script>
 </body>
 </html>
