@@ -3,132 +3,39 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>About Us — MainTown Realty</title>
-<link rel="icon" href="favicon.ico" sizes="any"/>
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
-<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
-<meta name="description" content="MainTown Realty is a modern real estate platform built to simplify how people find, rent, and manage property in Lagos, Nigeria."/>
-<link rel="stylesheet" href="style.css"/>
-<style>
-/* ABOUT HERO */
-.about-hero {
-  background:var(--bk); padding:8.5rem 1.5rem 4.5rem; text-align:center; position:relative; overflow:hidden;
-}
-.about-hero::before {
-  content:''; position:absolute; top:-20%; left:50%; transform:translateX(-50%);
-  width:60vw; height:60vw; max-width:700px; max-height:700px;
-  background:radial-gradient(circle, rgba(124,58,237,.22) 0%, rgba(124,58,237,0) 70%);
-  pointer-events:none;
-}
-.about-hero-inner { position:relative; z-index:2; max-width:640px; margin:0 auto; }
-.about-hero h1 { font-family:'Fraunces',serif; font-size:clamp(2rem,5vw,3.2rem); color:var(--wh); margin-bottom:.7rem; letter-spacing:-.02em; }
-.about-hero p { font-size:.95rem; color:var(--gr); max-width:480px; margin:0 auto; line-height:1.7; }
-
-/* ABOUT CONTENT */
-.about-section { background:var(--bk2); padding:4.5rem 0 5.5rem; }
-.about-section .wrap.center { max-width:700px; }
-.about-section .eyebrow { text-align:center; }
-.about-section p { font-size:.95rem; color:var(--gr); line-height:1.85; margin-bottom:1.4rem; text-align:left; }
-.about-section h2 {
-  font-family:'Fraunces',serif; font-size:1.35rem; color:var(--wh);
-  margin:2.6rem 0 1rem; text-align:left; padding-top:1.6rem; border-top:1px solid var(--bd);
-}
-.about-section h2:first-of-type { border-top:none; padding-top:0; margin-top:1.8rem; }
-.about-back { text-align:center; margin-top:2.5rem; }
-</style>
+<title>About us | SmartyHub Organic</title>
+<meta name="description" content="Fresh organic meals and quality wellness supplements, delivered in Lagos."/>
+<meta name="theme-color" content="#1B5E20"/>
+<link rel="icon" href="favicon.ico?v=2" sizes="any"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config={theme:{extend:{colors:{g1:'#1B5E20',g2:'#2E7D32',g3:'#4CAF50'},fontFamily:{sans:['"Plus Jakarta Sans"','system-ui','sans-serif'],serif:['Fraunces','Georgia','serif']}}}}</script>
 </head>
-<body>
-<div class="wa-float"><a href="https://wa.me/2348066611017?text=Hi,%20I%20want%20to%20find%20a%20property" target="_blank"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="wa-dot"></span></a></div>
-
-<nav class="nav">
-  <a href="index.html" class="nav-logo"><img src="images/brand/logo-icon.png" alt="MainTown Realty" class="nav-logo-icon"/>MainTown <em>Realty</em></a>
-  <ul class="nav-links" id="navLinks">
-    <li><a href="about.html" class="active">About</a></li>
-    <li><a href="index.html#listings">Listings</a></li>
-    <li><a href="organic.html">Organic</a></li>
-    <li><a href="logistics.html">Logistics</a></li>
-    <li><a href="index.html">Realty</a></li>
-    <li><a href="index.html#landlords">List Property</a></li>
-    <li><a href="index.html#agents">Agents</a></li>
-    <li><a href="index.html#canada">Canada</a></li>
-  </ul>
-  <a href="index.html#listings" class="nav-cta" style="background:var(--p)">Search</a>
-  <button class="nav-toggle" id="navToggle" onclick="toggleNavMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
-</nav>
-<script>
-function toggleNavMenu() {
-  document.getElementById('navLinks').classList.toggle('open');
-  document.getElementById('navToggle').classList.toggle('open');
-}
-</script>
-
-<!-- HERO -->
-<section class="about-hero">
-  <div class="about-hero-inner">
-    <span class="eyebrow eyebrow-p fade-up">About Us</span>
-    <h1 class="fade-up delay-1">About MainTown Realty</h1>
-    <p class="fade-up delay-2">Structured, transparent real estate — built for how Lagos actually rents.</p>
+<body class="bg-white font-sans text-neutral-900 antialiased">
+<header class="sticky top-0 z-20 border-b border-neutral-100 bg-white/90 backdrop-blur">
+  <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-2.5">
+    <a href="index.html" class="flex items-center gap-2" aria-label="SmartyHub Organic home"><img src="logo-mark.png?v=3" alt="" class="h-11 w-auto"/><span class="leading-none"><span class="block font-serif text-lg font-bold">SmartyHub</span><span class="block text-xs font-bold text-g2">Organic</span></span></a>
+    <a href="index.html" class="rounded-full border border-neutral-300 px-4 py-2 text-sm font-bold hover:border-neutral-500">Back to shop</a>
   </div>
-</section>
+</header>
+<main class="mx-auto max-w-3xl px-4 pb-16 pt-8">
+<h1 class="font-serif text-3xl font-bold sm:text-4xl">About SmartyHub Organic</h1>
 
-<!-- CONTENT -->
-<section class="about-section">
-  <div class="wrap center">
-    <p>
-      MainTown Realty is a modern real estate platform built to simplify how people find, rent, and manage property in Nigeria—starting with Lagos.
-    </p>
+<div class="mt-6 space-y-6 leading-relaxed text-neutral-700 [&_h2]:mb-2 [&_h2]:font-serif [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-neutral-900 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_a]:font-semibold [&_a]:text-g2 [&_a]:underline">
 
-    <p>
-      We understand one simple truth: finding a home shouldn't feel like a gamble, and paying for it shouldn't break your financial stability.
-    </p>
-
-    <h2>What We Do</h2>
-    <p>
-      We connect verified landlords, trusted agents, and serious tenants through a structured and transparent system designed for flexible monthly rent payments, verified property listings, professional tenant screening, and clear accountability.
-    </p>
-
-    <h2>Our Difference</h2>
-    <p>
-      Unlike traditional real estate practices, we don't just list properties—we structure the entire rental experience. Our system is built on transparency, accountability, consistency, and protection for both landlords and tenants.
-    </p>
-
-    <h2>For Landlords</h2>
-    <p>
-      We help property owners earn steady rental income, access verified tenants, and maintain control over their properties with structured payment systems.
-    </p>
-
-    <h2>For Tenants</h2>
-    <p>
-      We provide access to legitimate homes, reduce fraud risks, and guide tenants through a clear and professional rental process.
-    </p>
-
-    <h2>Our Vision</h2>
-    <p>
-      To become one of the most trusted real estate platforms in Africa by building a system where renting is structured, payments are predictable, and trust is standard.
-    </p>
-
-    <h2>Our Promise</h2>
-    <p>
-      At MainTown Realty, we do not just facilitate transactions—we build reliable housing experiences backed by structure, clarity, and trust.
-    </p>
-
-    <div class="about-back">
-      <a href="index.html" class="btn btn-ghost">← Back to Home</a>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="footer-logo">MainTown <em>Realty</em></div>
-  <div class="footer-copy">© 2025 MainTown Realty · Lagos, Nigeria · CAC Registered</div>
-  <nav class="footer-nav">
-    <a href="organic.html">Supplements</a>
-    <a href="logistics.html">Logistics</a>
-    <a href="https://instagram.com/maintownrealty" target="_blank">Instagram</a>
-  </nav>
-  <div class="footer-parent">Maintown Realty is part of SmartyHub Group · <a href="smartyhub.html">Visit SmartyHub Group</a></div>
-</footer>
-
+<section><p>SmartyHub Organic is a Lagos brand with one idea: eating well and staying well should be easy. We make fresh organic food to order and bring trusted wellness supplements to your door.</p></section>
+<section><h2>What we offer</h2><ul>
+<li><strong>Eats:</strong> cold-pressed tiger nut drinks, breakfast combos and shawarma, made to order.</li>
+<li><strong>Supplements:</strong> quality brands that you can browse by health goal, ingredient and price.</li></ul></section>
+<section><h2>Free vitamin sachet</h2><p>Every food order comes with a free sachet of essential vitamins: Vitamin C, D3, Omega 3 and Zinc.</p></section>
+<section><h2>Delivery</h2><p>We deliver across Lagos. Fees and areas are listed under Delivery &amp; hours in the menu on the shop page.</p></section>
+<section><h2>Talk to us</h2><p>Questions, special requests or feedback? Chat with us on <a href="https://wa.me/2348066611017">WhatsApp</a> or follow us on <a href="https://instagram.com/smartyhuborganic">Instagram</a>.</p></section>
+</div>
+</main>
+<footer id="site-footer"></footer>
+<script src="site.js"></script>
 </body>
 </html>

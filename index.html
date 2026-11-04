@@ -68,10 +68,8 @@ body{overflow-x:hidden}
 
 <main id="app" class="mx-auto max-w-6xl px-4 pb-24"></main>
 
-<footer class="border-t border-neutral-100 px-4 py-10 text-center text-sm text-neutral-500">
-  <p class="font-serif text-lg font-bold text-neutral-900">SmartyHub Organic</p>
-  <p class="mt-1">Lagos · Quality supplements · <a class="font-semibold text-g2 underline" href="https://wa.me/2348066611017">WhatsApp</a> · <a class="font-semibold text-g2 underline" href="https://instagram.com/smartyhuborganic">Instagram</a></p>
-</footer>
+<footer id="site-footer"></footer>
+<script src="site.js"></script>
 
 <div id="ov" class="fixed inset-0 z-40 hidden bg-black/40" data-a="close"></div>
 <aside id="drawer" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Cart"></aside>
@@ -195,6 +193,7 @@ function drawEats(){
     <div class="flex min-w-0 flex-1 flex-col">
       <h3 class="font-serif text-lg font-bold leading-tight">${x.n}</h3>
       <p class="mt-1 text-sm text-neutral-500">${x.d}</p>
+      ${x.showr&&x.rv>0?`<div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">(${x.rv})</span></div>`:""}
       <div class="mt-auto flex items-center justify-between pt-3">
         <span class="font-bold">${x.soon?"":fmt(x.p)}</span>
         ${x.soon?`<span class="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold text-neutral-500">Coming soon</span>`
@@ -539,19 +538,66 @@ function ordHtml(){
     ${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}
     <ul class="mt-3 list-disc pl-5 text-sm text-neutral-600">${(o.items||[]).map(it=>`<li>${it.q} × ${escH(it.n)}${it.o?" ("+escH(it.o)+")":""}</li>`).join("")}</ul>
     ${o.discount>0?`<p class="mt-1 text-xs text-g2">Saved ${fmt(o.discount)}${o.coupon?" with "+escH(o.coupon):""}</p>`:""}
+    ${o.status==="delivered"?`<button data-a="rate" data-v="${n}" class="pill mt-3 w-full rounded-full border border-g3 bg-green-50 py-2.5 text-sm font-bold text-g1 hover:bg-green-100">${rateNames(o).every(nm=>MYR[o.ref+"|"+nm])?"★ Rated. Tap to change":"★ Rate this order"}</button>`:""}
     <div class="mt-3 flex gap-2"><button data-a="reorder" data-v="${n}" class="pill flex-1 rounded-full bg-g2 py-2.5 text-sm font-bold text-white hover:bg-g1">Order again</button><a href="https://wa.me/${WA}?text=${encodeURIComponent("Hi SmartyHub, about my order "+o.ref)}" target="_blank" rel="noopener" class="pill rounded-full border border-neutral-200 px-4 py-2.5 text-sm font-bold hover:border-g3">Help</a></div></div>`}).join("");
 }
 async function loadOrders(quiet){
   const C=SBC(),t=await authToken();
-  if(!C||!t){if(!quiet)modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">Log in to track your orders</h2><p class="mb-4 mt-2 text-neutral-600">Sign in to see where your order is and order again in one tap.</p>${signBtns("orders")}</div>`);return}
+  if(!C||!t){if(!quiet)modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">Log in to track your orders</h2><p class="mb-4 mt-2 text-neutral-600">Sign in to see where your order is and order again in one tap.</p>${signBtns("orders")}</div>${trackBox()}`);return}
   try{const r=await fetch(C.url+"/rest/v1/orders?select=ref,status,created_at,total,discount,coupon,items&order=created_at.desc&limit=15",{headers:{apikey:C.key,Authorization:"Bearer "+t},cache:"no-store"});
-    if(!r.ok)throw new Error("x");ORDS=await r.json();
-    const box=$("#ordl");if(box)box.innerHTML=ordHtml();else if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3">${ordHtml()}</div>`)}
+    if(!r.ok)throw new Error("x");ORDS=await r.json();await loadMine(C,t);
+    const box=$("#ordl");if(box)box.innerHTML=ordHtml();else if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3">${ordHtml()}</div>${trackBox()}`)}
   catch(e){if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><p class="py-8 text-center text-neutral-500">Order tracking isn't switched on yet. Please chat with us on WhatsApp for your order status.</p>`)}
 }
+/* ---------- TRACK AN ORDER (no sign-in needed) ---------- */
+const trackBox=()=>`<div class="mt-6 rounded-2xl bg-neutral-50 p-4"><p class="font-bold">Track an order</p><p class="mb-3 mt-1 text-sm text-neutral-600">No account needed. Enter your order number and the phone number you ordered with.</p><input id="tk-ref" placeholder="Order number" autocomplete="off" class="mb-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-g3"/><input id="tk-ph" type="tel" placeholder="Phone number" class="mb-3 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-g3"/><button type="button" data-a="track" class="pill w-full rounded-full bg-black py-3 text-sm font-bold text-white">Track</button><div id="trk" class="mt-3"></div></div>`;
+async function trackOrder(){
+  const box=$("#trk");if(!box)return;const r=($("#tk-ref")||{}).value||"",p=($("#tk-ph")||{}).value||"";
+  const err=m=>{box.innerHTML=`<p class="text-sm font-semibold text-red-600">${m}</p>`};
+  if(!r.trim()||p.replace(/\D/g,"").length<10){err("Enter your order number and phone number.");return}
+  box.innerHTML='<p class="text-sm text-neutral-500">Checking…</p>';
+  try{const x=await rpc("track_order",{p_ref:r.trim(),p_phone:p}),j=x.j;
+    if(!x.ok||!j||typeof j.ok==="undefined"){err("Tracking is not available right now. Please chat with us on WhatsApp.");return}
+    if(!j.ok){err(escH(j.msg||"We could not find that order."));return}
+    const i=STEPS.findIndex(s=>s[0]===j.status),can=j.status==="cancelled";
+    box.innerHTML=`<div class="rounded-xl border border-neutral-200 bg-white p-3"><p class="font-extrabold">${escH(j.ref)}</p><p class="mt-1 text-sm font-semibold ${can?"text-red-600":"text-g1"}">${STX[j.status]||escH(j.status)}</p>${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}</div>`}
+  catch(e){err("Tracking is not available right now. Please chat with us on WhatsApp.")}
+}
+
+/* ---------- RATINGS (customers rate delivered orders) ---------- */
+let MYR={},RS=null;
+async function loadRatings(){
+  try{const r=await rpc("rating_summary");if(!r.ok||!r.j||typeof r.j!=="object")return;
+    [...EATS,...SUPP].forEach(x=>{const m=r.j[x.n];if(m&&m.count>0){x.r=+m.avg;x.rv=+m.count;x.showr=true}});
+    if($("#grid"))S.eco==="eats"?drawEats():drawSupp()}catch(e){}
+}
+async function loadMine(C,t){
+  try{const r=await fetch(C.url+"/rest/v1/ratings?select=order_ref,item_name,stars",{headers:{apikey:C.key,Authorization:"Bearer "+t},cache:"no-store"});
+    if(r.ok){MYR={};(await r.json()).forEach(x=>{MYR[x.order_ref+"|"+x.item_name]=x.stars})}}catch(e){}
+}
+const rateNames=o=>[...new Set((o.items||[]).map(i=>i.n))];
+function starRow(i,cur){return [1,2,3,4,5].map(v=>`<button type="button" data-a="star" data-i="${i}" data-v="${v}" class="p-0.5 text-4xl leading-none ${v<=cur?"text-amber-500":"text-neutral-300"}" aria-label="${v} star${v>1?"s":""}">★</button>`).join("")}
+function openRate(n){
+  const o=ORDS[n];if(!o)return;const L=rateNames(o);
+  RS={ref:o.ref,names:L,v:L.map(nm=>MYR[o.ref+"|"+nm]||0)};
+  modal(`<div class="flex items-start justify-between"><div><h2 class="font-serif text-2xl font-bold">Rate your order</h2><p class="text-sm text-neutral-500">${escH(o.ref)} · tap the stars</p></div>${xBtn}</div>
+  <div class="mt-4 space-y-4">${L.map((nm,i)=>`<div class="rounded-2xl border border-neutral-200 p-4"><p class="font-bold">${escH(nm)}</p><div class="mt-1 flex" id="sr${i}">${starRow(i,RS.v[i])}</div></div>`).join("")}</div>
+  <button data-a="rsubmit" class="pill mt-5 w-full rounded-full bg-g2 py-3 text-sm font-bold text-white hover:bg-g1">Submit rating</button>`);
+}
+function starSet(t){if(!RS)return;const i=+t.dataset.i,v=+t.dataset.v;RS.v[i]=v;const b=$("#sr"+i);if(b)b.innerHTML=starRow(i,v)}
+async function rateSubmit(){
+  if(!RS)return;const todo=RS.names.map((nm,i)=>[nm,RS.v[i]]).filter(x=>x[1]>0);
+  if(!todo.length){toast("Tap the stars to rate first");return}
+  let bad=null;
+  for(const [nm,v] of todo){try{const r=await rpc("submit_rating",{p_ref:RS.ref,p_item:nm,p_stars:v,p_comment:""});
+    if(r.ok&&r.j&&r.j.ok)MYR[RS.ref+"|"+nm]=v;else bad=(r.j&&r.j.msg)||"Could not save your rating"}catch(e){bad="Could not save your rating"}}
+  if(bad){toast(bad);return}
+  RS=null;modal();toast("Thanks for rating!");loadRatings();openOrders();
+}
+
 function openOrders(){
   if(!AU.tok){loadOrders();return}
-  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3"><p class="py-10 text-center text-neutral-500">Loading…</p></div>`);
+  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3"><p class="py-10 text-center text-neutral-500">Loading…</p></div>${trackBox()}`);
   loadOrders();clearInterval(ORT);ORT=setInterval(()=>{if($("#ordl")&&!document.hidden)loadOrders(true);else if(!$("#ordl"))clearInterval(ORT)},30000);
 }
 function reorder(n){
@@ -626,6 +672,10 @@ document.addEventListener("click",e=>{
   else if(a==="cpn")cpnApply();
   else if(a==="usecode"){S.pendingCode=v;modal();toast("Code "+v+" saved. It is applied at checkout.");if(S.cart.length)openCart(true)}
   else if(a==="reorder")reorder(+v);
+  else if(a==="rate")openRate(+v);
+  else if(a==="star")starSet(t);
+  else if(a==="rsubmit")rateSubmit();
+  else if(a==="track")trackOrder();
 });
 document.addEventListener("input",e=>{
   if(e.target.closest("#cf"))calc();
@@ -637,7 +687,7 @@ document.addEventListener("input",e=>{
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click()}});
 document.addEventListener("submit",e=>{if(e.target.id==="co"){e.preventDefault();done(Object.fromEntries(new FormData(e.target)))}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){openCart(false);modal();openMenu(false)}});
-addEventListener("hashchange",()=>{const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
+addEventListener("hashchange",()=>{if(location.hash==="#orders"){history.replaceState(null,"","#"+S.eco);openOrders();return}const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
 
 /* ---------- CATALOG (managed from admin.html) ---------- */
 async function sbCatalog(){
@@ -670,7 +720,7 @@ async function loadCatalog(){
   if(prev){const b=document.createElement("div");b.textContent="Preview mode: not live yet";b.className="fixed left-0 right-0 top-0 z-[70] bg-amber-400 py-1 text-center text-xs font-bold";document.body.appendChild(b)}
 }
 drawHdr();authInit();
-loadCatalog().then(()=>{render();drawCart();drawMenu()});
+loadCatalog().then(()=>{render();drawCart();drawMenu();loadRatings();if(location.hash==="#orders"){history.replaceState(null,"","#"+S.eco);openOrders()}});
 </script>
 </body>
 </html>
