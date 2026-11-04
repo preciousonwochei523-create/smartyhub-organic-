@@ -109,17 +109,17 @@ async function load(){
   if(a.error||b.error)toast("Could not load: "+(a.error||b.error).message);
   const it=a.data||[],st=Object.fromEntries((b.data||[]).map(r=>[r.key,r.value]));
   SORT={};it.forEach(r=>SORT[r.id]=r.sort);
-  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],zones:st.zones||[],kitchens:st.kitchens||[],riders:st.riders||[]};
+  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],zones:st.zones||[],kitchens:st.kitchens||[],riders:st.riders||[],info:st.info||{}};
 }
 async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
 
 /* ---------- screens ---------- */
-const TABS=[["orders","Orders"],["eats","Breakfast & Eats"],["supps","Supplements"],["ops","Delivery & Partners"],["cats","Categories & Hero"],["pub","Backup & Import"]];
+const TABS=[["orders","Orders"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["cats","Categories & Hero"],["pub","Backup & Import"]];
 function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
-  $("#main").innerHTML=tab==="orders"?ordersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="pub"?pubView():listView(tab);
+  $("#main").innerHTML=tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="pub"?pubView():listView(tab);
 }
-function go(t){tab=t;q="";draw();if(t==="orders")ordersLoad();scrollTo(0,0)}
+function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
 function listView(k){
   const L=D[k].filter(x=>(x.n+(x.b||"")+(x.cat||x.g||"")).toLowerCase().includes(q.toLowerCase()));
@@ -163,7 +163,8 @@ function sheet(){
       <label>Description</label><textarea name="d" rows="3">${esc(E.d)}</textarea>
       ${eats?"":`<label>Dosage</label><input name="dose" value="${esc(E.dose||"")}" placeholder="1 tablet daily"/>
       <label>Key ingredients (comma separated)</label><input name="ing" value="${esc((E.ing||[]).join(", "))}"/>
-      <div class="grid grid-cols-2 gap-3"><div><label>Rating (0 to 5)</label><input name="r" type="number" min="0" max="5" step="0.1" value="${E.r}"/></div><div><label>Number of reviews</label><input name="rv" type="number" min="0" value="${E.rv}"/></div></div>`}
+      <div class="grid grid-cols-2 gap-3"><div><label>Rating (0 to 5)</label><input name="r" type="number" min="0" max="5" step="0.1" value="${E.r}"/></div><div><label>Number of reviews</label><input name="rv" type="number" min="0" value="${E.rv}"/></div></div>
+      <label class="flex items-start gap-2" style="margin-top:.75rem"><input type="checkbox" name="showr" ${E.showr?"checked":""} style="width:auto;margin-top:.2rem"/><span class="font-normal">Show this rating on the website. Tick only when it comes from real customer reviews.</span></label>`}
       <label>Availability</label><select name="st"><option value="ok">Available</option><option value="out">Sold out</option>${eats?'<option value="soon">Coming soon</option>':""}<option value="hide">Hidden from the site</option></select>
       ${eats?optsEditor():""}
     </div>
@@ -182,7 +183,7 @@ function optsEditor(){
 function collect(){
   const f=$("#f");if(!f)return;const eats=EK==="eats",v=n=>f.elements[n]?.value;
   E.n=v("n").trim();E.p=Math.max(0,Math.round(+v("p")||0));E.d=v("d").trim();
-  if(eats)E.cat=v("cat");else{E.g=v("cat");E.b=v("b").trim();if(!E.b)delete E.b;E.dose=v("dose").trim();E.ing=v("ing").split(",").map(s=>s.trim()).filter(Boolean);E.r=Math.min(5,Math.max(0,+v("r")||0));E.rv=Math.max(0,Math.round(+v("rv")||0))}
+  if(eats)E.cat=v("cat");else{E.g=v("cat");E.b=v("b").trim();if(!E.b)delete E.b;E.dose=v("dose").trim();E.ing=v("ing").split(",").map(s=>s.trim()).filter(Boolean);E.r=Math.min(5,Math.max(0,+v("r")||0));E.rv=Math.max(0,Math.round(+v("rv")||0));E.showr=!!(f.elements.showr&&f.elements.showr.checked);if(!E.showr)delete E.showr}
   E.imgs=(E.imgs||[]).filter(Boolean);E.img=E.imgs[0]||"";
   const st=v("st");delete E.hide;delete E.out;delete E.soon;if(st==="hide")E.hide=1;if(st==="out")E.out=1;if(st==="soon")E.soon=1;
   if(eats)E.o=[...f.querySelectorAll("[data-g]")].map(d=>({t:d.querySelector(".gt").value.trim()||"Options",k:d.querySelector(".gk").value,c:d.querySelector(".gc").value.split("\n").map(l=>l.split("|")).map(a=>[a[0].trim(),Math.round(+(a[1]||0))||0]).filter(a=>a[0])})).filter(g=>g.c.length);
@@ -315,6 +316,52 @@ function csvExport(k){
   csvDownload("smartyhub-"+k+".csv",L.map(csvLine).join("\r\n"));
 }
 
+
+/* ---------- offers & coupons ---------- */
+let CPN=null,CC=null;
+async function cLoad(){
+  const {data,error}=await sb.from("coupons").select("*").order("created_at",{ascending:false});
+  if(error){CPN=[];toast(/relation|does not exist|schema cache/i.test(error.message)?"Offers are not set up yet. Run the SQL setup file in Supabase first.":"Could not load coupons: "+error.message)}else CPN=data||[];
+  if(tab==="offers")$("#main").innerHTML=offersView();
+}
+function cState(c){return !c.active?["Paused","bg-neutral-200 text-neutral-700"]:(c.expires_at&&new Date(c.expires_at)<new Date())?["Expired","bg-red-100 text-red-700"]:(c.max_uses&&c.used>=c.max_uses)?["Used up","bg-amber-100 text-amber-800"]:["Live","bg-green-100 text-g1"]}
+function offersView(){
+  if(CPN===null){cLoad();return '<p class="py-10 text-center text-neutral-500">Loading…</p>'}
+  const body=CPN.map(c=>{const st=cState(c);
+    return `<button onclick="cEdit(${JSON.stringify(c.code).replace(/"/g,"&quot;")})" class="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left"><div class="min-w-0"><p class="font-extrabold tracking-wide">${esc(c.code)} <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${st[1]}">${st[0]}</span></p><p class="truncate text-xs text-neutral-500">${c.kind==="percent"?c.value+"% off":fmt(c.value)+" off"}${c.min_order?" · from "+fmt(c.min_order):""} · used ${c.used||0}${c.max_uses?" of "+c.max_uses:""}${c.members_only?" · members only":""}</p></div><span class="shrink-0 text-neutral-400">›</span></button>`}).join("");
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-center justify-between gap-2"><h2 class="font-extrabold">Coupons and promo codes</h2><button class="btn shrink-0 bg-g2 text-white" onclick="cEdit('')">+ Add coupon</button></div><p class="mt-1 text-xs text-neutral-500">Customers type a code at checkout or tap it under Offers on the website. Codes are checked on the server, so they cannot be faked.</p><div class="mt-3 space-y-2">${body||'<p class="rounded-xl border border-dashed border-neutral-300 py-6 text-center text-sm text-neutral-500">No coupons yet</p>'}</div></div>`;
+}
+function cEdit(code){
+  const c=code?CPN.find(x=>x.code===code):{code:"",title:"",description:"",kind:"percent",value:10,min_order:0,max_discount:"",max_uses:"",expires_at:null,members_only:false,show_public:true,active:true};
+  CC=code||null;const ex=c.expires_at?String(c.expires_at).slice(0,10):"",ck=(n,l,on)=>`<label class="flex items-center gap-2" style="margin-top:.6rem"><input type="checkbox" name="${n}" ${on?"checked":""} style="width:auto"/><span class="font-normal">${l}</span></label>`;
+  $("#sheet").innerHTML=`<div class="scrim fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onclick="if(event.target===this)closeSheet()">
+  <form id="cf2" onsubmit="event.preventDefault();cSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+  <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-neutral-300 sm:hidden"></div>
+  <div class="flex items-center justify-between px-5 py-3"><h2 class="text-lg font-extrabold">${code?"Edit":"Add"} coupon</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
+  <div class="overflow-y-auto px-5 pb-4"><div class="blk"><h3>Code</h3><label>Code customers type</label><input name="code" required ${code?"readonly":""} value="${esc(c.code)}" placeholder="e.g. WELCOME10" style="text-transform:uppercase"/><label>Title (shown to customers)</label><input name="title" value="${esc(c.title||"")}" placeholder="e.g. Welcome offer"/><label>Short description</label><input name="description" value="${esc(c.description||"")}" placeholder="e.g. 10% off your first order"/></div>
+  <div class="blk"><h3>Discount</h3><div class="grid grid-cols-2 gap-3"><div><label>Type</label><select name="kind"><option value="percent" ${c.kind==="percent"?"selected":""}>Percent (%)</option><option value="fixed" ${c.kind==="fixed"?"selected":""}>Fixed amount (₦)</option></select></div><div><label>Value</label><input name="value" type="number" min="1" required value="${c.value}"/></div></div>
+  <div class="grid grid-cols-2 gap-3"><div><label>Minimum order (₦)</label><input name="min_order" type="number" min="0" value="${c.min_order||0}"/></div><div><label>Max discount (₦, optional)</label><input name="max_discount" type="number" min="0" value="${c.max_discount??""}"/></div></div></div>
+  <div class="blk"><h3>Limits</h3><div class="grid grid-cols-2 gap-3"><div><label>Total uses (optional)</label><input name="max_uses" type="number" min="1" value="${c.max_uses??""}"/></div><div><label>Last day (optional)</label><input name="expires" type="date" value="${ex}"/></div></div>
+  ${ck("members_only","Only for signed-in members",c.members_only)}${ck("show_public","Show in the Offers list on the website",c.show_public)}${ck("active","Active",c.active)}</div></div>
+  <div class="flex gap-2 border-t border-neutral-100 px-5 py-3">${code?'<button type="button" class="btn border border-red-300 text-red-600" onclick="cDel()">Delete</button>':'<button type="button" class="btn border border-neutral-300" onclick="closeSheet()">Cancel</button>'}<button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div></form></div>`;
+}
+async function cSave(){
+  const f=$("#cf2"),code=f.code.value.trim().toUpperCase().replace(/\s+/g,"");if(!code)return toast("Enter a code");
+  const num=n=>f[n].value.trim()===""?null:Math.max(0,Math.round(+f[n].value)||0),kind=f.kind.value,val=Math.max(1,Math.round(+f.value.value)||0);
+  if(kind==="percent"&&val>100)return toast("A percent discount cannot be more than 100");
+  if(!CC&&CPN.some(x=>x.code===code))return toast("That code already exists");
+  const rec={code,title:f.title.value.trim(),description:f.description.value.trim(),kind,value:val,min_order:num("min_order")||0,max_discount:num("max_discount"),max_uses:num("max_uses"),expires_at:f.expires.value?new Date(f.expires.value+"T23:59:59").toISOString():null,members_only:f.members_only.checked,show_public:f.show_public.checked,active:f.active.checked};
+  const btn=f.querySelector("button.flex-1");btn.disabled=true;btn.textContent="Saving…";
+  const {error}=await sb.from("coupons").upsert(rec);
+  if(error){toast("Save failed: "+error.message);btn.disabled=false;btn.textContent="Save";return}
+  closeSheet();toast("Saved. Live on the site now.");cLoad();
+}
+async function cDel(){
+  if(!CC||!confirm("Delete coupon "+CC+"? Orders that already used it keep their discount."))return;
+  const {error}=await sb.from("coupons").delete().eq("code",CC);if(error)return toast("Failed: "+error.message);
+  closeSheet();toast("Deleted");cLoad();
+}
+
 /* ---------- categories & hero ---------- */
 function catsView(){
   return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Menu categories</h2><p class="text-xs text-neutral-500">One per line. If you rename one, also re-pick it on the items that used the old name.</p>
@@ -386,7 +433,7 @@ function ordRows(){
   <p class="text-sm text-neutral-600">${esc(o.address)}${o.landmark?" (near "+esc(o.landmark)+")":""}</p>
   <ul class="mt-2 list-disc pl-5 text-sm">${olines(o).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
   ${o.note?`<p class="mt-1 text-xs text-neutral-500">Note: ${esc(o.note)}</p>`:""}
-  <p class="mt-1 text-xs text-neutral-500">Subtotal ${fmt(o.subtotal)} · Delivery ${fmt(o.delivery_fee)} <button class="underline" onclick="feeSet('${o.id}')">change</button>${o.free_sachet?" · free sachet":""}</p>
+  <p class="mt-1 text-xs text-neutral-500">Subtotal ${fmt(o.subtotal)} · Delivery ${fmt(o.delivery_fee)} <button class="underline" onclick="feeSet('${o.id}')">change</button>${o.free_sachet?" · free sachet":""}${o.discount>0?" · coupon "+esc(o.coupon||"")+" −"+fmt(o.discount):""}${o.user_id?" · signed-in customer":""}</p>
   <div class="mt-3 flex flex-wrap gap-1.5">${ST.map(([k,l])=>`<button class="btn ${o.status===k?"bg-g2 text-white":"border border-neutral-300"}" onclick="ordSet('${o.id}',{status:'${k}'})">${l}</button>`).join("")}</div>
   <div class="mt-2 grid grid-cols-2 gap-2"><div><label class="!mt-1">Kitchen</label><select onchange="ordSet('${o.id}',{kitchen:this.value})">${ordOpts(D.kitchens,o.kitchen)}</select></div><div><label class="!mt-1">Rider</label><select onchange="ordSet('${o.id}',{rider:this.value})">${ordOpts(D.riders,o.rider)}</select></div></div>
   <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-neutral-800 text-white" onclick="sendK('${o.id}')">Send to kitchen</button><button class="btn bg-neutral-800 text-white" onclick="sendR('${o.id}')">Send to rider</button><button class="btn ${paid?"bg-green-100 text-g1":"border border-neutral-300"}" onclick="ordSet('${o.id}',{payment_status:'${paid?"unpaid":"paid"}'})">${paid?"Paid ✓":"Mark paid"}</button></div></div>`}).join("");
@@ -397,7 +444,7 @@ async function ordSet(id,patch){
 }
 function feeSet(id){
   const o=ORD.find(x=>x.id===id),v=prompt("Delivery fee for "+o.ref+" (₦)",o.delivery_fee);if(v===null||isNaN(+v)||v==="")return;
-  ordSet(id,{delivery_fee:+v,total:o.subtotal+ +v});
+  ordSet(id,{delivery_fee:+v,total:Math.max(0,o.subtotal+ +v-(o.discount||0))});
 }
 function sendK(id){
   const o=ORD.find(x=>x.id===id),k=D.kitchens.find(x=>x.name===o.kitchen);if(!k||!k.phone)return toast("Assign a kitchen first (add one under Delivery & Partners)");
@@ -424,8 +471,11 @@ function opsView(){
   const zon=D.zones.map((x,i)=>row("zones",i,esc(x.name),x.fee==null?"Fee confirmed on WhatsApp":fmt(x.fee))).join("");
   return sec("kitchens","Partner kitchens","Receive the order on WhatsApp. Their address goes to the rider as the pickup point.","Add kitchen",kit)
    +sec("riders","Riders","Receive pickup (kitchen) and delivery (customer) details on WhatsApp.","Add rider",rid)
-   +sec("zones","Delivery zones","The server charges the fee for the zone a customer picks at checkout.","Add zone",zon);
+   +sec("zones","Delivery zones","The server charges the fee for the zone a customer picks at checkout.","Add zone",zon)
+   +`<div class="mt-4 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Hours and delivery notes</h2><p class="mt-1 text-xs text-neutral-500">Shown to customers under Menu, Delivery and hours, and at checkout. Leave a box empty to hide it.</p>
+   <form onsubmit="event.preventDefault();infoSave(this)"><label>Opening hours</label><textarea name="hours" rows="2" placeholder="e.g. Monday to Saturday, 7am to 8pm">${esc((D.info||{}).hours||"")}</textarea><label>Order cut-off</label><input name="cutoff" value="${esc((D.info||{}).cutoff||"")}" placeholder="e.g. Breakfast orders close at 9pm the night before"/><label>Good to know</label><textarea name="note" rows="2" placeholder="e.g. Delivery times can vary in heavy traffic">${esc((D.info||{}).note||"")}</textarea><button class="btn mt-3 w-full bg-g2 py-3 text-white">Save hours and notes</button></form></div>`;
 }
+async function infoSave(f){const v={hours:f.hours.value.trim(),cutoff:f.cutoff.value.trim(),note:f.note.value.trim()};if(await setting("info",v)){D.info=v;toast("Saved")}}
 function pEdit(k,i){
   PK=k;PI=i;const x=i>=0?D[k][i]:{name:"",phone:"",address:"",zone:"",fee:""};
   const blocks=k==="kitchens"?`<div class="blk"><h3>Kitchen details</h3><label>Kitchen name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Mama Put Kitchen"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>

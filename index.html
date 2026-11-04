@@ -5,7 +5,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>SmartyHub Organic — Fresh Organic Meals &amp; Wellness Supplements · Lagos</title>
-<meta name="description" content="Organic breakfast, tiger nut drinks and shawarma delivered fresh, plus NAFDAC-cleared health supplements. Every food order comes with a free vitamin sachet."/>
+<meta name="description" content="Organic breakfast, tiger nut drinks and shawarma delivered fresh, plus quality health supplements. Every food order comes with a free vitamin sachet."/>
+<meta name="theme-color" content="#1B5E20"/>
+<meta property="og:type" content="website"/><meta property="og:site_name" content="SmartyHub Organic"/>
+<meta property="og:title" content="SmartyHub Organic: fresh meals &amp; wellness supplements in Lagos"/>
+<meta property="og:description" content="Tiger nut drinks, breakfast combos, shawarma and quality supplements delivered in Lagos. Free vitamin sachet with every food order."/>
+<meta property="og:image" content="https://smartyhuborganic.vercel.app/menu-promo.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <link rel="icon" href="favicon.ico?v=2" sizes="any"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2"/>
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=2"/>
@@ -47,6 +53,7 @@ body{overflow-x:hidden}
 
 <header class="sticky top-0 z-30 border-b border-neutral-100 bg-white/90 backdrop-blur">
   <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+    <button type="button" data-a="menu" class="pill -ml-2 rounded-full p-2.5 text-neutral-800 hover:bg-neutral-100" aria-label="Open menu" aria-expanded="false"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <a href="#eats" class="flex items-center gap-2" aria-label="SmartyHub Organic home" data-a="eco" data-v="eats">
       <span role="img" aria-label="SmartyHub Organic logo" class="block h-10 w-11 shrink-0" style="background:url(logo.png) no-repeat;background-size:65.3px auto;background-position:-14.9px -4.3px"></span>
       <span class="leading-none"><span class="block font-serif text-xl font-bold">SmartyHub</span><span class="block text-xs font-bold text-g2">Organic</span></span>
@@ -71,11 +78,12 @@ body{overflow-x:hidden}
 
 <footer class="border-t border-neutral-100 px-4 py-10 text-center text-sm text-neutral-500">
   <p class="font-serif text-lg font-bold text-neutral-900">SmartyHub Organic</p>
-  <p class="mt-1">Lagos · NAFDAC-cleared supplements · <a class="font-semibold text-g2 underline" href="https://wa.me/2348066611017">WhatsApp</a> · <a class="font-semibold text-g2 underline" href="https://instagram.com/smartyhuborganic">Instagram</a></p>
+  <p class="mt-1">Lagos · Quality supplements · <a class="font-semibold text-g2 underline" href="https://wa.me/2348066611017">WhatsApp</a> · <a class="font-semibold text-g2 underline" href="https://instagram.com/smartyhuborganic">Instagram</a></p>
 </footer>
 
 <div id="ov" class="fixed inset-0 z-40 hidden bg-black/40" data-a="close"></div>
 <aside id="drawer" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Cart"></aside>
+<aside id="menu" class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[88vw] -translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Menu"></aside>
 <div id="modal" class="fixed inset-0 z-50 hidden items-end justify-center p-0 sm:items-center sm:p-4"><div id="mbox" class="rise max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl"></div></div>
 <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 translate-y-20 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white opacity-0 transition-all duration-300"></div>
 
@@ -182,7 +190,7 @@ function drawEats(){
   const V=pg(L);
   $("#grid").innerHTML=L.length?V.map(x=>`
   <article ${x.soon?"":`data-a="custom" data-v="${x.id}" role="button" tabindex="0" aria-label="View ${x.n} details"`} class="rise flex ${x.soon?"":"cursor-pointer"} gap-4 rounded-3xl border border-neutral-100 bg-white p-4 shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
-    <div class="tile relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-g2">${imgsOf(x)[0]?`<img src="${imgsOf(x)[0]}" alt="${x.n}" loading="lazy" class="h-full w-full ${(x.fit||(x.id[0]==='d'?'contain':'cover'))==='contain'?'object-contain':'object-cover'}"/>`:`<i data-lucide="${x.i}" class="h-10 w-10"></i>`}${imgsOf(x).length>1?`<span class="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">${imgsOf(x).length} photos</span>`:""}</div>
+    <div class="tile relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-g2">${imgsOf(x)[0]?`<img src="${imgsOf(x)[0]}" alt="${x.n}" loading="lazy" data-ph="${escH(x.cat||"")}" data-lf="1" onerror="imgFail(this)" class="h-full w-full ${(x.fit||(x.id[0]==='d'?'contain':'cover'))==='contain'?'object-contain':'object-cover'}"/>`:PH(x.cat,1)}${imgsOf(x).length>1?`<span class="absolute bottom-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">${imgsOf(x).length} photos</span>`:""}</div>
     <div class="flex min-w-0 flex-1 flex-col">
       <h3 class="font-serif text-lg font-bold leading-tight">${x.n}</h3>
       <p class="mt-1 text-sm text-neutral-500">${x.d}</p>
@@ -206,7 +214,7 @@ function suppView(){return `
   <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
   <div class="relative mx-auto flex min-h-[420px] max-w-6xl flex-col justify-center px-4 py-14 sm:min-h-[480px] sm:py-20">
     <h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] text-white sm:text-6xl">Wellness supplements you can trust.</h1>
-    <p class="mt-5 max-w-lg text-lg text-white/90">Browse by health goal, ingredient and price. NAFDAC-cleared brands, delivered in Lagos.</p>
+    <p class="mt-5 max-w-lg text-lg text-white/90">Browse by health goal, ingredient and price. Quality supplement brands, delivered in Lagos.</p>
     <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
       <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
       <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every food order</span>
@@ -219,7 +227,7 @@ function suppView(){return `
   <aside id="filters" class="hidden w-full shrink-0 space-y-6 lg:sticky lg:top-24 lg:block lg:w-64 lg:self-start">
     <div><h2 class="mb-2 text-sm font-bold">Health goal</h2><div class="flex flex-wrap gap-2">${GOALS.map(g=>`<button data-a="goal" data-v="${g}" class="${pillCls(g===S.goal)} !px-3 !py-1.5 !text-xs">${g}</button>`).join("")}</div></div>
     <div><label for="mx" class="mb-2 flex justify-between text-sm font-bold">Max price <span id="mxv" class="text-g2">${fmt(S.max)}</span></label><input id="mx" type="range" min="1000" max="8000" step="500" value="${S.max}" class="w-full"/></div>
-    <div><label for="mn" class="mb-2 block text-sm font-bold">Minimum rating</label><select id="mn" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"><option value="0">Any rating</option><option value="4">4★ and up</option><option value="4.5">4.5★ and up</option></select></div>
+    ${SUPP.some(x=>x.showr&&x.rv>0)?`<div><label for="mn" class="mb-2 block text-sm font-bold">Minimum rating</label><select id="mn" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"><option value="0">Any rating</option><option value="4">4★ and up</option><option value="4.5">4.5★ and up</option></select></div>`:""}
     <div><h2 class="mb-2 text-sm font-bold">Ingredient</h2><div class="flex flex-wrap gap-2">${INGS.map(g=>`<button data-a="ing" data-v="${g}" class="${pillCls(S.ing.has(g))} !px-3 !py-1.5 !text-xs">${g}</button>`).join("")}</div></div>
     <button data-a="reset" class="text-sm font-bold text-g2 underline">Clear filters</button>
   </aside>
@@ -234,12 +242,12 @@ function drawSupp(){
   const V=pg(L);
   $("#grid").innerHTML=L.length?V.map(x=>`
   <article data-a="qv" data-v="${x.id}" role="button" tabindex="0" aria-label="View ${x.n} details" class="rise flex cursor-pointer flex-col overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-[0_10px_30px_-18px_rgba(0,0,0,.25)] transition hover:shadow-[0_14px_34px_-14px_rgba(46,125,50,.35)]">
-    <div class="tile relative flex h-36 items-center justify-center text-g2">${imgsOf(x)[0]?`<img src="${imgsOf(x)[0]}" alt="${x.n}" loading="lazy" class="h-full w-full object-contain p-2"/>`:`<i data-lucide="${x.i}" class="h-12 w-12"></i>`}${imgsOf(x).length>1?`<span class="absolute bottom-2 right-3 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">${imgsOf(x).length} photos</span>`:""}
+    <div class="tile relative flex h-36 items-center justify-center text-g2">${imgsOf(x)[0]?`<img src="${imgsOf(x)[0]}" alt="${x.n}" loading="lazy" data-ph="${escH(x.b||x.g||"")}" onerror="imgFail(this)" class="h-full w-full object-contain p-2"/>`:PH(x.b||x.g)}${imgsOf(x).length>1?`<span class="absolute bottom-2 right-3 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">${imgsOf(x).length} photos</span>`:""}
       <span class="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-g1 shadow-sm">${x.dose}</span></div>
     <div class="flex flex-1 flex-col p-4">
       <p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p>
       <h3 class="font-serif text-lg font-bold leading-tight">${x.n}</h3>
-      <div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">(${x.rv})</span></div>
+      ${x.showr&&x.rv>0?`<div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">(${x.rv})</span></div>`:""}
       <p class="mt-2 text-sm text-neutral-500">${x.d}</p>
       <p class="mt-3 font-bold">${fmt(x.p)}</p>
       <div class="mt-3 flex gap-2">
@@ -264,7 +272,7 @@ function eatsStory(){return `
   <div class="mt-8 grid gap-4 md:grid-cols-3">
     ${[["b4.jpg","Breakfast that works as hard as you","Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."],["d2.jpg","Tiger nut, the natural energy drink","Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost."],["s2.jpg","Shawarma, made fresh to order","Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."]].map(c=>`<article class="overflow-hidden rounded-3xl bg-white shadow-sm"><div class="tile flex h-44 items-center justify-center"><img src="${c[0]}" alt="" loading="lazy" class="h-full w-full ${c[0].includes('d2')?'object-contain':'object-cover'}"/></div><div class="p-5"><h3 class="font-serif text-lg font-bold leading-snug">${c[1]}</h3><p class="mt-2 text-sm text-neutral-600">${c[2]}</p></div></article>`).join("")}
   </div>
-  <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("leaf","100% natural","Made from quality natural ingredients.")}${BEN("flask-conical","No preservatives","No additives. No chemicals.")}${BEN("sprout","Rich in nutrients","Packed with fibre, vitamins and minerals.")}${BEN("zap","Boosts energy","Keeps you active and refreshed all day.")}</div>
+  <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("leaf","100% natural","Made from quality natural ingredients.")}${BEN("flask-conical","No preservatives","No additives. No chemicals.")}${BEN("sprout","Rich in nutrients","Packed with fibre, vitamins and minerals.")}${BEN("zap","Supports your energy","Keeps you active and refreshed all day.")}</div>
 </section>
 <section class="mt-12">
   <div class="rounded-[2rem] bg-g1 px-5 py-10 text-white sm:px-10">
@@ -275,7 +283,7 @@ function eatsStory(){return `
   </div>
 </section>
 <section class="mt-12">
-  <h2 class="font-serif text-3xl font-bold">The full menu</h2>
+  <h2 class="font-serif text-3xl font-bold" id="fullmenu">The full menu</h2>
   <p class="mt-2 text-neutral-600">Prefer to browse the printed menus? Tap one to see it full size. You can also order through Glovo or Chowdeck.</p>
   <div class="mt-5 grid gap-4 sm:grid-cols-3">${flyer("menu-breakfast.jpg","Breakfast menu")}${flyer("menu-shawarma.jpg","Shawarma menu")}${flyer("menu-promo.jpg","We've evolved")}</div>
 </section>`}
@@ -284,7 +292,7 @@ function suppStory(){return `
   <p class="text-sm font-bold uppercase tracking-widest text-g2">Our supplement story</p>
   <h2 class="mt-2 max-w-2xl font-serif text-3xl font-bold leading-tight sm:text-4xl">Good food first. Good supplements to fill the gaps.</h2>
   <p class="mt-4 max-w-2xl text-neutral-600">SmartyHub Organic began with supplements, and they are still the heart of the brand. We stock trusted, genuine products you can rely on, so the vitamins you take at home match the care we put into every meal.</p>
-  <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("zap","Supports energy","B vitamins, iron and vitamin C help release energy.")}${BEN("shield-check","Boosts immunity","Vitamin C, D3 and zinc support your body's defences.")}${BEN("heart-pulse","Promotes well-being","Omega-3 supports your heart, brain and joints.")}${BEN("badge-check","Authentic products","Genuine brands, checked before they reach you.")}</div>
+  <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("zap","Supports energy","B vitamins, iron and vitamin C help release energy.")}${BEN("shield-check","Supports immunity","Vitamin C, D3 and zinc support your body's defences.")}${BEN("heart-pulse","Promotes well-being","Omega-3 supports your heart, brain and joints.")}${BEN("badge-check","Authentic products","Genuine brands, checked before they reach you.")}</div>
 </section>
 <section class="mt-12 grid gap-6 md:grid-cols-2">
   <div class="rounded-3xl border border-neutral-100 p-6"><h2 class="font-serif text-2xl font-bold">How to choose</h2>
@@ -320,15 +328,18 @@ function drawCart(){
 function openCart(o){const d=$("#drawer");d.classList.toggle("translate-x-full",!o);$("#ov").classList.toggle("hidden",!o);if(o)drawCart();document.body.style.overflow=o?"hidden":""}
 
 /* ---------- MODALS ---------- */
-function modal(h){if(!h){$("#modal").classList.add("hidden");$("#modal").classList.remove("flex");if($("#drawer").classList.contains("translate-x-full"))$("#ov").classList.add("hidden");return}
+function modal(h){if(!h){$("#modal").classList.add("hidden");$("#modal").classList.remove("flex");if($("#drawer").classList.contains("translate-x-full")&&$("#menu").classList.contains("-translate-x-full"))$("#ov").classList.add("hidden");return}
   $("#mbox").innerHTML=h;$("#modal").classList.remove("hidden");$("#modal").classList.add("flex");$("#ov").classList.remove("hidden");ic()}
 /* ---------- PHOTO GALLERY + LIGHTBOX ---------- */
+const PILL='<svg class="h-9 w-9 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>',LEAF='<svg class="h-9 w-9 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>';
+const PH=(t,lf)=>`<div class="flex h-full w-full flex-col items-center justify-center gap-1 px-2 text-center text-g2">${lf?LEAF:PILL}<span class="line-clamp-2 text-[11px] font-bold leading-tight text-g1">${escH(t||"")}</span></div>`;
+function imgFail(i){const d=document.createElement("div");d.className="h-full w-full";d.innerHTML=PH(i.dataset.ph,i.dataset.lf);i.replaceWith(d)}
 const imgsOf=x=>(x.imgs&&x.imgs.length?x.imgs:(x.img?[x.img]:[])).filter(Boolean);
 const fitOf=x=>(x.fit||(String(x.id)[0]==="d"?"contain":"cover"))==="contain"?"object-contain p-2":"object-cover";
 let GL={list:[],i:0,sw:0};
 function gallery(x,fit){
   const L=imgsOf(x);GL.list=L;GL.i=0;
-  if(!L.length)return `<div class="tile mt-4 flex h-40 items-center justify-center overflow-hidden rounded-2xl text-g2"><i data-lucide="${x.i||"leaf"}" class="h-14 w-14"></i></div>`;
+  if(!L.length)return `<div class="tile mt-4 flex h-40 items-center justify-center overflow-hidden rounded-2xl text-g2">${PH(x.b||x.cat||x.g,!!x.cat)}</div>`;
   const m=L.length>1,arrow=(a,d,ic)=>`<button type="button" data-a="${a}" class="absolute top-1/2 ${d}-2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md hover:bg-white" aria-label="${a==="gp"?"Previous photo":"Next photo"}"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></button>`;
   return `<div class="gal relative mt-4 overflow-hidden rounded-2xl bg-green-50" data-n="${L.length}" data-i="0">
     <div class="gal-track flex transition-transform duration-300 ease-out" style="transform:translateX(0)">${L.map((u,i)=>`<button type="button" data-a="lb" data-v="${i}" class="h-64 w-full shrink-0 cursor-zoom-in sm:h-72" aria-label="Enlarge photo ${i+1} of ${L.length}"><img src="${u}" alt="${x.n} photo ${i+1}" loading="${i?"lazy":"eager"}" draggable="false" class="h-full w-full ${fit||"object-cover"}"/></button>`).join("")}</div>
@@ -380,7 +391,7 @@ function customModal(id){
 function calc(){const f=$("#cf");if(!f)return;const x=EATS.find(e=>e.id===f.dataset.id);let s=x.p;f.querySelectorAll("input:checked").forEach(i=>s+=+i.dataset.p);$("#ct").textContent=fmt(s*+f.dataset.q);return s}
 function quickView(id){
   const x=SUPP.find(e=>e.id===id);
-  modal(`<div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p><h2 class="font-serif text-2xl font-bold">${x.n}</h2><div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">${x.rv} reviews</span></div></div><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+  modal(`<div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-neutral-500">${x.b||x.g}</p><h2 class="font-serif text-2xl font-bold">${x.n}</h2>${x.showr&&x.rv>0?`<div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">${x.rv} reviews</span></div>`:""}</div><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
   ${gallery(x,"object-contain p-2")}
   <p class="mt-4 whitespace-pre-line text-neutral-600">${x.d}</p>
   <dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div class="rounded-2xl bg-neutral-50 p-3"><dt class="text-neutral-500">Dosage</dt><dd class="font-bold">${x.dose}</dd></div><div class="rounded-2xl bg-neutral-50 p-3"><dt class="text-neutral-500">Key ingredients</dt><dd class="font-bold">${x.ing.join(", ")}</dd></div></dl>
@@ -388,15 +399,18 @@ function quickView(id){
   ${x.out?`<span class="mt-5 block w-full rounded-full bg-neutral-100 py-3.5 text-center font-bold text-neutral-500">Sold out</span>`:`<button data-a="addp" data-v="${x.id}" data-c="1" class="pill mt-5 w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Add to cart · ${fmt(x.p)}</button>`}`);
 }
 function checkout(){
-  openCart(false);
+  openCart(false);CP=null;
   const F=(k,l,t,ac)=>`<label class="block text-sm font-semibold">${l}<input required name="${k}" type="${t}" autocomplete="${ac}" class="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 font-normal outline-none focus:border-g3"/></label>`;
   modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Delivery details</h2><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div>
   <form id="co" class="mt-4 space-y-3">
     ${F("name","Full name","text","name")}${F("phone","Phone number (WhatsApp)","tel","tel")}${F("addr","Delivery address","text","street-address")}${F("landmark","Nearest landmark or bus stop","text","off")}
     <label class="block text-sm font-semibold">Delivery area<select required name="zone" class="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 font-normal outline-none focus:border-g3"><option value="">Select your area</option>${ZONES.map(z=>`<option>${escH(z.name)}</option>`).join("")}</select></label>
+    <details class="text-sm text-neutral-600"><summary class="cursor-pointer font-semibold text-g2">Delivery areas, fees and hours</summary><div class="mt-2">${deliveryHtml()}</div></details>
     <label class="block text-sm font-semibold">Note for the kitchen (optional)<input name="note" class="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 font-normal outline-none focus:border-g3"/></label>
-    <div class="space-y-1 pt-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>${fmt(sub())}</span></div><div class="flex justify-between"><span>Delivery</span><span id="fe">Pick your area</span></div><div class="flex justify-between text-lg font-bold"><span>Total</span><span id="to">${fmt(sub())}</span></div></div>
+    <div class="rounded-2xl bg-green-50 p-3"><label for="cpn" class="block text-sm font-semibold">Coupon or promo code</label><div class="mt-1 flex gap-2"><input id="cpn" autocomplete="off" autocapitalize="characters" placeholder="Enter code" class="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm uppercase outline-none focus:border-g3"/><button type="button" data-a="cpn" class="pill rounded-xl bg-g2 px-4 text-sm font-bold text-white hover:bg-g1">Apply</button></div><p id="cpm" class="mt-1 text-xs"></p></div>
+    <div class="space-y-1 pt-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>${fmt(sub())}</span></div><div class="flex justify-between"><span>Delivery</span><span id="fe">Pick your area</span></div><div id="dsr" class="hidden justify-between text-g2"><span id="dsl">Discount</span><span id="dsv"></span></div><div class="flex justify-between text-lg font-bold"><span>Total</span><span id="to">${fmt(sub())}</span></div></div>
     <button id="pb" class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:opacity-60">Place order</button></form>`);
+  if(S.pendingCode){$("#cpn").value=S.pendingCode;S.pendingCode=null;cpnApply()}
 }
 async function done(d){
   const pb=$("#pb");pb.disabled=true;pb.textContent="Placing order…";
@@ -407,14 +421,163 @@ async function done(d){
     try{const r=await fetch(C.url+"/rest/v1/rpc/place_order",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify({p:{...d,items:cu.map(x=>({n:x.n,o:x.o||"",q:x.q,p:x.p})),subtotal:s0,sachet:free}})});
       if(r.ok){const j=await r.json();ref=j.ref;fee=j.fee;saved=true}}catch(e){}
   }
+  let disc=0,pend=false;const coupon=CP?CP.code:"";
+  if(saved&&(coupon||AU.tok)){try{const r=await rpc("link_order",{p_ref:ref,p_phone:d.phone,p_coupon:coupon||null});if(r.ok&&r.j&&r.j.ok)disc=r.j.discount||0;else if(coupon){disc=CP.discount;pend=true}}catch(e){if(coupon){disc=CP.discount;pend=true}}}
+  else if(coupon){disc=CP.discount;pend=true}
+  CP=null;
   const lines=cu.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n"),open=feeTxt(d.zone)==="Confirmed on WhatsApp";
-  const msg=`Hi SmartyHub Organic, new order ${ref}\n${lines}\nSubtotal: ${fmt(s0)}\nDelivery (${d.zone}): ${open?"to be confirmed":fmt(fee)}\nTotal: ${fmt(s0+fee)}${open?" + delivery":""}\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}`;
+  const msg=`Hi SmartyHub Organic, new order ${ref}\n${lines}\nSubtotal: ${fmt(s0)}\nDelivery (${d.zone}): ${open?"to be confirmed":fmt(fee)}${disc?`\nCoupon ${coupon}: -${fmt(disc)}${pend?" (please confirm)":""}`:""}\nTotal: ${fmt(Math.max(0,s0+fee-disc))}${open?" + delivery":""}\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}`;
   S.cart=[];save();badge();
   modal(`<div class="py-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div>
   <h2 class="mt-4 font-serif text-2xl font-bold">${saved?"Order "+ref+" received":"Order "+ref+" is ready to send"}</h2>
-  <p class="mt-2 text-neutral-600">${saved?"Tap below to confirm on WhatsApp so we can confirm your delivery time.":"Send it on WhatsApp and we will confirm your delivery."}${free?" Your free vitamin sachet is included.":""}</p>
+  <p class="mt-2 text-neutral-600">${saved?"Tap below to confirm on WhatsApp so we can confirm your delivery time.":"Send it on WhatsApp and we will confirm your delivery."}${free?" Your free vitamin sachet is included.":""}${disc?` You saved ${fmt(disc)} with ${escH(coupon)}.`:""}${AU.user&&saved?" Track it any time from the menu, under My orders.":""}</p>
   <a href="https://wa.me/${WA}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="pill mt-5 block rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Confirm on WhatsApp</a>
   <button data-a="mclose" class="mt-3 text-sm font-bold text-neutral-500 underline">Back to menu</button></div>`);
+}
+
+/* ---------- ACCOUNT, OFFERS, ORDER TRACKING, COUPONS ---------- */
+let PROV=null,INFO={},CP=null,ORDS=[],ORT=null,AU={tok:null,ref:null,exp:0,user:null};
+const SBC=()=>{const C=window.SHO_SB;return C&&C.url&&C.key&&!/YOUR/.test(C.url+C.key)?C:null};
+const svgI=(d,c="h-5 w-5")=>`<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const IC={x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',food:'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',box:'<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',tag:'<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',truck:'<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',img:'<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',chat:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',insta:'<rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/>',out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>'};
+const xBtn=`<button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close">${svgI(IC.x)}</button>`;
+const gIcon='<svg class="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1C6.2 6.9 8.9 4.8 12 4.8z"/></svg>';
+const aIcon='<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>';
+const signBtns=a=>{const g=PROV&&PROV.google,p=PROV&&PROV.apple;
+  if(!g&&!p)return `<p class="rounded-2xl bg-white/70 p-3 text-center text-sm text-neutral-600">${PROV?"Sign-in is coming soon.":"Checking sign-in options…"}</p>`;
+  return `<div class="space-y-2">${g?`<button type="button" data-a="signin" data-v="google" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white py-3 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-full bg-black py-3 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
+const rpc=async(fn,body)=>{const C=SBC();if(!C)throw new Error("off");const t=await authToken();const r=await fetch(C.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+(t||C.key),"Content-Type":"application/json"},body:JSON.stringify(body||{})});let j=null;try{j=await r.json()}catch(e){}return{ok:r.ok,j}};
+const saveAuth=()=>{try{localStorage.setItem("sho-auth",JSON.stringify({tok:AU.tok,ref:AU.ref,exp:AU.exp}))}catch(e){}};
+
+function authInit(){
+  try{
+    const h=location.hash;
+    if(/access_token=/.test(h)){const p=new URLSearchParams(h.slice(1));AU.tok=p.get("access_token");AU.ref=p.get("refresh_token");AU.exp=Date.now()+(+p.get("expires_in")||3600)*1000;saveAuth();AU.fresh=true;history.replaceState(null,"",location.pathname+location.search+"#"+S.eco)}
+    else if(/error(_description)?=/.test(h)){history.replaceState(null,"",location.pathname+location.search+"#"+S.eco);setTimeout(()=>toast("Sign-in was cancelled or is not set up yet"),700)}
+    else{const a=JSON.parse(localStorage.getItem("sho-auth")||"null");if(a)Object.assign(AU,a)}
+  }catch(e){}
+  if(AU.tok)authUser();
+  const C=SBC();if(C)fetch(C.url+"/auth/v1/settings",{headers:{apikey:C.key}}).then(r=>r.ok?r.json():null).then(j=>{PROV=j&&j.external?{google:!!j.external.google,apple:!!j.external.apple}:{};drawMenu()}).catch(()=>{PROV={};drawMenu()});
+}
+async function authToken(){
+  if(!AU.tok)return null;const C=SBC();if(!C)return null;
+  if(AU.exp-Date.now()>60000)return AU.tok;
+  if(!AU.ref){authClear();return null}
+  try{const r=await fetch(C.url+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:C.key,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:AU.ref})});
+    if(!r.ok){authClear();return null}
+    const j=await r.json();AU.tok=j.access_token;AU.ref=j.refresh_token;AU.exp=Date.now()+(j.expires_in||3600)*1000;saveAuth();return AU.tok}catch(e){return null}
+}
+function authClear(){AU={tok:null,ref:null,exp:0,user:null};try{localStorage.removeItem("sho-auth")}catch(e){}drawMenu()}
+async function authUser(){
+  const C=SBC(),t=await authToken();if(!C||!t)return;
+  try{const r=await fetch(C.url+"/auth/v1/user",{headers:{apikey:C.key,Authorization:"Bearer "+t}});
+    if(!r.ok){authClear();return}
+    const u=await r.json(),m=u.user_metadata||{};
+    AU.user={id:u.id,email:u.email||"",name:m.full_name||m.name||(u.email||"").split("@")[0]||"there",pic:m.avatar_url||m.picture||""};drawMenu();
+    if(AU.fresh){AU.fresh=false;let nx=null;try{nx=sessionStorage.getItem("sho-after");sessionStorage.removeItem("sho-after")}catch(e){}
+      toast("Signed in. Welcome, "+AU.user.name.split(" ")[0]);if(nx==="orders")openOrders();else if(nx==="offers")openOffers()}
+  }catch(e){}
+}
+function signIn(p,after){const C=SBC();if(!C){toast("Sign-in isn't switched on yet");return}
+  try{if(after)sessionStorage.setItem("sho-after",after)}catch(e){}
+  location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent(location.origin+location.pathname)}
+async function signOut(){const C=SBC();try{if(C&&AU.tok)await fetch(C.url+"/auth/v1/logout",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+AU.tok}})}catch(e){}authClear();toast("Signed out")}
+
+function openMenu(o){
+  const m=$("#menu");m.classList.toggle("-translate-x-full",!o);
+  if(o){drawMenu();$("#ov").classList.remove("hidden")}
+  else if($("#drawer").classList.contains("translate-x-full")&&$("#modal").classList.contains("hidden"))$("#ov").classList.add("hidden");
+  document.body.style.overflow=o?"hidden":"";const b=document.querySelector("[data-a=menu]");if(b)b.setAttribute("aria-expanded",!!o);
+}
+function drawMenu(){
+  const m=$("#menu");if(!m)return;const u=AU.user;
+  const L=(v,ic,t,sub)=>`<button data-a="mn" data-v="${v}" class="pill flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left font-semibold hover:bg-neutral-50"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-50 text-g2">${svgI(IC[ic])}</span><span class="min-w-0"><span class="block">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span></button>`;
+  m.innerHTML=`<div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4"><p class="font-serif text-xl font-bold">Menu</p><button data-a="menux" class="rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close menu">${svgI(IC.x)}</button></div>
+  <div class="flex-1 overflow-y-auto px-3 py-4">
+    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Follow your delivery and unlock member offers. No password needed.</p>${signBtns("")}`}</div>
+    ${L("eats","food","Breakfast &amp; Eats")}${L("supp","leaf","Supplements")}
+    ${L("orders","box","My orders","Track your delivery")}${L("offers","tag","Offers &amp; coupons","Promo codes and member deals")}${L("dinfo","truck","Delivery &amp; hours","Areas, fees and times")}${L("menus","img","Printed menus")}
+    <div class="my-3 border-t border-neutral-100"></div>
+    ${L("wa","chat","Chat on WhatsApp")}${L("ig","insta","Instagram")}
+  </div>
+  ${u?`<div class="border-t border-neutral-100 p-4"><button data-a="signout" class="pill flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 py-2.5 text-sm font-bold hover:border-neutral-400">${svgI(IC.out,"h-4 w-4")}Sign out</button></div>`:""}`;
+}
+
+/* delivery info */
+function deliveryHtml(){
+  const z=ZONES.map(x=>`<li class="flex justify-between gap-3 border-b border-neutral-100 py-2"><span>${escH(x.name)}</span><span class="font-semibold">${typeof x.fee==="number"?fmt(x.fee):"Confirmed on WhatsApp"}</span></li>`).join("");
+  const row=(t,v)=>v?`<div class="rounded-2xl bg-neutral-50 p-3 text-sm"><p class="font-bold">${t}</p><p class="whitespace-pre-line text-neutral-600">${escH(v)}</p></div>`:"";
+  return `<ul class="text-sm">${z}</ul><div class="mt-3 space-y-2">${row("Opening hours",INFO.hours)}${row("Order cut-off",INFO.cutoff)}${row("Good to know",INFO.note)}</div>`;
+}
+function openDelivery(){modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Delivery &amp; hours</h2>${xBtn}</div><div class="mt-3">${deliveryHtml()}</div>`)}
+
+/* offers */
+async function openOffers(){
+  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Offers &amp; coupons</h2>${xBtn}</div><p class="py-10 text-center text-neutral-500">Loading offers…</p>`);
+  let j=null;try{const r=await rpc("list_offers");if(r.ok)j=r.j}catch(e){}
+  const L=j&&Array.isArray(j.offers)?j.offers:[],lk=j&&j.locked||0;
+  const card=o=>`<div class="rounded-2xl border border-dashed border-g3 bg-green-50/60 p-4"><div class="flex items-start justify-between gap-2"><div><p class="font-bold">${escH(o.title||o.code)}</p>${o.description?`<p class="mt-0.5 text-sm text-neutral-600">${escH(o.description)}</p>`:""}</div>${o.members_only?'<span class="shrink-0 rounded-full bg-g2 px-2 py-0.5 text-[10px] font-bold text-white">MEMBERS</span>':""}</div>
+    <p class="mt-2 text-sm font-semibold text-g1">${o.kind==="percent"?o.value+"% off":fmt(o.value)+" off"}${o.min_order>0?" · orders from "+fmt(o.min_order):""}${o.expires_at?" · ends "+new Date(o.expires_at).toLocaleDateString("en-NG",{day:"numeric",month:"short"}):""}</p>
+    <div class="mt-3 flex items-center justify-between gap-2"><code class="rounded-lg bg-white px-3 py-1.5 text-sm font-extrabold tracking-wider">${escH(o.code)}</code><button data-a="usecode" data-v="${escH(o.code)}" class="pill rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Use this code</button></div></div>`;
+  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Offers &amp; coupons</h2>${xBtn}</div>
+  <div class="mt-4 space-y-3">${L.length?L.map(card).join(""):'<p class="py-8 text-center text-neutral-500">No offers right now. Check back soon.</p>'}
+  ${lk>0&&!AU.user?`<div class="rounded-2xl bg-neutral-50 p-4"><p class="font-bold">${lk} more offer${lk>1?"s":""} for members</p><p class="mb-3 mt-1 text-sm text-neutral-600">Sign in to unlock them. It takes one tap.</p>${signBtns("offers")}</div>`:""}</div>`);
+}
+
+/* orders */
+const STEPS=[["new","Received"],["preparing","Preparing"],["out","On the way"],["delivered","Delivered"]];
+const STX={new:"We have your order",preparing:"Your order is being prepared",out:"Your order is on its way",delivered:"Delivered. Enjoy!",cancelled:"This order was cancelled"};
+function ordHtml(){
+  if(!ORDS.length)return '<p class="py-10 text-center text-neutral-500">No orders yet. When you order while signed in, it shows up here.</p>';
+  return ORDS.map((o,n)=>{const i=STEPS.findIndex(x=>x[0]===o.status),can=o.status==="cancelled";
+    return `<div class="rounded-2xl border border-neutral-200 p-4"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${escH(o.ref)}</p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}</p></div><p class="font-extrabold text-g2">${fmt(o.total||0)}</p></div>
+    <p class="mt-3 text-sm font-semibold ${can?"text-red-600":"text-g1"}">${STX[o.status]||escH(o.status)}</p>
+    ${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}
+    <ul class="mt-3 list-disc pl-5 text-sm text-neutral-600">${(o.items||[]).map(it=>`<li>${it.q} × ${escH(it.n)}${it.o?" ("+escH(it.o)+")":""}</li>`).join("")}</ul>
+    ${o.discount>0?`<p class="mt-1 text-xs text-g2">Saved ${fmt(o.discount)}${o.coupon?" with "+escH(o.coupon):""}</p>`:""}
+    <div class="mt-3 flex gap-2"><button data-a="reorder" data-v="${n}" class="pill flex-1 rounded-full bg-g2 py-2.5 text-sm font-bold text-white hover:bg-g1">Order again</button><a href="https://wa.me/${WA}?text=${encodeURIComponent("Hi SmartyHub, about my order "+o.ref)}" target="_blank" rel="noopener" class="pill rounded-full border border-neutral-200 px-4 py-2.5 text-sm font-bold hover:border-g3">Help</a></div></div>`}).join("");
+}
+async function loadOrders(quiet){
+  const C=SBC(),t=await authToken();
+  if(!C||!t){if(!quiet)modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">Track your orders</h2><p class="mb-4 mt-2 text-neutral-600">Sign in to see where your order is, order again in one tap and unlock member offers.</p>${signBtns("orders")}</div>`);return}
+  try{const r=await fetch(C.url+"/rest/v1/orders?select=ref,status,created_at,total,discount,coupon,items&order=created_at.desc&limit=15",{headers:{apikey:C.key,Authorization:"Bearer "+t},cache:"no-store"});
+    if(!r.ok)throw new Error("x");ORDS=await r.json();
+    const box=$("#ordl");if(box)box.innerHTML=ordHtml();else if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3">${ordHtml()}</div>`)}
+  catch(e){if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><p class="py-8 text-center text-neutral-500">Order tracking isn't switched on yet. Please chat with us on WhatsApp for your order status.</p>`)}
+}
+function openOrders(){
+  if(!AU.tok){loadOrders();return}
+  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3"><p class="py-10 text-center text-neutral-500">Loading…</p></div>`);
+  loadOrders();clearInterval(ORT);ORT=setInterval(()=>{if($("#ordl")&&!document.hidden)loadOrders(true);else if(!$("#ordl"))clearInterval(ORT)},30000);
+}
+function reorder(n){
+  const o=ORDS[n];if(!o)return;let ok=0,miss=0,changed=false;
+  (o.items||[]).forEach(it=>{
+    const e=EATS.find(x=>x.n===it.n&&!x.hide&&!x.soon&&!x.out),sp=e?null:SUPP.find(x=>x.n===it.n&&!x.hide&&!x.out);
+    if(!e&&!sp){miss++;return}
+    const k=e?e.id+"|"+String(it.o||"").split(", ").filter(Boolean).join():sp.id,p=e?(it.p||e.p):sp.p;
+    if(!e&&sp.p!==it.p)changed=true;
+    const f=S.cart.find(x=>x.k===k);f?f.q+=it.q:S.cart.push(e?{k,n:e.n,o:it.o||"",p,q:it.q,food:1}:{k,n:sp.n,p,q:it.q});ok++});
+  save();badge(1);drawCart();modal();
+  if(ok){openCart(true);toast(ok+" item"+(ok>1?"s":"")+" added"+(miss?` · ${miss} no longer available`:"")+". Check prices in your cart.")}
+  else toast("Those items are no longer on the menu")
+}
+
+/* coupons */
+function tot(){
+  const z=($("#co")&&$("#co").zone&&$("#co").zone.value)||"",fee=feeOf(z),dis=CP?CP.discount:0;
+  $("#fe").textContent=feeTxt(z);$("#to").textContent=fmt(Math.max(0,sub()+fee-dis));
+  const r=$("#dsr");if(r){r.classList.toggle("hidden",!CP);r.classList.toggle("flex",!!CP);if(CP){$("#dsl").textContent="Discount ("+CP.code+")";$("#dsv").textContent="−"+fmt(CP.discount)}}
+}
+async function cpnApply(){
+  const i=$("#cpn"),m=$("#cpm"),code=(i.value||"").trim(),bad=t=>{CP=null;m.textContent=t;m.className="mt-1 text-xs text-red-600";tot()};
+  if(!code)return bad("Enter a code first.");
+  if(!SBC())return bad("Coupons aren't available right now.");
+  m.textContent="Checking…";m.className="mt-1 text-xs text-neutral-500";
+  try{const r=await rpc("check_coupon",{p_code:code,p_subtotal:sub()}),j=r.j;
+    if(r.ok&&j&&j.ok){CP={code:j.code,discount:j.discount,title:j.title||""};m.textContent="Applied"+(j.title?": "+j.title:"")+". You save "+fmt(j.discount);m.className="mt-1 text-xs font-semibold text-g2";tot()}
+    else bad((j&&j.msg)||"That code could not be applied.")}
+  catch(e){bad("Could not check the code. Try again.")}
 }
 
 /* ---------- EVENTS ---------- */
@@ -441,22 +604,34 @@ document.addEventListener("click",e=>{
   else if(a==="madd"){const f=$("#cf"),x=EATS.find(s=>s.id===f.dataset.id),o=[...f.querySelectorAll("input:checked")].map(i=>i.value);
     addItem({k:x.id+"|"+o.join(),n:x.n,o:o.join(", "),p:calc(),q:+f.dataset.q,food:1});modal()}
   else if(a==="cart")openCart(true);
-  else if(a==="close"){openCart(false);modal()}
+  else if(a==="close"){openCart(false);modal();openMenu(false)}
   else if(a==="mclose")modal();
   else if(a==="img")modal(`<div class="flex justify-end"><button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close"><i data-lucide="x" class="h-5 w-5"></i></button></div><img src="${v}" alt="Menu" class="mx-auto mt-2 h-auto w-full rounded-2xl"/>`);
   else if(a==="inc"||a==="dec"){const i=S.cart[v];i.q+=a==="inc"?1:-1;if(i.q<1)S.cart.splice(v,1);save();badge();drawCart()}
   else if(a==="checkout")checkout();
+  else if(a==="menu")openMenu(true);
+  else if(a==="menux")openMenu(false);
+  else if(a==="mn"){openMenu(false);
+    if(v==="eats"||v==="supp"){S.eco=v;S.q="";$("#q").value="";history.replaceState(null,"","#"+v);render();scrollTo({top:0})}
+    else if(v==="orders")openOrders();else if(v==="offers")openOffers();else if(v==="dinfo")openDelivery();
+    else if(v==="menus"){S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
+    else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank")}
+  else if(a==="signin")signIn(v,t.dataset.n);
+  else if(a==="signout"){openMenu(false);signOut()}
+  else if(a==="cpn")cpnApply();
+  else if(a==="usecode"){S.pendingCode=v;modal();toast("Code "+v+" saved. It is applied at checkout.");if(S.cart.length)openCart(true)}
+  else if(a==="reorder")reorder(+v);
 });
 document.addEventListener("input",e=>{
   if(e.target.closest("#cf"))calc();
-  if(e.target.name==="zone"){$("#fe").textContent=feeTxt(e.target.value);$("#to").textContent=fmt(sub()+feeOf(e.target.value))}
+  if(e.target.name==="zone")tot();
   if(e.target.id==="q"){S.q=e.target.value;S.eco==="eats"?drawEats():drawSupp()}
   if(e.target.id==="mx"){S.max=+e.target.value;$("#mxv").textContent=fmt(S.max);drawSupp()}
   if(e.target.id==="mn"){S.min=+e.target.value;drawSupp()}
 });
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click()}});
 document.addEventListener("submit",e=>{if(e.target.id==="co"){e.preventDefault();done(Object.fromEntries(new FormData(e.target)))}});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){openCart(false);modal()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){openCart(false);modal();openMenu(false)}});
 addEventListener("hashchange",()=>{const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
 
 /* ---------- CATALOG (managed from admin.html) ---------- */
@@ -468,6 +643,7 @@ async function sbCatalog(){
     if(!a.ok||!b.ok)return null;
     const it=await a.json(),st=Object.fromEntries((await b.json()).map(r=>[r.key,r.value]));
     if(Array.isArray(st.zones)&&st.zones.length)ZONES=st.zones;
+    if(st.info&&typeof st.info==="object")INFO=st.info;
     if(!it.length)return null;
     return {eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats,suppCats:st.suppCats,hero:st.hero};
   }catch(e){return null}
@@ -488,7 +664,8 @@ async function loadCatalog(){
   }
   if(prev){const b=document.createElement("div");b.textContent="Preview mode: not live yet";b.className="fixed left-0 right-0 top-0 z-[70] bg-amber-400 py-1 text-center text-xs font-bold";document.body.appendChild(b)}
 }
-loadCatalog().then(()=>{render();drawCart()});
+authInit();
+loadCatalog().then(()=>{render();drawCart();drawMenu()});
 </script>
 </body>
 </html>
