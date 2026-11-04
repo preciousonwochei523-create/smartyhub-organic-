@@ -159,13 +159,9 @@ function eatsView(){return `
 <section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Organic breakfast delivered fresh">
   <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
   <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
-  <div class="relative mx-auto flex min-h-[340px] max-w-6xl flex-col justify-center px-4 pb-16 pt-10 sm:min-h-[420px] sm:pb-20 sm:pt-12">
+  <div class="relative mx-auto flex min-h-[260px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[320px] sm:pb-16 sm:pt-10">
     <h1 class="max-w-2xl font-serif text-2xl font-bold leading-[1.15] text-white sm:text-5xl">Organic breakfast, delivered fresh.</h1>
     <p class="mt-3 max-w-lg text-base text-white/90 sm:text-lg">Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.</p>
-    <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
-      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
-      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every order</span>
-    </div>
     <label class="relative mt-5 block max-w-xl"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-3.5 pl-12 pr-4 text-base shadow-[0_8px_28px_-8px_rgba(0,0,0,.45)] outline-none ring-2 ring-transparent focus:ring-g3"/></label>
   </div>
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
@@ -212,13 +208,9 @@ function suppView(){return `
 <section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Wellness supplements you can trust">
   <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
   <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
-  <div class="relative mx-auto flex min-h-[340px] max-w-6xl flex-col justify-center px-4 pb-16 pt-10 sm:min-h-[420px] sm:pb-20 sm:pt-12">
+  <div class="relative mx-auto flex min-h-[260px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[320px] sm:pb-16 sm:pt-10">
     <h1 class="max-w-2xl font-serif text-2xl font-bold leading-[1.15] text-white sm:text-5xl">Wellness supplements you can trust.</h1>
     <p class="mt-3 max-w-lg text-base text-white/90 sm:text-lg">Browse by health goal, ingredient and price. Quality supplement brands, delivered in Lagos.</p>
-    <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
-      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
-      <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every food order</span>
-    </div>
     <label class="relative mt-5 block max-w-xl"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-3.5 pl-12 pr-4 text-base shadow-[0_8px_28px_-8px_rgba(0,0,0,.45)] outline-none ring-2 ring-transparent focus:ring-g3"/></label>
   </div>
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
@@ -687,7 +679,7 @@ document.addEventListener("input",e=>{
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click()}});
 document.addEventListener("submit",e=>{if(e.target.id==="co"){e.preventDefault();done(Object.fromEntries(new FormData(e.target)))}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){openCart(false);modal();openMenu(false)}});
-addEventListener("hashchange",()=>{if(location.hash==="#orders"){history.replaceState(null,"","#"+S.eco);openOrders();return}const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
+addEventListener("hashchange",()=>{const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
 
 /* ---------- CATALOG (managed from admin.html) ---------- */
 async function sbCatalog(){
@@ -721,7 +713,7 @@ async function loadCatalog(){
 }
 const setHH=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hh",h.offsetHeight+"px")};setHH();addEventListener("resize",setHH);addEventListener("load",setHH);try{new ResizeObserver(setHH).observe(document.querySelector("header"))}catch(e){}
 drawHdr();authInit();
-loadCatalog().then(()=>{render();drawCart();drawMenu();loadRatings();if(location.hash==="#orders"){history.replaceState(null,"","#"+S.eco);openOrders()}});
+loadCatalog().then(()=>{render();drawCart();drawMenu();loadRatings();try{const t=+sessionStorage.getItem("sho-go-orders")||0;sessionStorage.removeItem("sho-go-orders");if(t&&Date.now()-t<30000)openOrders()}catch(e){}});
 </script>
 </body>
 </html>

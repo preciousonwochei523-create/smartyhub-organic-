@@ -20,7 +20,7 @@
   '<div class="md:col-span-5">'+
    '<div class="flex items-center gap-4"><img src="logo-mark.png?v=3" alt="" class="h-14 w-auto shrink-0 md:h-16"/>'+
    '<p class="text-sm text-neutral-600">SmartyHub Organic is a Lagos brand offering fresh organic breakfast, tiger nut drinks, shawarma and quality wellness supplements, delivered to your door.</p></div>'+
-   '<a href="index.html#orders" data-go="orders" class="mt-6 flex items-center justify-between rounded-xl bg-black px-4 py-4 font-semibold text-white md:max-w-sm"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-g2">'+box+'</span>My order</span><span aria-hidden="true" class="text-xl">&rsaquo;</span></a>'+
+   '<a href="index.html" data-go="orders" class="mt-6 flex items-center justify-between rounded-xl bg-black px-4 py-4 font-semibold text-white md:max-w-sm"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-g2">'+box+'</span>My order</span><span aria-hidden="true" class="text-xl">&rsaquo;</span></a>'+
    '<div class="mt-8 hidden md:block">'+social+'</div>'+
   '</div>'+
   /* right: link columns */
@@ -28,7 +28,7 @@
    '<div><p class="font-bold">Quicklinks</p><ul class="mt-3 space-y-2.5 text-neutral-600">'+
     '<li><a href="index.html#eats" data-go="products" class="hover:text-g2">Products</a></li>'+
     '<li><a href="about.html" class="hover:text-g2">About us</a></li>'+
-    '<li><a href="index.html#orders" data-go="orders" class="hover:text-g2">My order</a></li></ul></div>'+
+    '<li><a href="index.html" data-go="orders" class="hover:text-g2">My order</a></li></ul></div>'+
    '<div><p class="font-bold">Legal</p><ul class="mt-3 space-y-2.5 text-neutral-600">'+
     '<li><a href="terms.html" class="hover:text-g2">Terms of Service</a></li>'+
     '<li><a href="policy.html" class="hover:text-g2">Policy</a></li>'+
@@ -55,9 +55,14 @@
   /* On the shop page, footer links act in place instead of reloading */
   document.addEventListener("click",function(e){
     var l=e.target.closest&&e.target.closest("a[data-go]");
-    if(!l||!document.getElementById("app"))return;
+    if(!l)return;
+    if(!document.getElementById("app")){
+      /* other pages: remember the request, then open the shop (no #orders in the address bar) */
+      if(l.dataset.go==="orders"){e.preventDefault();try{sessionStorage.setItem("sho-go-orders",String(Date.now()))}catch(x){}location.href="index.html"}
+      return;
+    }
     e.preventDefault();
-    if(l.dataset.go==="orders")location.hash="#orders";
+    if(l.dataset.go==="orders")openOrders();
     else{location.hash="#eats";scrollTo({top:0,behavior:"smooth"})}
   });
 })();
