@@ -56,7 +56,6 @@ body{overflow-x:hidden}
     <button type="button" data-a="menu" class="pill shrink-0 rounded-full p-2 text-neutral-800 hover:bg-neutral-100" aria-label="Open menu" aria-expanded="false"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <a href="#eats" class="flex min-w-0 items-center gap-1.5" aria-label="SmartyHub Organic home" data-a="eco" data-v="eats">
       <img src="logo-mark.png?v=3" alt="SmartyHub Organic logo" width="197" height="176" class="block h-11 w-auto shrink-0"/>
-      <span class="leading-none"><span class="block font-serif text-lg font-bold">SmartyHub</span><span class="block text-xs font-bold text-g2">Organic</span></span>
     </a>
     <div id="hauth" class="ml-auto shrink-0"></div>
     <button data-a="cart" class="pill relative shrink-0 rounded-full bg-black p-2.5 text-white" aria-label="Open cart">
@@ -150,7 +149,6 @@ function ecoSwitch(){return `<div class="sticky top-[var(--hh,64px)] z-20 -mx-4 
 function drawHdr(){const h=$("#hauth");if(!h)return;const u=AU.user;
   h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-10 w-10 rounded-full object-cover"/>`:`<span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}</button>`
   :`<button type="button" data-a="signsheet" class="pill whitespace-nowrap rounded-full border border-neutral-300 bg-white px-3.5 py-2 text-sm font-bold hover:border-neutral-500">Sign in</button>`}
-function openSignIn(after,title,msg){modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">${title||"Sign in"}</h2><p class="mb-5 mt-2 text-neutral-600">${msg||"Follow your delivery and unlock member offers. No password needed."}</p>${signBtns(after||"")}</div>`)}
 function render(){
   const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
   $("#app").innerHTML=S.eco==="eats"?eatsView():suppView();
@@ -450,9 +448,47 @@ const IC={x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',food:'<path d="M3 2v7
 const xBtn=`<button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close">${svgI(IC.x)}</button>`;
 const gIcon='<svg class="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1C6.2 6.9 8.9 4.8 12 4.8z"/></svg>';
 const aIcon='<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>';
-const signBtns=a=>{const g=!!SBC(),p=PROV&&PROV.apple;
-  if(!g&&!p)return `<p class="rounded-2xl bg-white/70 p-3 text-center text-sm text-neutral-600">Sign-in isn't switched on yet.</p>`;
-  return `<div class="space-y-2">${g?`<button type="button" data-a="signin" data-v="google" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white py-3 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-full bg-black py-3 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
+/* ---------- PHONE + PASSWORD SIGN-IN ---------- */
+const CCS=[["🇳🇬","+234"],["🇬🇭","+233"],["🇬🇧","+44"],["🇺🇸","+1"],["🇨🇦","+1"]];
+const FI="w-full rounded-2xl border-0 bg-[#F3F7F5] px-4 py-4 text-base outline-none ring-2 ring-transparent placeholder:text-neutral-400 focus:ring-g3";
+const FLb=(t,req)=>`<span class="mb-2 block text-xs font-extrabold uppercase tracking-[.18em]">${t}${req?' <span class="text-red-500">*</span>':""}</span>`;
+const eyeI=svgI('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',"h-5 w-5");
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const phoneRow=()=>`<div class="grid grid-cols-[auto_1fr] gap-3"><label class="block">${FLb("Country",1)}<select name="cc" class="${FI} appearance-none">${CCS.map(c=>`<option value="${c[1]}">${c[0]} ${c[1]}</option>`).join("")}</select></label><label class="block">${FLb("Phone number",1)}<input name="ph" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="08000000000" class="${FI}"/></label></div>`;
+const pwBox=(auto,hint)=>`<label class="block">${FLb("Password",1)}<span class="relative block"><input name="pw" type="password" autocomplete="${auto}" placeholder="${hint}" class="${FI} pr-12"/><button type="button" data-a="pwt" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-neutral-500" aria-label="Show or hide password">${eyeI}</button></span></label>`;
+const goBtn=t=>`<button type="submit" data-sb disabled class="pill mt-5 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white disabled:bg-neutral-100 disabled:text-neutral-400">${t}</button>`;
+const orLine=t=>`<div class="my-5 flex items-center gap-3 text-neutral-500"><span class="h-px flex-1 bg-neutral-200"></span><span class="text-sm">${t}</span><span class="h-px flex-1 bg-neutral-200"></span></div>`;
+/* Google / Apple only appear once they are switched on in Supabase */
+const socialBtns=a=>{const g=!!SBC()&&PROV&&PROV.google,p=PROV&&PROV.apple;if(!g&&!p)return "";
+  return `${orLine("or continue with")}<div class="space-y-2">${g?`<button type="button" data-a="signin" data-v="google" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl border border-neutral-300 bg-white py-3.5 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl bg-black py-3.5 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
+const signBtns=a=>`<div class="grid grid-cols-2 gap-2"><button type="button" data-a="signsheet" data-n="${a||""}" class="pill rounded-full bg-g2 py-3 text-sm font-bold text-white hover:bg-g1">Log in</button><button type="button" data-a="signup" data-n="${a||""}" class="pill rounded-full border border-neutral-300 bg-white py-3 text-sm font-bold hover:border-neutral-500">Sign up</button></div>`;
+function openSignIn(after,title,msg){modal(`<div class="flex justify-end">${xBtn}</div><form id="lf" data-n="${after||""}" class="pb-2" novalidate><h2 class="text-center font-serif text-2xl font-bold">${title||"Log in to your account"}</h2><p class="mb-6 mt-2 text-center text-neutral-600">${msg||"Welcome back! Enter your phone number and password to log in."}</p><div class="space-y-4">${phoneRow()}${pwBox("current-password","Your password")}</div><p data-er role="alert" class="mt-3 min-h-[1.25rem] text-sm font-semibold text-red-600"></p>${goBtn("Continue")}<p class="mt-3 text-center text-sm"><a href="https://wa.me/${WA}?text=${encodeURIComponent("Hi SmartyHub, I forgot my password")}" target="_blank" rel="noopener" class="font-bold text-g2 underline">Forgot password?</a></p>${orLine("Don’t have an account?")}<button type="button" data-a="signup" data-n="${after||""}" class="pill w-full rounded-2xl bg-green-50 py-4 text-base font-bold text-g2">Sign up</button>${socialBtns(after)}</form>`)}
+function openSignUp(after){modal(`<div class="flex justify-end">${xBtn}</div><form id="sf" data-n="${after||""}" class="pb-2" novalidate><h2 class="text-center font-serif text-2xl font-bold">Create your account</h2><p class="mb-6 mt-2 text-center text-neutral-600">Sign up with your phone number to track orders and unlock member offers.</p><div class="space-y-4">${phoneRow()}<div class="grid grid-cols-2 gap-3"><label class="block">${FLb("First name",1)}<input name="fname" autocomplete="given-name" placeholder="e.g. John" class="${FI}"/></label><label class="block">${FLb("Last name",1)}<input name="lname" autocomplete="family-name" placeholder="e.g. Doe" class="${FI}"/></label></div><label class="block">${FLb("Email address",1)}<input name="email" type="email" autocomplete="email" placeholder="example@email.com" class="${FI}"/></label>${pwBox("new-password","At least 6 characters")}<div><span class="mb-2 block text-xs font-extrabold uppercase tracking-[.18em]">Birthday</span><div class="grid grid-cols-[1fr_2fr] gap-3"><select name="bd" class="${FI} appearance-none"><option value="">Day</option>${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("")}</select><select name="bm" class="${FI} appearance-none"><option value="">Month</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select></div><p class="mt-2 text-sm font-semibold text-g2">Optional. We use it to celebrate your birthday.</p></div><label class="block">${FLb("Have a referral code?")}<input name="ref" autocomplete="off" placeholder="e.g. SH-JOHN67" class="${FI}"/></label><label class="flex items-start gap-3 text-sm text-neutral-700"><input name="mk" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0 rounded accent-green-700"/><span>I want to receive emails and other marketing and promotional communications from SmartyHub Organic</span></label></div><p data-er role="alert" class="mt-3 min-h-[1.25rem] text-sm font-semibold text-red-600"></p>${goBtn("Continue")}<p class="mt-3 text-center text-sm text-neutral-500">By clicking continue, you agree to our terms of use and privacy policy.</p>${orLine("Already have an account?")}<button type="button" data-a="signsheet" data-n="${after||""}" class="pill w-full rounded-2xl bg-green-50 py-4 text-base font-bold text-g2">Log in</button>${socialBtns(after)}</form>`)}
+const e164=(cc,n)=>{let d=String(n||"").replace(/\D/g,"");const c=cc.slice(1);if(d.startsWith(c)&&d.length>c.length+7)d=d.slice(c.length);d=d.replace(/^0+/,"");return d.length>=7&&d.length<=11?cc+d:""};
+function authChk(f){const b=f&&f.querySelector("[data-sb]");if(!b)return;const v=n=>f[n]?f[n].value.trim():"";
+  let ok=!!e164(f.cc.value,f.ph.value)&&f.pw.value.length>=6;
+  if(f.id==="sf")ok=ok&&!!v("fname")&&!!v("lname")&&/^\S+@\S+\.\S+$/.test(v("email"));
+  b.disabled=!ok}
+function authFinish(j,after){AU.tok=j.access_token;AU.ref=j.refresh_token;AU.exp=Date.now()+(j.expires_in||3600)*1000;saveAuth();AU.fresh=true;try{if(after)sessionStorage.setItem("sho-after",after)}catch(e){}modal();authUser()}
+async function authGo(f,mode){const C=SBC(),b=f.querySelector("[data-sb]"),er=f.querySelector("[data-er]"),t0=b.textContent,sg=mode==="signup";
+  const ph=e164(f.cc.value,f.ph.value);er.textContent="";
+  if(!ph){er.textContent="Enter a valid phone number.";return}
+  if(!C){er.textContent="Sign-in isn’t switched on yet.";return}
+  if(PROV&&PROV.phone===false){er.textContent="Phone sign-in isn’t switched on yet.";return}
+  const v=n=>f[n].value.trim();
+  const body=sg?{phone:ph,password:f.pw.value,data:{full_name:v("fname")+" "+v("lname"),first_name:v("fname"),last_name:v("lname"),contact_email:v("email"),birthday:f.bm.value&&f.bd.value?f.bm.value+"-"+f.bd.value:"",referral:v("ref"),marketing:!!f.mk.checked}}:{phone:ph,password:f.pw.value};
+  b.disabled=true;b.textContent="Please wait…";
+  try{const r=await fetch(C.url+(sg?"/auth/v1/signup":"/auth/v1/token?grant_type=password"),{method:"POST",headers:{apikey:C.key,"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({})),m=String(j.msg||j.message||j.error_description||"");
+    if(r.ok&&j.access_token){authFinish(j,f.dataset.n);return}
+    if(r.ok&&sg)er.textContent="Account created, but Supabase is asking for an SMS code. Switch off phone confirmation in Supabase so people can log in straight away.";
+    else if(/already/i.test(m))er.textContent="This number already has an account. Log in instead.";
+    else if(/invalid login|invalid credentials/i.test(m))er.textContent="Wrong phone number or password.";
+    else if(/rate|too many|seconds/i.test(m))er.textContent="Too many tries. Wait a minute and try again.";
+    else if(/password/i.test(m)&&sg)er.textContent="Choose a stronger password (at least 6 characters).";
+    else er.textContent=m||"Something went wrong. Try again."
+  }catch(e){er.textContent="Network problem. Check your connection and try again."}
+  b.textContent=t0;authChk(f)}
 const rpc=async(fn,body)=>{const C=SBC();if(!C)throw new Error("off");const t=await authToken();const r=await fetch(C.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+(t||C.key),"Content-Type":"application/json"},body:JSON.stringify(body||{})});let j=null;try{j=await r.json()}catch(e){}return{ok:r.ok,j}};
 const saveAuth=()=>{try{localStorage.setItem("sho-auth",JSON.stringify({tok:AU.tok,ref:AU.ref,exp:AU.exp}))}catch(e){}};
 
@@ -464,7 +500,7 @@ function authInit(){
     else{const a=JSON.parse(localStorage.getItem("sho-auth")||"null");if(a)Object.assign(AU,a)}
   }catch(e){}
   if(AU.tok)authUser();
-  const C=SBC();if(C)fetch(C.url+"/auth/v1/settings",{headers:{apikey:C.key}}).then(r=>r.ok?r.json():null).then(j=>{PROV=j&&j.external?{google:!!j.external.google,apple:!!j.external.apple}:{};drawMenu()}).catch(()=>{PROV={};drawMenu()});
+  const C=SBC();if(C)fetch(C.url+"/auth/v1/settings",{headers:{apikey:C.key}}).then(r=>r.ok?r.json():null).then(j=>{PROV=j&&j.external?{google:!!j.external.google,apple:!!j.external.apple,phone:!!j.external.phone}:{};drawMenu()}).catch(()=>{PROV={};drawMenu()});
 }
 async function authToken(){
   if(!AU.tok)return null;const C=SBC();if(!C)return null;
@@ -480,7 +516,7 @@ async function authUser(){
   try{const r=await fetch(C.url+"/auth/v1/user",{headers:{apikey:C.key,Authorization:"Bearer "+t}});
     if(!r.ok){authClear();return}
     const u=await r.json(),m=u.user_metadata||{};
-    AU.user={id:u.id,email:u.email||"",name:m.full_name||m.name||(u.email||"").split("@")[0]||"there",pic:m.avatar_url||m.picture||""};drawMenu();
+    AU.user={id:u.id,email:u.email||m.contact_email||(u.phone?"+"+u.phone.replace(/^\+/,""):""),name:m.full_name||m.name||(u.email||"").split("@")[0]||(u.phone?"+"+u.phone.replace(/^\+/,""):"there"),pic:m.avatar_url||m.picture||""};drawMenu();
     if(AU.fresh){AU.fresh=false;let nx=null;try{nx=sessionStorage.getItem("sho-after");sessionStorage.removeItem("sho-after")}catch(e){}
       toast("Signed in. Welcome, "+AU.user.name.split(" ")[0]);if(nx==="orders")openOrders();else if(nx==="offers")openOffers()}
   }catch(e){}
@@ -501,7 +537,7 @@ function drawMenu(){
   const L=(v,ic,t,sub)=>`<button data-a="mn" data-v="${v}" class="pill flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left font-semibold hover:bg-neutral-50"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-50 text-g2">${svgI(IC[ic])}</span><span class="min-w-0"><span class="block">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span></button>`;
   m.innerHTML=`<div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4"><p class="font-serif text-xl font-bold">Menu</p><button data-a="menux" class="rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close menu">${svgI(IC.x)}</button></div>
   <div class="flex-1 overflow-y-auto px-3 py-4">
-    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Follow your delivery and unlock member offers. No password needed.</p>${signBtns("")}`}</div>
+    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in with your phone number to follow your delivery and unlock member offers.</p>${signBtns("")}`}</div>
     ${L("eats","food","Breakfast &amp; Eats")}${L("supp","leaf","Supplements")}
     ${L("orders","box","My orders",u?"Track your delivery":"Log in to track your delivery")}${L("offers","tag","Offers &amp; coupons",u?"Promo codes and member deals":"Log in to see offers")}${L("dinfo","truck","Delivery &amp; hours","Areas, fees and times")}${L("menus","img","Printed menus")}
     <div class="my-3 border-t border-neutral-100"></div>
@@ -529,7 +565,7 @@ async function openOffers(){
     <div class="mt-3 flex items-center justify-between gap-2"><code class="rounded-lg bg-white px-3 py-1.5 text-sm font-extrabold tracking-wider">${escH(o.code)}</code><button data-a="usecode" data-v="${escH(o.code)}" class="pill rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Use this code</button></div></div>`;
   modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Offers &amp; coupons</h2>${xBtn}</div>
   <div class="mt-4 space-y-3">${L.length?L.map(card).join(""):'<p class="py-8 text-center text-neutral-500">No offers right now. Check back soon.</p>'}
-  ${lk>0&&!AU.user?`<div class="rounded-2xl bg-neutral-50 p-4"><p class="font-bold">${lk} more offer${lk>1?"s":""} for members</p><p class="mb-3 mt-1 text-sm text-neutral-600">Sign in to unlock them. It takes one tap.</p>${signBtns("offers")}</div>`:""}</div>`);
+  ${lk>0&&!AU.user?`<div class="rounded-2xl bg-neutral-50 p-4"><p class="font-bold">${lk} more offer${lk>1?"s":""} for members</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in to unlock them.</p>${signBtns("offers")}</div>`:""}</div>`);
 }
 
 /* orders */
@@ -672,7 +708,9 @@ document.addEventListener("click",e=>{
     else if(v==="menus"){S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
     else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank")}
   else if(a==="signin")signIn(v,t.dataset.n);
-  else if(a==="signsheet")openSignIn("");
+  else if(a==="signsheet"){openMenu(false);openSignIn(t.dataset.n||"")}
+  else if(a==="signup"){openMenu(false);openSignUp(t.dataset.n||"")}
+  else if(a==="pwt"){const i=t.parentElement.querySelector("input");i.type=i.type==="password"?"text":"password"}
   else if(a==="signout"){openMenu(false);signOut()}
   else if(a==="cpn")cpnApply();
   else if(a==="usecode"){S.pendingCode=v;modal();toast("Code "+v+" saved. It is applied at checkout.");if(S.cart.length)openCart(true)}
@@ -683,6 +721,7 @@ document.addEventListener("click",e=>{
   else if(a==="track")trackOrder();
 });
 document.addEventListener("input",e=>{
+  if(e.target.closest&&e.target.closest("#lf,#sf"))authChk(e.target.closest("form"));
   if(e.target.closest("#cf"))calc();
   if(e.target.name==="zone")tot();
   if(e.target.id==="q"){S.q=e.target.value;S.eco==="eats"?drawEats():drawSupp()}
@@ -690,7 +729,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="mn"){S.min=+e.target.value;drawSupp()}
 });
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("article[role=button]")){e.preventDefault();e.target.click()}});
-document.addEventListener("submit",e=>{if(e.target.id==="co"){e.preventDefault();done(Object.fromEntries(new FormData(e.target)))}});
+document.addEventListener("submit",e=>{if(e.target.id==="lf"||e.target.id==="sf"){e.preventDefault();authGo(e.target,e.target.id==="sf"?"signup":"login");return}
+  if(e.target.id==="co"){e.preventDefault();done(Object.fromEntries(new FormData(e.target)))}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){openCart(false);modal();openMenu(false)}});
 addEventListener("hashchange",()=>{const s=location.hash==="#supp"?"supp":"eats";if(s!==S.eco){S.eco=s;render()}});
 
