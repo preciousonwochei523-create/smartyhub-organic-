@@ -58,15 +58,7 @@ body{overflow-x:hidden}
       <span role="img" aria-label="SmartyHub Organic logo" class="block h-10 w-11 shrink-0" style="background:url(logo.png) no-repeat;background-size:65.3px auto;background-position:-14.9px -4.3px"></span>
       <span class="leading-none"><span class="block font-serif text-xl font-bold">SmartyHub</span><span class="block text-xs font-bold text-g2">Organic</span></span>
     </a>
-    <nav class="order-3 flex w-full rounded-full bg-neutral-100 p-1 sm:order-none sm:w-auto" aria-label="Ecosystem">
-      <button data-a="eco" data-v="eats" id="t-eats" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold sm:flex-none"><i data-lucide="utensils" class="h-4 w-4"></i>Eats</button>
-      <button data-a="eco" data-v="supp" id="t-supp" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold sm:flex-none"><i data-lucide="leaf" class="h-4 w-4"></i>Supplements</button>
-    </nav>
-    <label class="relative ml-auto min-w-0 flex-1 sm:max-w-xs">
-      <span class="sr-only">Search</span>
-      <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"></i>
-      <input id="q" type="search" placeholder="Search menu" class="w-full rounded-full border border-neutral-200 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:border-g3"/>
-    </label>
+    <div id="hauth" class="ml-auto"></div>
     <button data-a="cart" class="pill relative rounded-full bg-black p-3 text-white" aria-label="Open cart">
       <i data-lucide="shopping-bag" class="h-5 w-5"></i>
       <span id="badge" class="absolute -right-1 -top-1 hidden min-w-[20px] rounded-full bg-g3 px-1 text-center text-[11px] font-bold leading-5 text-white">0</span>
@@ -149,12 +141,19 @@ const pillCls=on=>`pill shrink-0 rounded-full border px-4 py-2 text-sm font-semi
 const HB_SLIDES=["img/hero-1-breakfast-home.jpg","img/hero-2-breakfast-office.jpg","img/hero-3-order-from-home.jpg"];
 setInterval(()=>{const sl=document.querySelectorAll("#hb .hb-slide"),d=document.querySelectorAll("#hb .hb-dot");if(sl.length<2||matchMedia("(prefers-reduced-motion: reduce)").matches)return;let i=[...sl].findIndex(x=>x.classList.contains("on"));i=i<0?0:i;const n=(i+1)%sl.length;sl[i].classList.remove("on");sl[n].classList.add("on");d.forEach((x,k)=>x.classList.toggle("on",k===n))},4200);
 const LOGO=`<img src="logo.png" alt="SmartyHub Organic" width="490" height="468" class="h-auto w-56 shrink-0 sm:w-72 lg:w-80"/>`;
+function ecoSwitch(){return `<nav class="mx-auto mt-4 flex w-full max-w-md rounded-full bg-neutral-100 p-1" aria-label="Ecosystem">
+  <button data-a="eco" data-v="eats" id="t-eats" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="utensils" class="h-4 w-4"></i>Eats</button>
+  <button data-a="eco" data-v="supp" id="t-supp" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="leaf" class="h-4 w-4"></i>Supplements</button></nav>`}
+function drawHdr(){const h=$("#hauth");if(!h)return;const u=AU.user;
+  h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}</button>`
+  :`<button type="button" data-a="signsheet" class="pill rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm font-bold hover:border-neutral-500">Sign in</button>`}
+function openSignIn(after,title,msg){modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">${title||"Sign in"}</h2><p class="mb-5 mt-2 text-neutral-600">${msg||"Follow your delivery and unlock member offers. No password needed."}</p>${signBtns(after||"")}</div>`)}
 function render(){
-  const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold sm:flex-none ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
+  const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
+  $("#app").innerHTML=S.eco==="eats"?eatsView():suppView();
   $("#t-eats").className=base+(S.eco==="eats"?on:off);
   $("#t-supp").className=base+(S.eco==="supp"?on:off);
   $("#q").placeholder=S.eco==="eats"?"Search the menu":"Search supplements";
-  $("#app").innerHTML=S.eco==="eats"?eatsView():suppView();
   S.eco==="eats"?drawEats():drawSupp();
   badge();ic();
 }
@@ -162,9 +161,10 @@ function eatsView(){return `
 <section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Organic breakfast delivered fresh">
   <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
   <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
-  <div class="relative mx-auto flex min-h-[420px] max-w-6xl flex-col justify-center px-4 py-14 sm:min-h-[480px] sm:py-20">
-    <h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] text-white sm:text-6xl">Organic breakfast, delivered fresh.</h1>
-    <p class="mt-5 max-w-lg text-lg text-white/90">Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.</p>
+  <div class="relative z-10 mx-auto max-w-6xl px-4 pt-4"><label class="relative block"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-3.5 pl-12 pr-4 text-base shadow-[0_8px_28px_-8px_rgba(0,0,0,.45)] outline-none ring-2 ring-transparent focus:ring-g3"/></label></div>
+  <div class="relative mx-auto flex min-h-[340px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[420px] sm:pb-20 sm:pt-12">
+    <h1 class="max-w-2xl font-serif text-2xl font-bold leading-[1.15] text-white sm:text-5xl">Organic breakfast, delivered fresh.</h1>
+    <p class="mt-3 max-w-lg text-base text-white/90 sm:text-lg">Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.</p>
     <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
       <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
       <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every order</span>
@@ -172,7 +172,8 @@ function eatsView(){return `
   </div>
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>
-<div class="sticky top-[118px] z-20 -mx-4 bg-white/95 px-4 py-3 backdrop-blur sm:top-[69px]"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
+${ecoSwitch()}
+<div class="sticky top-[68px] z-20 -mx-4 bg-white/95 px-4 py-3 backdrop-blur"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
 <div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div><div id="pager"></div>${eatsStory()}`}
 
 const PER=8;
@@ -212,9 +213,10 @@ function suppView(){return `
 <section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Wellness supplements you can trust">
   <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
   <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
-  <div class="relative mx-auto flex min-h-[420px] max-w-6xl flex-col justify-center px-4 py-14 sm:min-h-[480px] sm:py-20">
-    <h1 class="max-w-2xl font-serif text-4xl font-bold leading-[1.1] text-white sm:text-6xl">Wellness supplements you can trust.</h1>
-    <p class="mt-5 max-w-lg text-lg text-white/90">Browse by health goal, ingredient and price. Quality supplement brands, delivered in Lagos.</p>
+  <div class="relative z-10 mx-auto max-w-6xl px-4 pt-4"><label class="relative block"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-3.5 pl-12 pr-4 text-base shadow-[0_8px_28px_-8px_rgba(0,0,0,.45)] outline-none ring-2 ring-transparent focus:ring-g3"/></label></div>
+  <div class="relative mx-auto flex min-h-[340px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[420px] sm:pb-20 sm:pt-12">
+    <h1 class="max-w-2xl font-serif text-2xl font-bold leading-[1.15] text-white sm:text-5xl">Wellness supplements you can trust.</h1>
+    <p class="mt-3 max-w-lg text-base text-white/90 sm:text-lg">Browse by health goal, ingredient and price. Quality supplement brands, delivered in Lagos.</p>
     <div class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
       <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="truck" class="h-4 w-4"></i>Fast delivery</span>
       <span class="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet with every food order</span>
@@ -222,7 +224,8 @@ function suppView(){return `
   </div>
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>
-<div class="mt-8 flex flex-col gap-6 lg:flex-row">
+${ecoSwitch()}
+<div class="mt-6 flex flex-col gap-6 lg:flex-row">
   <button data-a="tf" class="pill flex items-center justify-center gap-2 rounded-full border border-neutral-200 py-2.5 text-sm font-bold lg:hidden"><i data-lucide="sliders-horizontal" class="h-4 w-4"></i>Filters</button>
   <aside id="filters" class="hidden w-full shrink-0 space-y-6 lg:sticky lg:top-24 lg:block lg:w-64 lg:self-start">
     <div><h2 class="mb-2 text-sm font-bold">Health goal</h2><div class="flex flex-wrap gap-2">${GOALS.map(g=>`<button data-a="goal" data-v="${g}" class="${pillCls(g===S.goal)} !px-3 !py-1.5 !text-xs">${g}</button>`).join("")}</div></div>
@@ -443,8 +446,8 @@ const IC={x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',food:'<path d="M3 2v7
 const xBtn=`<button data-a="mclose" class="ml-3 shrink-0 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close">${svgI(IC.x)}</button>`;
 const gIcon='<svg class="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1C6.2 6.9 8.9 4.8 12 4.8z"/></svg>';
 const aIcon='<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>';
-const signBtns=a=>{const g=PROV&&PROV.google,p=PROV&&PROV.apple;
-  if(!g&&!p)return `<p class="rounded-2xl bg-white/70 p-3 text-center text-sm text-neutral-600">${PROV?"Sign-in is coming soon.":"Checking sign-in options…"}</p>`;
+const signBtns=a=>{const g=!!SBC(),p=PROV&&PROV.apple;
+  if(!g&&!p)return `<p class="rounded-2xl bg-white/70 p-3 text-center text-sm text-neutral-600">Sign-in isn't switched on yet.</p>`;
   return `<div class="space-y-2">${g?`<button type="button" data-a="signin" data-v="google" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white py-3 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-full bg-black py-3 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
 const rpc=async(fn,body)=>{const C=SBC();if(!C)throw new Error("off");const t=await authToken();const r=await fetch(C.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+(t||C.key),"Content-Type":"application/json"},body:JSON.stringify(body||{})});let j=null;try{j=await r.json()}catch(e){}return{ok:r.ok,j}};
 const saveAuth=()=>{try{localStorage.setItem("sho-auth",JSON.stringify({tok:AU.tok,ref:AU.ref,exp:AU.exp}))}catch(e){}};
@@ -478,7 +481,7 @@ async function authUser(){
       toast("Signed in. Welcome, "+AU.user.name.split(" ")[0]);if(nx==="orders")openOrders();else if(nx==="offers")openOffers()}
   }catch(e){}
 }
-function signIn(p,after){const C=SBC();if(!C){toast("Sign-in isn't switched on yet");return}
+function signIn(p,after){const C=SBC();if(!C||(PROV&&PROV[p]===false)){toast("Sign-in with "+(p==="apple"?"Apple":"Google")+" isn't switched on yet");return}
   try{if(after)sessionStorage.setItem("sho-after",after)}catch(e){}
   location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent(location.origin+location.pathname)}
 async function signOut(){const C=SBC();try{if(C&&AU.tok)await fetch(C.url+"/auth/v1/logout",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+AU.tok}})}catch(e){}authClear();toast("Signed out")}
@@ -490,13 +493,13 @@ function openMenu(o){
   document.body.style.overflow=o?"hidden":"";const b=document.querySelector("[data-a=menu]");if(b)b.setAttribute("aria-expanded",!!o);
 }
 function drawMenu(){
-  const m=$("#menu");if(!m)return;const u=AU.user;
+  drawHdr();const m=$("#menu");if(!m)return;const u=AU.user;
   const L=(v,ic,t,sub)=>`<button data-a="mn" data-v="${v}" class="pill flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left font-semibold hover:bg-neutral-50"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-50 text-g2">${svgI(IC[ic])}</span><span class="min-w-0"><span class="block">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span></button>`;
   m.innerHTML=`<div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4"><p class="font-serif text-xl font-bold">Menu</p><button data-a="menux" class="rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close menu">${svgI(IC.x)}</button></div>
   <div class="flex-1 overflow-y-auto px-3 py-4">
     <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Follow your delivery and unlock member offers. No password needed.</p>${signBtns("")}`}</div>
     ${L("eats","food","Breakfast &amp; Eats")}${L("supp","leaf","Supplements")}
-    ${L("orders","box","My orders","Track your delivery")}${L("offers","tag","Offers &amp; coupons","Promo codes and member deals")}${L("dinfo","truck","Delivery &amp; hours","Areas, fees and times")}${L("menus","img","Printed menus")}
+    ${L("orders","box","My orders",u?"Track your delivery":"Log in to track your delivery")}${L("offers","tag","Offers &amp; coupons",u?"Promo codes and member deals":"Log in to see offers")}${L("dinfo","truck","Delivery &amp; hours","Areas, fees and times")}${L("menus","img","Printed menus")}
     <div class="my-3 border-t border-neutral-100"></div>
     ${L("wa","chat","Chat on WhatsApp")}${L("ig","insta","Instagram")}
   </div>
@@ -513,6 +516,7 @@ function openDelivery(){modal(`<div class="flex items-start justify-between"><h2
 
 /* offers */
 async function openOffers(){
+  if(!AU.user){openSignIn("offers","Log in to see offers","Sign in to see promo codes and member-only deals.");return}
   modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Offers &amp; coupons</h2>${xBtn}</div><p class="py-10 text-center text-neutral-500">Loading offers…</p>`);
   let j=null;try{const r=await rpc("list_offers");if(r.ok)j=r.j}catch(e){}
   const L=j&&Array.isArray(j.offers)?j.offers:[],lk=j&&j.locked||0;
@@ -539,7 +543,7 @@ function ordHtml(){
 }
 async function loadOrders(quiet){
   const C=SBC(),t=await authToken();
-  if(!C||!t){if(!quiet)modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">Track your orders</h2><p class="mb-4 mt-2 text-neutral-600">Sign in to see where your order is, order again in one tap and unlock member offers.</p>${signBtns("orders")}</div>`);return}
+  if(!C||!t){if(!quiet)modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">Log in to track your orders</h2><p class="mb-4 mt-2 text-neutral-600">Sign in to see where your order is and order again in one tap.</p>${signBtns("orders")}</div>`);return}
   try{const r=await fetch(C.url+"/rest/v1/orders?select=ref,status,created_at,total,discount,coupon,items&order=created_at.desc&limit=15",{headers:{apikey:C.key,Authorization:"Bearer "+t},cache:"no-store"});
     if(!r.ok)throw new Error("x");ORDS=await r.json();
     const box=$("#ordl");if(box)box.innerHTML=ordHtml();else if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3">${ordHtml()}</div>`)}
@@ -617,6 +621,7 @@ document.addEventListener("click",e=>{
     else if(v==="menus"){S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
     else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank")}
   else if(a==="signin")signIn(v,t.dataset.n);
+  else if(a==="signsheet")openSignIn("");
   else if(a==="signout"){openMenu(false);signOut()}
   else if(a==="cpn")cpnApply();
   else if(a==="usecode"){S.pendingCode=v;modal();toast("Code "+v+" saved. It is applied at checkout.");if(S.cart.length)openCart(true)}
@@ -664,7 +669,7 @@ async function loadCatalog(){
   }
   if(prev){const b=document.createElement("div");b.textContent="Preview mode: not live yet";b.className="fixed left-0 right-0 top-0 z-[70] bg-amber-400 py-1 text-center text-xs font-bold";document.body.appendChild(b)}
 }
-authInit();
+drawHdr();authInit();
 loadCatalog().then(()=>{render();drawCart();drawMenu()});
 </script>
 </body>
