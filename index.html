@@ -124,6 +124,11 @@ let INGS=[...new Set(SUPP.flatMap(x=>x.ing))].sort();
 /* Delivery zones: managed in admin (Delivery & Partners). fee:null = confirmed on WhatsApp. */
 let ZONES=[{name:"Ikeja",fee:1500},{name:"Alimosho",fee:1500},{name:"Ajah",fee:2000},{name:"Other Lagos area",fee:null}];
 const escH=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cartGroups=()=>{const f=S.cart.filter(x=>x.food),p=S.cart.filter(x=>!x.food);return[f.length&&{key:"food",label:"Food",items:f},p.length&&{key:"supp",label:"Supplements",items:p}].filter(Boolean)};
+const gsub=g=>g.items.reduce((a,x)=>a+x.p*x.q,0);
+const split=()=>cartGroups().length>1;
+const couponTarget=()=>cartGroups().reduce((a,b)=>gsub(b)>gsub(a)?b:a);
+const splitNote=()=>`<div class="flex gap-3 rounded-2xl bg-amber-50 p-3 text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p><b>2 separate deliveries.</b> Your food and supplements are packed at different locations, so they will not arrive at the same time. Each delivery has its own fee.</p></div>`;
 const feeOf=z=>{const x=ZONES.find(e=>e.name===z);return x&&typeof x.fee==="number"?x.fee:0};
 const feeTxt=z=>{const x=ZONES.find(e=>e.name===z);return !x?"Pick your area":typeof x.fee==="number"?fmt(x.fee):"Confirmed on WhatsApp"};
 /* ---------- STATE ---------- */
@@ -314,8 +319,9 @@ function drawCart(){
       <div class="flex items-center gap-2 rounded-full bg-neutral-100 p-1"><button data-a="dec" data-v="${i}" class="rounded-full bg-white p-1.5 shadow-sm" aria-label="Decrease"><i data-lucide="minus" class="h-3.5 w-3.5"></i></button><span class="w-5 text-center text-sm font-bold">${x.q}</span><button data-a="inc" data-v="${i}" class="rounded-full bg-white p-1.5 shadow-sm" aria-label="Increase"><i data-lucide="plus" class="h-3.5 w-3.5"></i></button></div></div>`).join(""):`<p class="py-16 text-center text-neutral-500">Your cart is empty. Add a drink, a combo or a supplement to begin.</p>`}</div>
   <div class="space-y-3 border-t border-neutral-100 p-5">
     ${hasFood?`<p class="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-semibold text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet added to your order</p>`:""}
+    ${split()?splitNote():""}
     <div class="flex justify-between text-lg font-bold"><span>Subtotal</span><span id="sub">${fmt(sub())}</span></div>
-    <p class="text-xs text-neutral-500">Delivery fee is confirmed with your address.</p>
+    <p class="text-xs text-neutral-500">${split()?"Delivery fee is charged for each delivery and confirmed with your address.":"Delivery fee is confirmed with your address."}</p>
     <button data-a="checkout" ${S.cart.length?"":"disabled"} class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none">Checkout</button>
   </div>`;ic();
 }
@@ -400,31 +406,38 @@ function checkout(){
     ${F("name","Full name","text","name")}${F("phone","Phone number (WhatsApp)","tel","tel")}${F("addr","Delivery address","text","street-address")}${F("landmark","Nearest landmark or bus stop","text","off")}
     <label class="block text-sm font-semibold">Delivery area<select required name="zone" class="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 font-normal outline-none focus:border-g3"><option value="">Select your area</option>${ZONES.map(z=>`<option>${escH(z.name)}</option>`).join("")}</select></label>
     <details class="text-sm text-neutral-600"><summary class="cursor-pointer font-semibold text-g2">Delivery areas, fees and hours</summary><div class="mt-2">${deliveryHtml()}</div></details>
-    <label class="block text-sm font-semibold">Note for the kitchen (optional)<input name="note" class="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 font-normal outline-none focus:border-g3"/></label>
+    <label class="block text-sm font-semibold">Note for your order (optional)<input name="note" class="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 font-normal outline-none focus:border-g3"/></label>
     <div class="rounded-2xl bg-green-50 p-3"><label for="cpn" class="block text-sm font-semibold">Coupon or promo code</label><div class="mt-1 flex gap-2"><input id="cpn" autocomplete="off" autocapitalize="characters" placeholder="Enter code" class="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm uppercase outline-none focus:border-g3"/><button type="button" data-a="cpn" class="pill rounded-xl bg-g2 px-4 text-sm font-bold text-white hover:bg-g1">Apply</button></div><p id="cpm" class="mt-1 text-xs"></p></div>
+    ${split()?splitNote():""}
     <div class="space-y-1 pt-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>${fmt(sub())}</span></div><div class="flex justify-between"><span>Delivery</span><span id="fe">Pick your area</span></div><div id="dsr" class="hidden justify-between text-g2"><span id="dsl">Discount</span><span id="dsv"></span></div><div class="flex justify-between text-lg font-bold"><span>Total</span><span id="to">${fmt(sub())}</span></div></div>
     <button id="pb" class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:opacity-60">Place order</button></form>`);
   if(S.pendingCode){$("#cpn").value=S.pendingCode;S.pendingCode=null;cpnApply()}
 }
 async function done(d){
+  const groups=cartGroups();if(!groups.length)return;
   const pb=$("#pb");pb.disabled=true;pb.textContent="Placing order…";
-  const free=S.cart.some(x=>x.food),s0=sub(),cu=S.cart.slice();
-  let ref="SHO-"+Math.floor(1000+Math.random()*9000),fee=feeOf(d.zone),saved=false;
-  const C=window.SHO_SB;
-  if(C&&C.url&&C.key&&!/YOUR/.test(C.url+C.key)){
-    try{const r=await fetch(C.url+"/rest/v1/rpc/place_order",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify({p:{...d,items:cu.map(x=>({n:x.n,o:x.o||"",q:x.q,p:x.p})),subtotal:s0,sachet:free}})});
-      if(r.ok){const j=await r.json();ref=j.ref;fee=j.fee;saved=true}}catch(e){}
+  const C=SBC(),multi=groups.length>1,coupon=CP?CP.code:"",tg=couponTarget().key,out=[];
+  const newRef=()=>"SHO-"+Math.floor(1000+Math.random()*9000);
+  for(const g of groups){
+    const free=g.key==="food",s0=gsub(g);let ref=newRef(),fee=feeOf(d.zone),saved=false;
+    while(out.some(o=>o.ref===ref))ref=newRef();
+    if(C){try{const r=await fetch(C.url+"/rest/v1/rpc/place_order",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify({p:{...d,items:g.items.map(x=>({n:x.n,o:x.o||"",q:x.q,p:x.p})),subtotal:s0,sachet:free}})});
+      if(r.ok){const j=await r.json();ref=j.ref;fee=j.fee;saved=true}}catch(e){}}
+    let disc=0,pend=false;const cp=g.key===tg?coupon:"";
+    if(saved&&(cp||AU.tok)){try{const r=await rpc("link_order",{p_ref:ref,p_phone:d.phone,p_coupon:cp||null});if(r.ok&&r.j&&r.j.ok)disc=r.j.discount||0;else if(cp){disc=CP.discount;pend=true}}catch(e){if(cp){disc=CP.discount;pend=true}}}
+    else if(cp){disc=CP.discount;pend=true}
+    out.push({g,ref,fee,saved,s0,disc,pend,free});
   }
-  let disc=0,pend=false;const coupon=CP?CP.code:"";
-  if(saved&&(coupon||AU.tok)){try{const r=await rpc("link_order",{p_ref:ref,p_phone:d.phone,p_coupon:coupon||null});if(r.ok&&r.j&&r.j.ok)disc=r.j.discount||0;else if(coupon){disc=CP.discount;pend=true}}catch(e){if(coupon){disc=CP.discount;pend=true}}}
-  else if(coupon){disc=CP.discount;pend=true}
   CP=null;
-  const lines=cu.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n"),open=feeTxt(d.zone)==="Confirmed on WhatsApp";
-  const msg=`Hi SmartyHub Organic, new order ${ref}\n${lines}\nSubtotal: ${fmt(s0)}\nDelivery (${d.zone}): ${open?"to be confirmed":fmt(fee)}${disc?`\nCoupon ${coupon}: -${fmt(disc)}${pend?" (please confirm)":""}`:""}\nTotal: ${fmt(Math.max(0,s0+fee-disc))}${open?" + delivery":""}\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}`;
+  const open=feeTxt(d.zone)==="Confirmed on WhatsApp",allSaved=out.every(o=>o.saved),anyFree=out.some(o=>o.free),td=out.reduce((a,o)=>a+o.disc,0),T=o=>Math.max(0,o.s0+o.fee-o.disc);
+  const sec=o=>`*${o.g.label.toUpperCase()} ORDER ${o.ref}*\n${o.g.items.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n")}\nSubtotal: ${fmt(o.s0)}\nDelivery (${d.zone}): ${open?"to be confirmed":fmt(o.fee)}${o.disc?`\nCoupon ${coupon}: -${fmt(o.disc)}${o.pend?" (please confirm)":""}`:""}\nTotal: ${fmt(T(o))}${open?" + delivery":""}`;
+  const msg=`Hi SmartyHub Organic, new ${multi?"orders":"order "+out[0].ref}\n\n${out.map(sec).join("\n\n")}\n\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}${multi?"\n\nI understand my food and supplements will arrive separately.":""}`;
   S.cart=[];save();badge();
+  const title=multi?(allSaved?"Your 2 orders are received":"Your 2 orders are ready to send"):(allSaved?"Order "+out[0].ref+" received":"Order "+out[0].ref+" is ready to send");
+  const rows=multi?`<div class="mt-4 space-y-2 text-left">${out.map(o=>`<div class="flex items-center justify-between rounded-2xl bg-neutral-50 px-4 py-3 text-sm"><span class="font-bold">${o.g.label} · ${o.ref}</span><span class="font-semibold text-g2">${fmt(T(o))}</span></div>`).join("")}</div><div class="mt-3 flex gap-3 rounded-2xl bg-amber-50 p-3 text-left text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p>Your food and supplements are packed at different locations, so they will arrive separately, at different times. We will confirm each delivery time on WhatsApp.</p></div>`:"";
   modal(`<div class="py-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div>
-  <h2 class="mt-4 font-serif text-2xl font-bold">${saved?"Order "+ref+" received":"Order "+ref+" is ready to send"}</h2>
-  <p class="mt-2 text-neutral-600">${saved?"Tap below to confirm on WhatsApp so we can confirm your delivery time.":"Send it on WhatsApp and we will confirm your delivery."}${free?" Your free vitamin sachet is included.":""}${disc?` You saved ${fmt(disc)} with ${escH(coupon)}.`:""}${AU.user&&saved?" Track it any time from the menu, under My orders.":""}</p>
+  <h2 class="mt-4 font-serif text-2xl font-bold">${title}</h2>
+  <p class="mt-2 text-neutral-600">${allSaved?(multi?"Tap below to confirm both orders on WhatsApp.":"Tap below to confirm on WhatsApp so we can confirm your delivery time."):"Send it on WhatsApp and we will confirm your delivery."}${anyFree?" Your free vitamin sachet is included with your food order.":""}${td?` You saved ${fmt(td)} with ${escH(coupon)}.`:""}${AU.user&&allSaved?" Track each one any time from the menu, under My orders.":""}</p>${rows}
   <a href="https://wa.me/${WA}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="pill mt-5 block rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Confirm on WhatsApp</a>
   <button data-a="mclose" class="mt-3 text-sm font-bold text-neutral-500 underline">Back to menu</button></div>`);
 }
@@ -525,7 +538,7 @@ const STX={new:"We have your order",preparing:"Your order is being prepared",out
 function ordHtml(){
   if(!ORDS.length)return '<p class="py-10 text-center text-neutral-500">No orders yet. When you order while signed in, it shows up here.</p>';
   return ORDS.map((o,n)=>{const i=STEPS.findIndex(x=>x[0]===o.status),can=o.status==="cancelled";
-    return `<div class="rounded-2xl border border-neutral-200 p-4"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${escH(o.ref)}</p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}</p></div><p class="font-extrabold text-g2">${fmt(o.total||0)}</p></div>
+    return `<div class="rounded-2xl border border-neutral-200 p-4"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${escH(o.ref)} <span class="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-g1">${(o.items||[]).length&&(o.items||[]).every(i=>SUPP.some(x=>x.n===i.n))?"Supplements":"Food"}</span></p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}</p></div><p class="font-extrabold text-g2">${fmt(o.total||0)}</p></div>
     <p class="mt-3 text-sm font-semibold ${can?"text-red-600":"text-g1"}">${STX[o.status]||escH(o.status)}</p>
     ${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}
     <ul class="mt-3 list-disc pl-5 text-sm text-neutral-600">${(o.items||[]).map(it=>`<li>${it.q} × ${escH(it.n)}${it.o?" ("+escH(it.o)+")":""}</li>`).join("")}</ul>
@@ -607,8 +620,8 @@ function reorder(n){
 
 /* coupons */
 function tot(){
-  const z=($("#co")&&$("#co").zone&&$("#co").zone.value)||"",fee=feeOf(z),dis=CP?CP.discount:0;
-  $("#fe").textContent=feeTxt(z);$("#to").textContent=fmt(Math.max(0,sub()+fee-dis));
+  const z=($("#co")&&$("#co").zone&&$("#co").zone.value)||"",fee=feeOf(z),dis=CP?CP.discount:0,n=cartGroups().length||1,num=ZONES.some(e=>e.name===z&&typeof e.fee==="number");
+  $("#fe").textContent=n>1&&num?fmt(fee*n)+" ("+n+" deliveries)":feeTxt(z);$("#to").textContent=fmt(Math.max(0,sub()+fee*n-dis));
   const r=$("#dsr");if(r){r.classList.toggle("hidden",!CP);r.classList.toggle("flex",!!CP);if(CP){$("#dsl").textContent="Discount ("+CP.code+")";$("#dsv").textContent="−"+fmt(CP.discount)}}
 }
 async function cpnApply(){
@@ -616,8 +629,8 @@ async function cpnApply(){
   if(!code)return bad("Enter a code first.");
   if(!SBC())return bad("Coupons aren't available right now.");
   m.textContent="Checking…";m.className="mt-1 text-xs text-neutral-500";
-  try{const r=await rpc("check_coupon",{p_code:code,p_subtotal:sub()}),j=r.j;
-    if(r.ok&&j&&j.ok){CP={code:j.code,discount:j.discount,title:j.title||""};m.textContent="Applied"+(j.title?": "+j.title:"")+". You save "+fmt(j.discount);m.className="mt-1 text-xs font-semibold text-g2";tot()}
+  try{const r=await rpc("check_coupon",{p_code:code,p_subtotal:cartGroups().length?gsub(couponTarget()):sub()}),j=r.j;
+    if(r.ok&&j&&j.ok){CP={code:j.code,discount:j.discount,title:j.title||""};m.textContent="Applied"+(j.title?": "+j.title:"")+". You save "+fmt(j.discount)+(split()?" on your "+couponTarget().label.toLowerCase()+" order":"");m.className="mt-1 text-xs font-semibold text-g2";tot()}
     else bad((j&&j.msg)||"That code could not be applied.")}
   catch(e){bad("Could not check the code. Try again.")}
 }

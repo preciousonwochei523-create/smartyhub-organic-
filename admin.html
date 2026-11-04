@@ -109,7 +109,7 @@ async function load(){
   if(a.error||b.error)toast("Could not load: "+(a.error||b.error).message);
   const it=a.data||[],st=Object.fromEntries((b.data||[]).map(r=>[r.key,r.value]));
   SORT={};it.forEach(r=>SORT[r.id]=r.sort);
-  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],zones:st.zones||[],kitchens:st.kitchens||[],riders:st.riders||[],info:st.info||{}};
+  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],zones:st.zones||[],kitchens:st.kitchens||[],suppliers:st.suppliers||[],riders:st.riders||[],info:st.info||{}};
 }
 async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
 
@@ -408,12 +408,15 @@ async function seedSite(){try{const r=await fetch("catalog.json",{cache:"no-cach
 async function importFile(inp){try{await seed(JSON.parse(await inp.files[0].text()))}catch(e){toast("Import failed: "+e.message)}}
 
 /* ---------- orders ---------- */
-let ORD=null,OF="active";
+let ORD=null,OF="active",TF="all";
+const isSupp=o=>{const N=new Set((D.supps||[]).map(x=>x.n)),L=o.items||[];return L.length>0&&L.every(i=>N.has(i.n))};
+const srcOf=o=>isSupp(o)?D.suppliers:D.kitchens;
 const ST=[["new","New"],["preparing","Preparing"],["out","Out for delivery"],["delivered","Delivered"],["cancelled","Cancelled"]];
 const wn=p=>{p=String(p||"").replace(/\D/g,"");return p.startsWith("0")?"234"+p.slice(1):p};
 const olines=o=>(o.items||[]).map(i=>`${i.q} x ${i.n}${i.o?" ("+i.o+")":""}`);
 function ordersView(){
-  return `<div class="flex flex-wrap items-center gap-2">${[["active","Active"],["delivered","Delivered"],["all","All"]].map(([k,l])=>`<button class="btn ${OF===k?"bg-g2 text-white":"border border-neutral-300 bg-white"}" onclick="OF='${k}';draw()">${l}</button>`).join("")}<button class="btn ml-auto border border-neutral-300 bg-white" onclick="ordersLoad()">Refresh</button></div><div id="ol" class="mt-3 space-y-3">${ordRows()}</div>`;
+  return `<div class="flex flex-wrap items-center gap-2">${[["active","Active"],["delivered","Delivered"],["all","All"]].map(([k,l])=>`<button class="btn ${OF===k?"bg-g2 text-white":"border border-neutral-300 bg-white"}" onclick="OF='${k}';draw()">${l}</button>`).join("")}<button class="btn ml-auto border border-neutral-300 bg-white" onclick="ordersLoad()">Refresh</button></div>
+  <div class="mt-2 flex flex-wrap gap-2">${[["all","All orders"],["food","Food"],["supp","Supplements"]].map(([k,l])=>`<button class="btn ${TF===k?"bg-neutral-800 text-white":"border border-neutral-300 bg-white"}" onclick="TF='${k}';draw()">${l}</button>`).join("")}</div><div id="ol" class="mt-3 space-y-3">${ordRows()}</div>`;
 }
 async function ordersLoad(){
   const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(150);
@@ -424,19 +427,19 @@ setInterval(()=>{if(sb&&D&&tab==="orders"&&!document.hidden&&!document.activeEle
 const ordOpts=(a,cur)=>`<option value="">Not assigned</option>`+a.map(x=>`<option ${x.name===cur?"selected":""}>${esc(x.name)}</option>`).join("");
 function ordRows(){
   if(!ORD)return '<p class="py-10 text-center text-neutral-500">Loading…</p>';
-  const L=ORD.filter(o=>OF==="all"||(OF==="active"?!["delivered","cancelled"].includes(o.status):o.status==="delivered"));
+  const L=ORD.filter(o=>(OF==="all"||(OF==="active"?!["delivered","cancelled"].includes(o.status):o.status==="delivered"))&&(TF==="all"||(TF==="supp")===isSupp(o)));
   if(!L.length)return '<p class="py-10 text-center text-neutral-500">No orders here yet.</p>';
   return L.map(o=>{const paid=o.payment_status==="paid",lab=(ST.find(x=>x[0]===o.status)||[,o.status])[1];
   return `<div class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-  <div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(o.ref)} <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${o.status==="new"?"bg-amber-100 text-amber-800":"bg-green-100 text-g1"}">${esc(lab)}</span></p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})} · ${esc(o.zone||"")}</p></div><p class="text-right font-extrabold text-g2">${fmt(o.total)}</p></div>
+  <div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(o.ref)} <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${o.status==="new"?"bg-amber-100 text-amber-800":"bg-green-100 text-g1"}">${esc(lab)}</span> <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${isSupp(o)?"bg-blue-100 text-blue-800":"bg-orange-100 text-orange-800"}">${isSupp(o)?"Supplements":"Food"}</span></p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})} · ${esc(o.zone||"")}</p></div><p class="text-right font-extrabold text-g2">${fmt(o.total)}</p></div>
   <p class="mt-2 text-sm font-semibold">${esc(o.customer_name)} · <a class="text-g2 underline" href="tel:${esc(o.phone)}">${esc(o.phone)}</a></p>
   <p class="text-sm text-neutral-600">${esc(o.address)}${o.landmark?" (near "+esc(o.landmark)+")":""}</p>
   <ul class="mt-2 list-disc pl-5 text-sm">${olines(o).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
   ${o.note?`<p class="mt-1 text-xs text-neutral-500">Note: ${esc(o.note)}</p>`:""}
   <p class="mt-1 text-xs text-neutral-500">Subtotal ${fmt(o.subtotal)} · Delivery ${fmt(o.delivery_fee)} <button class="underline" onclick="feeSet('${o.id}')">change</button>${o.free_sachet?" · free sachet":""}${o.discount>0?" · coupon "+esc(o.coupon||"")+" −"+fmt(o.discount):""}${o.user_id?" · signed-in customer":""}</p>
   <div class="mt-3 flex flex-wrap gap-1.5">${ST.map(([k,l])=>`<button class="btn ${o.status===k?"bg-g2 text-white":"border border-neutral-300"}" onclick="ordSet('${o.id}',{status:'${k}'})">${l}</button>`).join("")}</div>
-  <div class="mt-2 grid grid-cols-2 gap-2"><div><label class="!mt-1">Kitchen</label><select onchange="ordSet('${o.id}',{kitchen:this.value})">${ordOpts(D.kitchens,o.kitchen)}</select></div><div><label class="!mt-1">Rider</label><select onchange="ordSet('${o.id}',{rider:this.value})">${ordOpts(D.riders,o.rider)}</select></div></div>
-  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-neutral-800 text-white" onclick="sendK('${o.id}')">Send to kitchen</button><button class="btn bg-neutral-800 text-white" onclick="sendR('${o.id}')">Send to rider</button><button class="btn ${paid?"bg-green-100 text-g1":"border border-neutral-300"}" onclick="ordSet('${o.id}',{payment_status:'${paid?"unpaid":"paid"}'})">${paid?"Paid ✓":"Mark paid"}</button></div></div>`}).join("");
+  <div class="mt-2 grid grid-cols-2 gap-2"><div><label class="!mt-1">${isSupp(o)?"Supplier":"Kitchen"}</label><select onchange="ordSet('${o.id}',{kitchen:this.value})">${ordOpts(srcOf(o),o.kitchen)}</select></div><div><label class="!mt-1">Rider</label><select onchange="ordSet('${o.id}',{rider:this.value})">${ordOpts(D.riders,o.rider)}</select></div></div>
+  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-neutral-800 text-white" onclick="sendK('${o.id}')">Send to ${isSupp(o)?"supplier":"kitchen"}</button><button class="btn bg-neutral-800 text-white" onclick="sendR('${o.id}')">Send to rider</button><button class="btn ${paid?"bg-green-100 text-g1":"border border-neutral-300"}" onclick="ordSet('${o.id}',{payment_status:'${paid?"unpaid":"paid"}'})">${paid?"Paid ✓":"Mark paid"}</button></div></div>`}).join("");
 }
 async function ordSet(id,patch){
   const {error}=await sb.from("orders").update(patch).eq("id",id);if(error)return toast("Failed: "+error.message);
@@ -447,29 +450,33 @@ function feeSet(id){
   ordSet(id,{delivery_fee:+v,total:Math.max(0,o.subtotal+ +v-(o.discount||0))});
 }
 function sendK(id){
-  const o=ORD.find(x=>x.id===id),k=D.kitchens.find(x=>x.name===o.kitchen);if(!k||!k.phone)return toast("Assign a kitchen first (add one under Delivery & Partners)");
-  const t=`*NEW ORDER ${o.ref}* - SmartyHub Organic\n\n${olines(o).join("\n")}${o.note?"\n\nNote: "+o.note:""}\n\nPack ONLY in SmartyHub packaging.${o.free_sachet?" Add the FREE vitamin sachet.":""}${o.rider?"\nRider picking up: "+o.rider:""}\n\nReply READY when the order is packed.`;
+  const o=ORD.find(x=>x.id===id),sp=isSupp(o),w=sp?"supplier":"kitchen",k=srcOf(o).find(x=>x.name===o.kitchen);
+  if(!k||!k.phone)return toast("Assign a "+w+" first (add one under Delivery & Partners)");
+  const t=sp?`*NEW SUPPLEMENTS ORDER ${o.ref}* - SmartyHub Organic\n\n${olines(o).join("\n")}${o.note?"\n\nNote: "+o.note:""}${o.rider?"\n\nRider picking up: "+o.rider:""}\n\nReply READY when the order is packed.`
+   :`*NEW ORDER ${o.ref}* - SmartyHub Organic\n\n${olines(o).join("\n")}${o.note?"\n\nNote: "+o.note:""}\n\nPack ONLY in SmartyHub packaging.${o.free_sachet?" Add the FREE vitamin sachet.":""}${o.rider?"\nRider picking up: "+o.rider:""}\n\nReply READY when the order is packed.`;
   window.open("https://wa.me/"+wn(k.phone)+"?text="+encodeURIComponent(t));
 }
 function sendR(id){
-  const o=ORD.find(x=>x.id===id),r=D.riders.find(x=>x.name===o.rider),k=D.kitchens.find(x=>x.name===o.kitchen);
+  const o=ORD.find(x=>x.id===id),sp=isSupp(o),w=sp?"supplier":"kitchen",r=D.riders.find(x=>x.name===o.rider),k=srcOf(o).find(x=>x.name===o.kitchen);
   if(!r||!r.phone)return toast("Assign a rider first (add one under Delivery & Partners)");
-  if(!k)return toast("Assign a kitchen first, so the rider gets the pickup address");
+  if(!k)return toast("Assign a "+w+" first, so the rider gets the pickup address");
   const dest=[o.address,o.zone,"Lagos"].filter(Boolean).join(", ");
-  const t=`*DELIVERY ${o.ref}* - SmartyHub Organic\n\n*PICKUP (kitchen)*\n${k.name}\n${k.address||"Address not set"}${k.phone?"\nCall: "+k.phone:""}\n\n*DELIVER TO (customer)*\n${o.customer_name}\nCall: ${o.phone}\n${o.address}${o.landmark?"\nNear: "+o.landmark:""}${o.zone?"\nArea: "+o.zone:""}\nMap: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}\n\n*ITEMS*\n${olines(o).join("\n")}\n\n${o.payment_status==="paid"?"PAID. Do not collect cash.":"*COLLECT CASH: "+fmt(o.total)+"*"}`;
+  const t=`*DELIVERY ${o.ref}${sp?" (SUPPLEMENTS)":""}* - SmartyHub Organic\n\n*PICKUP (${w})*\n${k.name}\n${k.address||"Address not set"}${k.phone?"\nCall: "+k.phone:""}\n\n*DELIVER TO (customer)*\n${o.customer_name}\nCall: ${o.phone}\n${o.address}${o.landmark?"\nNear: "+o.landmark:""}${o.zone?"\nArea: "+o.zone:""}\nMap: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}\n\n*ITEMS*\n${olines(o).join("\n")}\n\n${o.payment_status==="paid"?"PAID. Do not collect cash.":"*COLLECT CASH: "+fmt(o.total)+"*"}`;
   window.open("https://wa.me/"+wn(r.phone)+"?text="+encodeURIComponent(t));
 }
 
 /* ---------- delivery & partners ---------- */
 let PK="kitchens",PI=-1;
-const PT={kitchens:"kitchen",riders:"rider",zones:"delivery zone"};
+const PT={kitchens:"kitchen",suppliers:"supplement supplier",riders:"rider",zones:"delivery zone"};
 function opsView(){
   const sec=(k,title,sub,btn,body)=>`<div class="${k==="kitchens"?"":"mt-4 "}rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-center justify-between gap-2"><h2 class="font-extrabold">${title}</h2><button class="btn shrink-0 bg-g2 text-white" onclick="pEdit('${k}',-1)">+ ${btn}</button></div><p class="mt-1 text-xs text-neutral-500">${sub}</p><div class="mt-3 space-y-2">${body||'<p class="rounded-xl border border-dashed border-neutral-300 py-6 text-center text-sm text-neutral-500">Nothing added yet</p>'}</div></div>`;
   const row=(k,i,t,s)=>`<button onclick="pEdit('${k}',${i})" class="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left"><div class="min-w-0"><p class="truncate font-bold">${t}</p><p class="truncate text-xs text-neutral-500">${s}</p></div><span class="shrink-0 text-neutral-400">›</span></button>`;
   const kit=D.kitchens.map((x,i)=>row("kitchens",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
+  const sup=D.suppliers.map((x,i)=>row("suppliers",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
   const rid=D.riders.map((x,i)=>row("riders",i,esc(x.name),esc(x.phone)+(x.zone?" · "+esc(x.zone):""))).join("");
   const zon=D.zones.map((x,i)=>row("zones",i,esc(x.name),x.fee==null?"Fee confirmed on WhatsApp":fmt(x.fee))).join("");
   return sec("kitchens","Partner kitchens","Receive the order on WhatsApp. Their address goes to the rider as the pickup point.","Add kitchen",kit)
+   +sec("suppliers","Supplement suppliers","Where supplement orders are picked up. They receive the order on WhatsApp, and their address goes to the rider as the pickup point.","Add supplier",sup)
    +sec("riders","Riders","Receive pickup (kitchen) and delivery (customer) details on WhatsApp.","Add rider",rid)
    +sec("zones","Delivery zones","The server charges the fee for the zone a customer picks at checkout.","Add zone",zon)
    +`<div class="mt-4 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Hours and delivery notes</h2><p class="mt-1 text-xs text-neutral-500">Shown to customers under Menu, Delivery and hours, and at checkout. Leave a box empty to hide it.</p>
@@ -478,7 +485,7 @@ function opsView(){
 async function infoSave(f){const v={hours:f.hours.value.trim(),cutoff:f.cutoff.value.trim(),note:f.note.value.trim()};if(await setting("info",v)){D.info=v;toast("Saved")}}
 function pEdit(k,i){
   PK=k;PI=i;const x=i>=0?D[k][i]:{name:"",phone:"",address:"",zone:"",fee:""};
-  const blocks=k==="kitchens"?`<div class="blk"><h3>Kitchen details</h3><label>Kitchen name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Mama Put Kitchen"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>
+  const blocks=(k==="kitchens"||k==="suppliers")?`<div class="blk"><h3>${k==="suppliers"?"Supplier":"Kitchen"} details</h3><label>${k==="suppliers"?"Supplier":"Kitchen"} name</label><input name="name" required value="${esc(x.name)}" placeholder="${k==="suppliers"?"e.g. Green Leaf Wellness Store":"e.g. Mama Put Kitchen"}"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>
     <div class="blk"><h3>Pickup location</h3><label>Full address (sent to riders)</label><textarea name="address" rows="3" required placeholder="Street, area, nearest landmark">${esc(x.address||"")}</textarea></div>`
   :k==="riders"?`<div class="blk"><h3>Rider details</h3><label>Full name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Tunde Bello"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>
     <div class="blk"><h3>Coverage</h3><label>Zone or area (optional)</label><input name="zone" value="${esc(x.zone||"")}" placeholder="e.g. Ikeja, Alimosho"/></div>`
@@ -495,7 +502,7 @@ async function pSave(){
   if(D[PK].some((x,i)=>i!==PI&&x.name.toLowerCase()===name.toLowerCase()))return toast("That name already exists");
   if(PK==="zones"){const v=f.fee.value.trim();rec={name,fee:v===""?null:Math.max(0,Math.round(+v)||0)}}
   else{const phone=f.phone.value.trim();if(wn(phone).length<11)return toast("Enter a valid WhatsApp number, e.g. 08012345678");
-    rec=PK==="kitchens"?{name,phone,address:f.address.value.trim()}:{name,phone,zone:f.zone.value.trim()}}
+    rec=(PK==="kitchens"||PK==="suppliers")?{name,phone,address:f.address.value.trim()}:{name,phone,zone:f.zone.value.trim()}}
   PI>=0?arr[PI]=rec:arr.push(rec);
   const btn=f.querySelector("button.flex-1");btn.disabled=true;btn.textContent="Saving…";
   if(await setting(PK,arr)){D[PK]=arr;closeSheet();draw();toast("Saved")}else{btn.disabled=false;btn.textContent="Save"}
