@@ -5,29 +5,40 @@
   var ig='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-full w-full"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>';
   var box='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-5 w-5"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>';
 
+  var social=
+   '<div><p class="text-sm font-bold">Connect With Us</p><div class="mt-3 flex gap-3">'+
+   '<a href="'+IG+'" target="_blank" rel="noopener" aria-label="Instagram" class="flex h-11 w-11 items-center justify-center rounded-full bg-white p-3 text-g2 shadow-sm ring-1 ring-neutral-200 hover:ring-g3">'+ig+'</a>'+
+   '<a href="https://wa.me/'+WA+'" target="_blank" rel="noopener" aria-label="WhatsApp" class="flex h-11 w-11 items-center justify-center rounded-full bg-white p-3 text-g2 shadow-sm ring-1 ring-neutral-200 hover:ring-g3">'+wa+'</a></div></div>';
+
   var f=document.getElementById("site-footer");
   if(f){
     f.className="border-t border-neutral-100 bg-neutral-50";
     f.innerHTML=
-'<div class="mx-auto max-w-6xl px-4 py-10">'+
- '<div class="flex items-center gap-4"><img src="logo-mark.png?v=3" alt="" class="h-14 w-auto shrink-0"/>'+
- '<p class="text-sm text-neutral-600">SmartyHub Organic is a Lagos brand offering fresh organic breakfast, tiger nut drinks, shawarma and quality wellness supplements, delivered to your door.</p></div>'+
- '<a href="index.html#orders" data-go="orders" class="mt-6 flex items-center justify-between rounded-xl bg-black px-4 py-4 font-semibold text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-g2">'+box+'</span>My order</span><span aria-hidden="true" class="text-xl">&rsaquo;</span></a>'+
- '<div class="mt-8 grid grid-cols-2 gap-8 text-sm">'+
-  '<div><p class="font-bold">Quicklinks</p><ul class="mt-3 space-y-2.5 text-neutral-600">'+
-   '<li><a href="index.html#eats" data-go="products" class="hover:text-g2">Products</a></li>'+
-   '<li><a href="about.html" class="hover:text-g2">About us</a></li>'+
-   '<li><a href="index.html#orders" data-go="orders" class="hover:text-g2">My order</a></li></ul></div>'+
-  '<div><p class="font-bold">Legal</p><ul class="mt-3 space-y-2.5 text-neutral-600">'+
-   '<li><a href="terms.html" class="hover:text-g2">Terms of Service</a></li>'+
-   '<li><a href="policy.html" class="hover:text-g2">Policy</a></li>'+
-   '<li><a href="privacy.html" class="hover:text-g2">Privacy</a></li></ul></div>'+
+'<div class="mx-auto max-w-6xl px-4 py-10 md:py-14">'+
+ '<div class="grid gap-8 md:grid-cols-12 md:gap-12">'+
+  /* left: brand, My order, social (desktop) */
+  '<div class="md:col-span-5">'+
+   '<div class="flex items-center gap-4"><img src="logo-mark.png?v=3" alt="" class="h-14 w-auto shrink-0 md:h-16"/>'+
+   '<p class="text-sm text-neutral-600">SmartyHub Organic is a Lagos brand offering fresh organic breakfast, tiger nut drinks, shawarma and quality wellness supplements, delivered to your door.</p></div>'+
+   '<a href="index.html#orders" data-go="orders" class="mt-6 flex items-center justify-between rounded-xl bg-black px-4 py-4 font-semibold text-white md:max-w-sm"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-g2">'+box+'</span>My order</span><span aria-hidden="true" class="text-xl">&rsaquo;</span></a>'+
+   '<div class="mt-8 hidden md:block">'+social+'</div>'+
+  '</div>'+
+  /* right: link columns */
+  '<div class="grid grid-cols-2 gap-8 text-sm md:col-span-7 md:grid-cols-3">'+
+   '<div><p class="font-bold">Quicklinks</p><ul class="mt-3 space-y-2.5 text-neutral-600">'+
+    '<li><a href="index.html#eats" data-go="products" class="hover:text-g2">Products</a></li>'+
+    '<li><a href="about.html" class="hover:text-g2">About us</a></li>'+
+    '<li><a href="index.html#orders" data-go="orders" class="hover:text-g2">My order</a></li></ul></div>'+
+   '<div><p class="font-bold">Legal</p><ul class="mt-3 space-y-2.5 text-neutral-600">'+
+    '<li><a href="terms.html" class="hover:text-g2">Terms of Service</a></li>'+
+    '<li><a href="policy.html" class="hover:text-g2">Policy</a></li>'+
+    '<li><a href="privacy.html" class="hover:text-g2">Privacy</a></li></ul></div>'+
+   '<div class="col-span-2 md:col-span-1"><p class="font-bold">Contact</p><ul class="mt-3 space-y-2.5 text-neutral-600"><li>Lagos, Nigeria</li><li><a href="https://wa.me/'+WA+'" class="hover:text-g2">+234 806 661 1017 (WhatsApp)</a></li></ul></div>'+
+  '</div>'+
+  /* social (mobile only, after the links) */
+  '<div class="md:hidden">'+social+'</div>'+
  '</div>'+
- '<div class="mt-8 text-sm"><p class="font-bold">Contact</p><ul class="mt-3 space-y-2.5 text-neutral-600"><li>Lagos, Nigeria</li><li><a href="https://wa.me/'+WA+'" class="hover:text-g2">+234 806 661 1017 (WhatsApp)</a></li></ul></div>'+
- '<div class="mt-8"><p class="text-sm font-bold">Connect With Us</p><div class="mt-3 flex gap-3">'+
-  '<a href="'+IG+'" target="_blank" rel="noopener" aria-label="Instagram" class="flex h-11 w-11 items-center justify-center rounded-full bg-white p-3 text-g2 shadow-sm ring-1 ring-neutral-200 hover:ring-g3">'+ig+'</a>'+
-  '<a href="https://wa.me/'+WA+'" target="_blank" rel="noopener" aria-label="WhatsApp" class="flex h-11 w-11 items-center justify-center rounded-full bg-white p-3 text-g2 shadow-sm ring-1 ring-neutral-200 hover:ring-g3">'+wa+'</a></div></div>'+
- '<p class="mt-8 text-xs font-semibold uppercase tracking-wide text-neutral-500">&copy; '+new Date().getFullYear()+' SmartyHub Organic</p>'+
+ '<div class="mt-10 border-t border-neutral-200 pt-6"><p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">&copy; '+new Date().getFullYear()+' SmartyHub Organic</p></div>'+
 '</div>';
   }
 
