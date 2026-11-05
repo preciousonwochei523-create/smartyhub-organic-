@@ -127,6 +127,8 @@ let INGS=[...new Set(SUPP.flatMap(x=>x.ing))].sort();
 let ZONES=[{name:"Ikeja",fee:1500},{name:"Alimosho",fee:1500},{name:"Ajah",fee:2000},{name:"Other Lagos area",fee:null}];
 const escH=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cartGroups=()=>{const f=S.cart.filter(x=>x.food),p=S.cart.filter(x=>!x.food);return[f.length&&{key:"food",label:"Food",items:f},p.length&&{key:"supp",label:"Supplements",items:p}].filter(Boolean)};
+/* Free vitamin sachet: only shawarma and breakfast items, not drinks */
+const sachetOk=x=>{const e=EATS.find(e=>e.n===x.n);return !!(x.food&&e&&!/drink|parfait/i.test(rc(e.cat||"")))};
 const gsub=g=>g.items.reduce((a,x)=>a+x.p*x.q,0);
 const split=()=>cartGroups().length>1;
 const couponTarget=()=>cartGroups().reduce((a,b)=>gsub(b)>gsub(a)?b:a);
@@ -311,7 +313,7 @@ function badge(b){const e=$("#badge"),n=count();e.textContent=n;e.classList.togg
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.remove("translate-y-20","opacity-0");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add("translate-y-20","opacity-0"),1800)}
 function addItem(it){const k=it.k,f=S.cart.find(x=>x.k===k);f?f.q+=it.q:S.cart.push(it);save();badge(1);drawCart();toast(`${it.n} added to cart`)}
 function drawCart(){
-  const hasFood=S.cart.some(x=>x.food);
+  const hasFood=S.cart.some(sachetOk);
   $("#drawer").innerHTML=`
   <div class="flex items-center justify-between border-b border-neutral-100 p-5"><h2 class="font-serif text-2xl font-bold">Your cart</h2><button data-a="close" class="rounded-full p-2 hover:bg-neutral-100" aria-label="Close cart"><i data-lucide="x" class="h-5 w-5"></i></button></div>
   <div class="flex-1 space-y-4 overflow-y-auto p-5">${S.cart.length?S.cart.map((x,i)=>`
@@ -419,7 +421,7 @@ async function done(d){
   const C=SBC(),multi=groups.length>1,coupon=CP?CP.code:"",tg=couponTarget().key,out=[];
   const newRef=()=>"SHO-"+Math.floor(1000+Math.random()*9000);
   for(const g of groups){
-    const free=g.key==="food",s0=gsub(g);let ref=newRef(),fee=feeOf(d.zone),saved=false;
+    const free=g.key==="food"&&g.items.some(sachetOk),s0=gsub(g);let ref=newRef(),fee=feeOf(d.zone),saved=false;
     while(out.some(o=>o.ref===ref))ref=newRef();
     if(C){try{const r=await fetch(C.url+"/rest/v1/rpc/place_order",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify({p:{...d,items:g.items.map(x=>({n:x.n,o:x.o||"",q:x.q,p:x.p})),subtotal:s0,sachet:free}})});
       if(r.ok){const j=await r.json();ref=j.ref;saved=true}}catch(e){}}
