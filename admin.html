@@ -114,10 +114,10 @@ async function load(){
 async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
 
 /* ---------- screens ---------- */
-const TABS=[["orders","Orders"],["fin","Finance"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["content","Menus & Stories"],["cats","Categories & Hero"],["pub","Backup & Import"]];
+const TABS=[["orders","Orders"],["fin","Finance"],["cust","Customers"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["content","Menus & Stories"],["cats","Categories & Hero"],["pub","Backup & Import"]];
 function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
-  $("#main").innerHTML=tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
+  $("#main").innerHTML=tab==="cust"?custView():tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
 }
 function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
@@ -807,6 +807,25 @@ function finSetup(){
 }
 async function finCopy(){const t=$("#sqlbox");try{await navigator.clipboard.writeText(t.value);toast("Copied")}catch(e){t.select();document.execCommand("copy");toast("Copied")}}
 
+
+/* ---------- customers: reset a password ---------- */
+let CTP="";
+const custPw=()=>{const a="abcdefghjkmnpqrstuvwxyz23456789",r=crypto.getRandomValues(new Uint8Array(8));return Array.from(r,x=>a[x%a.length]).join("")};
+function custView(){return `<div class="blk"><h3>Reset a customer's password</h3>
+  <p class="pt-2 text-xs text-neutral-600">A customer asked on WhatsApp? First check the message came from the phone number on their account. Then: 1) enter the number, 2) copy the SQL into Supabase, SQL Editor, and run it, 3) send them the temporary password.</p>
+  <label>Customer phone</label><input id="cph" type="tel" inputmode="numeric" placeholder="08012345678" oninput="custGen()"/><div id="cout" class="mt-3"></div></div>`}
+function custGen(fresh){
+  const out=$("#cout");if(!out)return;let d=($("#cph").value||"").replace(/\D/g,"");
+  if(d.startsWith("0"))d="234"+d.slice(1);else if(d.length===10)d="234"+d;
+  if(d.length<11||d.length>15){out.innerHTML="";return}
+  if(!CTP||fresh===true)CTP=custPw();
+  const sql=`update auth.users set encrypted_password = extensions.crypt('${CTP}', extensions.gen_salt('bf')), updated_at = now() where replace(phone,'+','') = '${d}' returning id, phone;`;
+  const msg=`Hi, this is SmartyHub. Your temporary password is ${CTP}. Log in with your phone number and this password.`;
+  out.innerHTML=`<p class="text-sm">Temporary password: <b class="font-mono">${CTP}</b> <button class="btn ml-1 border border-neutral-300" onclick="custGen(true)">New</button></p>
+  <textarea id="sqlbox" readonly rows="5" class="mt-2 font-mono !text-xs" onclick="this.select()">${esc(sql)}</textarea>
+  <p class="mt-1 text-xs text-neutral-500">After running, Supabase should show one row. No rows means no account uses that number.</p>
+  <div class="mt-3 flex gap-2"><button class="btn flex-1 bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button><a class="btn flex-1 bg-g2 py-3 text-center text-white" target="_blank" rel="noopener" href="https://wa.me/${d}?text=${encodeURIComponent(msg)}">Send on WhatsApp</a></div>`;
+}
 
 init();
 </script>
