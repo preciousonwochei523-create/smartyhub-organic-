@@ -109,15 +109,15 @@ async function load(){
   if(a.error||b.error)toast("Could not load: "+(a.error||b.error).message);
   const it=a.data||[],st=Object.fromEntries((b.data||[]).map(r=>[r.key,r.value]));
   SORT={};it.forEach(r=>SORT[r.id]=r.sort);
-  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],zones:st.zones||[],kitchens:st.kitchens||[],suppliers:st.suppliers||[],riders:st.riders||[],info:st.info||{}};
+  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],eatStory:st.eatStory||[],eatFlyers:st.eatFlyers||[],zones:st.zones||[],kitchens:st.kitchens||[],suppliers:st.suppliers||[],riders:st.riders||[],info:st.info||{}};
 }
 async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
 
 /* ---------- screens ---------- */
-const TABS=[["orders","Orders"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["cats","Categories & Hero"],["pub","Backup & Import"]];
+const TABS=[["orders","Orders"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["content","Menus & Stories"],["cats","Categories & Hero"],["pub","Backup & Import"]];
 function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
-  $("#main").innerHTML=tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="pub"?pubView():listView(tab);
+  $("#main").innerHTML=tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
 }
 function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
@@ -362,6 +362,49 @@ async function cDel(){
   closeSheet();toast("Deleted");cLoad();
 }
 
+
+/* ---------- site content: menu flyers & story cards ---------- */
+const DEF_FLYERS=[{img:"menu-breakfast.jpg",title:"Breakfast menu"},{img:"menu-shawarma.jpg",title:"Shawarma menu"},{img:"menu-promo.jpg",title:"We've evolved"}];
+const DEF_STORY=[{img:"b4.jpg",title:"Breakfast that works as hard as you",text:"Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."},{img:"d2.jpg",title:"Tiger nut, the natural energy drink",text:"Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost.",fit:"contain"},{img:"s2.jpg",title:"Shawarma, made fresh to order",text:"Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."}];
+let CT=null;
+function ctInit(){if(!CT){const c=o=>JSON.parse(JSON.stringify(o));CT={flyers:c(Array.isArray(D.eatFlyers)&&D.eatFlyers.length?D.eatFlyers:DEF_FLYERS),story:c(Array.isArray(D.eatStory)&&D.eatStory.length?D.eatStory:DEF_STORY)}}}
+const ctBtn="btn border border-neutral-300 bg-white";
+function ctMoves(k,i,n){return `${i?`<button class="${ctBtn}" onclick="ctMove('${k}',${i},-1)" aria-label="Move up">▲</button>`:""}${i<n-1?`<button class="${ctBtn}" onclick="ctMove('${k}',${i},1)" aria-label="Move down">▼</button>`:""}<button class="btn border border-red-300 bg-white text-red-700" onclick="ctDel('${k}',${i})">Remove</button>`}
+function contentView(){
+  ctInit();
+  const F=CT.flyers,S=CT.story;
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Menu flyers</h2>
+  <p class="text-xs text-neutral-500">The “The full menu” cards at the bottom of the Breakfast &amp; Eats page. Upload a new picture when a menu or promo changes. Customers tap a card to see it full size.</p>
+  ${F.map((f,i)=>`<div class="mt-3 flex gap-3 rounded-2xl border border-neutral-200 p-3">
+    <img src="${esc(f.img)}" class="h-28 w-20 shrink-0 rounded-xl bg-green-50 object-cover object-top" onerror="this.style.opacity=.2"/>
+    <div class="min-w-0 flex-1"><input value="${esc(f.title)}" placeholder="Title, e.g. Breakfast menu" oninput="CT.flyers[${i}].title=this.value"/>
+    <div class="mt-2 flex flex-wrap gap-2"><label class="btn cursor-pointer border border-neutral-300 bg-white" style="margin:0;display:inline-block">Change image<input type="file" accept="image/*" class="hidden" onchange="ctImg('flyers',${i},this,1600)"/></label>${ctMoves("flyers",i,F.length)}</div></div></div>`).join("")}
+  <label class="btn mt-3 inline-block cursor-pointer bg-g2 text-center !text-white" style="margin-top:.75rem">+ Add a menu flyer<input type="file" accept="image/*" class="hidden" onchange="ctAddFlyer(this)"/></label></div>
+
+  <div class="mt-5 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Story cards</h2>
+  <p class="text-xs text-neutral-500">The cards in “Our food story” on the Breakfast &amp; Eats page: a picture, a headline and a short paragraph for each.</p>
+  ${S.map((c,i)=>`<div class="mt-3 rounded-2xl border border-neutral-200 p-3">
+    <div class="flex gap-3"><div class="flex h-24 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-green-50 text-xs text-g2">${c.img?`<img src="${esc(c.img)}" class="h-full w-full ${c.fit==="contain"?"object-contain":"object-cover"}" onerror="this.style.opacity=.2"/>`:"No image"}</div>
+    <div class="flex flex-wrap content-start gap-2"><label class="btn cursor-pointer border border-neutral-300 bg-white" style="margin:0;display:inline-block">${c.img?"Change image":"Add image"}<input type="file" accept="image/*" class="hidden" onchange="ctImg('story',${i},this,1000)"/></label>${c.img?`<button class="${ctBtn}" onclick="CT.story[${i}].img='';draw()">Remove image</button>`:""}</div></div>
+    <label>Headline</label><input value="${esc(c.title)}" oninput="CT.story[${i}].title=this.value"/>
+    <label>Paragraph</label><textarea rows="4" oninput="CT.story[${i}].text=this.value">${esc(c.text)}</textarea>
+    <label style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" style="width:auto" ${c.fit==="contain"?"checked":""} onchange="CT.story[${i}].fit=this.checked?'contain':'';draw()"/>Show the whole picture (no cropping, good for bottles)</label>
+    <div class="mt-3 flex flex-wrap gap-2">${ctMoves("story",i,S.length)}</div></div>`).join("")}
+  <button class="btn mt-3 border border-neutral-300 bg-white" onclick="CT.story.push({img:'',title:'New story',text:''});draw()">+ Add a story card</button></div>
+
+  <div class="sticky bottom-3 mt-5 flex gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-neutral-200 backdrop-blur"><button class="btn flex-1 bg-g2 py-3 text-white" onclick="ctSave()">Save &amp; publish</button><button class="btn border border-neutral-300 bg-white" onclick="CT=null;draw();toast('Changes discarded')">Discard</button></div>
+  <p class="mt-2 text-xs text-neutral-500">Nothing goes live until you tap Save &amp; publish. If you remove every card, that section is hidden on the site.</p>`;
+}
+async function ctImg(k,i,inp,max){const f=inp.files[0];if(!f)return;toast("Uploading…");try{CT[k][i].img=await upload(f,max);draw();toast("Image ready. Tap Save & publish.")}catch(e){toast("Upload failed: "+(e.message||"check bucket policies"))}}
+async function ctAddFlyer(inp){const f=inp.files[0];if(!f)return;toast("Uploading…");try{CT.flyers.push({img:await upload(f,1600),title:"New menu"});draw();toast("Added. Give it a title, then Save & publish.")}catch(e){toast("Upload failed: "+(e.message||"check bucket policies"))}}
+function ctMove(k,i,d){const a=CT[k];[a[i],a[i+d]]=[a[i+d],a[i]];draw()}
+function ctDel(k,i){if(!confirm("Remove this card?"))return;CT[k].splice(i,1);draw()}
+async function ctSave(){
+  const fl=CT.flyers.filter(f=>f.img).map(f=>({img:f.img,title:(f.title||"").trim()||"Menu"}));
+  const st=CT.story.filter(c=>c.img||(c.title||"").trim()||(c.text||"").trim()).map(c=>({img:c.img||"",title:(c.title||"").trim(),text:(c.text||"").trim(),...(c.fit==="contain"?{fit:"contain"}:{})}));
+  if(await setting("eatFlyers",fl)&&await setting("eatStory",st)){D.eatFlyers=fl;D.eatStory=st;CT=null;draw();toast("Saved. Live on the site now.")}
+}
+
 /* ---------- categories & hero ---------- */
 function catsView(){
   return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Menu categories</h2><p class="text-xs text-neutral-500">One per line. If you rename one, also re-pick it on the items that used the old name.</p>
@@ -401,7 +444,7 @@ async function seed(c){
   if(!Array.isArray(c.eats)||!Array.isArray(c.supps))throw new Error("Not a valid catalog");
   const rows=[...c.eats.map((x,i)=>({id:x.id,kind:"eat",data:x,sort:i})),...c.supps.map((x,i)=>({id:x.id,kind:"supp",data:x,sort:1000+i}))];
   const {error}=await sb.from("items").upsert(rows);if(error)throw error;
-  for(const k of["eatCats","suppCats","hero"])if(c[k])await setting(k,c[k]);
+  for(const k of["eatCats","suppCats","hero","eatStory","eatFlyers"])if(c[k])await setting(k,c[k]);
   await boot();toast("Imported "+rows.length+" items");
 }
 async function seedSite(){try{const r=await fetch("catalog.json",{cache:"no-cache"});if(!r.ok)throw new Error("catalog.json not found on the site");await seed(await r.json())}catch(e){toast("Import failed: "+e.message)}}

@@ -42,6 +42,7 @@ input[type=range]{accent-color:#2E7D32}
 .hb-slide.on{opacity:1}
 .hb-dot{height:.5rem;width:.5rem;border-radius:9999px;background:rgba(255,255,255,.5);transition:all .3s}
 .hb-dot.on{width:1.5rem;background:#fff}
+.hb-tx{text-shadow:0 2px 14px rgba(0,0,0,.5)}
 body{overflow-x:hidden}
 </style>
 </head>
@@ -158,17 +159,21 @@ function render(){
   S.eco==="eats"?drawEats():drawSupp();
   badge();ic();
 }
-function eatsView(){return `
-<section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Organic breakfast delivered fresh">
+function heroHTML(label,title,sub,chips){return `
+<section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="${label}">
   <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
-  <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
-  <div class="relative mx-auto flex min-h-[260px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[320px] sm:pb-16 sm:pt-10">
-    <h1 class="max-w-2xl font-serif text-2xl font-bold leading-[1.15] text-white sm:text-5xl">Organic breakfast, delivered fresh.</h1>
-    <p class="mt-3 max-w-lg text-base text-white/90 sm:text-lg">Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.</p>
-    <label class="relative mt-5 block max-w-xl"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-3.5 pl-12 pr-4 text-base shadow-[0_8px_28px_-8px_rgba(0,0,0,.45)] outline-none ring-2 ring-transparent focus:ring-g3"/></label>
+  <div class="absolute inset-0 bg-gradient-to-t from-[#0b2413]/90 via-[#0b2413]/60 to-[#0b2413]/30 sm:bg-gradient-to-r sm:from-[#0b2413]/90 sm:via-[#0b2413]/55 sm:to-[#0b2413]/5"></div>
+  <div class="relative mx-auto flex min-h-[320px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[380px] sm:pb-16 sm:pt-12">
+    <span class="inline-flex w-max items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[.14em] text-white ring-1 ring-white/30 backdrop-blur"><span class="h-1.5 w-1.5 rounded-full bg-g3"></span>SmartyHub Organic &middot; Lagos</span>
+    <h1 class="hb-tx mt-4 max-w-2xl font-serif text-[1.95rem] font-bold leading-[1.1] text-white sm:text-5xl lg:text-6xl">${title}</h1>
+    <p class="hb-tx mt-3 max-w-lg text-[15px] leading-relaxed text-white/95 sm:text-lg">${sub}</p>
+    <label class="relative mt-5 block max-w-xl"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-4 pl-12 pr-4 text-base shadow-[0_14px_34px_-10px_rgba(0,0,0,.55)] outline-none ring-2 ring-transparent focus:ring-g3"/></label>
+    <div class="hb-chips mt-4 flex flex-wrap gap-2">${chips.map(c=>`<span class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/25 backdrop-blur">${c}</span>`).join("")}</div>
   </div>
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
-</section>
+</section>`}
+function eatsView(){return `
+${heroHTML("Organic breakfast delivered fresh","Organic breakfast, delivered fresh.","Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.",["Made to order","Delivered in Lagos"])}
 ${ecoSwitch()}
 <div class="-mx-4 px-4 py-3"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
 <div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div><div id="pager"></div>${eatsStory()}`}
@@ -208,16 +213,7 @@ function drawEats(){
 let HERO_SLIDES=["supps-hero.jpg","supps-2.jpg","supps-3.jpg","supps-4.jpg","supps-5.jpg"];
 setInterval(()=>{const sl=document.querySelectorAll("#hs .hs-slide");if(sl.length<2||matchMedia("(prefers-reduced-motion: reduce)").matches)return;let i=[...sl].findIndex(x=>x.classList.contains("on"));sl[i<0?0:i].classList.remove("on");sl[(i+1)%sl.length].classList.add("on")},3800);
 function suppView(){return `
-<section id="hb" class="relative left-1/2 -ml-[50vw] w-screen overflow-hidden bg-g1" aria-label="Wellness supplements you can trust">
-  <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
-  <div class="absolute inset-0 bg-gradient-to-r from-[#10301a]/85 via-[#10301a]/50 to-[#10301a]/5"></div>
-  <div class="relative mx-auto flex min-h-[260px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[320px] sm:pb-16 sm:pt-10">
-    <h1 class="max-w-2xl font-serif text-2xl font-bold leading-[1.15] text-white sm:text-5xl">Wellness supplements you can trust.</h1>
-    <p class="mt-3 max-w-lg text-base text-white/90 sm:text-lg">Browse by health goal, ingredient and price. Quality supplement brands, delivered in Lagos.</p>
-    <label class="relative mt-5 block max-w-xl"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-3.5 pl-12 pr-4 text-base shadow-[0_8px_28px_-8px_rgba(0,0,0,.45)] outline-none ring-2 ring-transparent focus:ring-g3"/></label>
-  </div>
-  <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
-</section>
+${heroHTML("Wellness supplements you can trust","Wellness supplements you can trust.","Browse by health goal, ingredient and price. Quality supplement brands, delivered in Lagos.",["Shop by health goal","Delivered in Lagos"])}
 ${ecoSwitch()}
 <div class="mt-6 flex flex-col gap-6 lg:flex-row">
   <button data-a="tf" class="pill flex items-center justify-center gap-2 rounded-full border border-neutral-200 py-2.5 text-sm font-bold lg:hidden"><i data-lucide="sliders-horizontal" class="h-4 w-4"></i>Filters</button>
@@ -260,14 +256,18 @@ function drawSupp(){
 /* ---------- STORY SECTIONS ---------- */
 const BEN=(i,t,d)=>`<div class="flex gap-3 rounded-2xl border border-neutral-100 bg-white p-4"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-g2"><i data-lucide="${i}" class="h-5 w-5"></i></span><div><h3 class="font-bold">${t}</h3><p class="mt-0.5 text-sm text-neutral-500">${d}</p></div></div>`;
 const SACH=[["Vitamin C","1000mg","Supports immunity and healthy skin","bg-orange-500"],["Vitamin D3","1000 IU","Supports bone health and immunity","bg-yellow-500"],["Omega 3","1000mg","Supports heart health and brain function","bg-blue-600"],["Zinc","15mg","Supports immunity, skin and overall well-being","bg-green-600"]];
-const flyer=(src,t)=>`<button data-a="img" data-v="${src}" class="pill group overflow-hidden rounded-3xl border border-neutral-100 bg-white text-left shadow-sm hover:shadow-md"><img src="${src}" alt="${t}" loading="lazy" class="aspect-[2/3] w-full object-cover object-top transition group-hover:scale-[1.02]" onerror="this.closest('button').remove()"/><span class="block px-4 py-3 text-sm font-bold">${t} <span class="font-medium text-neutral-400">· tap to enlarge</span></span></button>`;
+const flyer=(src,t)=>{src=escH(src);t=escH(t);return `<button data-a="img" data-v="${src}" class="pill group overflow-hidden rounded-3xl border border-neutral-100 bg-white text-left shadow-sm hover:shadow-md"><img src="${src}" alt="${t}" loading="lazy" class="aspect-[2/3] w-full object-cover object-top transition group-hover:scale-[1.02]" onerror="this.closest('button').remove()"/><span class="block px-4 py-3 text-sm font-bold">${t} <span class="font-medium text-neutral-400">&middot; tap to enlarge</span></span></button>`};
+/* Editable from admin (settings keys eatStory / eatFlyers). These are the defaults used until admin saves its own. */
+let ESTORY=[{img:"b4.jpg",title:"Breakfast that works as hard as you",text:"Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."},{img:"d2.jpg",title:"Tiger nut, the natural energy drink",text:"Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost.",fit:"contain"},{img:"s2.jpg",title:"Shawarma, made fresh to order",text:"Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."}];
+let EFLYERS=[{img:"menu-breakfast.jpg",title:"Breakfast menu"},{img:"menu-shawarma.jpg",title:"Shawarma menu"},{img:"menu-promo.jpg",title:"We've evolved"}];
+const storyCard=c=>`<article class="overflow-hidden rounded-3xl bg-white shadow-sm">${c.img?`<div class="tile flex h-44 items-center justify-center"><img src="${escH(c.img)}" alt="" loading="lazy" class="h-full w-full ${c.fit==="contain"?"object-contain":"object-cover"}" onerror="this.remove()"/></div>`:""}<div class="p-5"><h3 class="font-serif text-lg font-bold leading-snug">${escH(c.title||"")}</h3><p class="mt-2 text-sm text-neutral-600">${escH(c.text||"")}</p></div></article>`;
 function eatsStory(){return `
 <section class="mt-16 rounded-[2rem] bg-green-50 px-5 py-10 sm:px-10">
   <p class="text-sm font-bold uppercase tracking-widest text-g2">Our food story</p>
   <h2 class="mt-2 max-w-2xl font-serif text-3xl font-bold leading-tight sm:text-4xl">Real food, made fresh, with nothing to hide.</h2>
   <p class="mt-4 max-w-2xl text-neutral-600">We cook every day with clean, natural ingredients. No preservatives, no artificial additives, no shortcuts. From a tiger nut drink that keeps you going to a shawarma wrapped to order, everything is made to leave you feeling good, not just full.</p>
   <div class="mt-8 grid gap-4 md:grid-cols-3">
-    ${[["b4.jpg","Breakfast that works as hard as you","Wheat toast, eggs, sardine or fresh fruit salad, each paired with a tiger nut drink. Four combos built for energy, so a busy morning starts well."],["d2.jpg","Tiger nut, the natural energy drink","Made from premium tiger nuts: naturally sweet, filling and packed with fibre, vitamins and minerals. Try Classic Energy, Honey Gold or Citrus Boost."],["s2.jpg","Shawarma, made fresh to order","Grilled chicken, beef, asun, dodo or honey mix, wrapped warm in soft bread. Bold, satisfying street flavour from a clean kitchen."]].map(c=>`<article class="overflow-hidden rounded-3xl bg-white shadow-sm"><div class="tile flex h-44 items-center justify-center"><img src="${c[0]}" alt="" loading="lazy" class="h-full w-full ${c[0].includes('d2')?'object-contain':'object-cover'}"/></div><div class="p-5"><h3 class="font-serif text-lg font-bold leading-snug">${c[1]}</h3><p class="mt-2 text-sm text-neutral-600">${c[2]}</p></div></article>`).join("")}
+    ${ESTORY.map(storyCard).join("")}
   </div>
   <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${BEN("leaf","100% natural","Made from quality natural ingredients.")}${BEN("flask-conical","No preservatives","No additives. No chemicals.")}${BEN("sprout","Rich in nutrients","Packed with fibre, vitamins and minerals.")}${BEN("zap","Supports your energy","Keeps you active and refreshed all day.")}</div>
 </section>
@@ -279,11 +279,11 @@ function eatsStory(){return `
     <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">${SACH.map(x=>`<div class="rounded-2xl bg-white/10 p-4"><span class="inline-block rounded-lg ${x[3]} px-3 py-1.5 text-sm font-extrabold">${x[0]} ${x[1]}</span><p class="mt-3 text-sm text-green-50">${x[2]}</p></div>`).join("")}</div>
   </div>
 </section>
-<section class="mt-12">
+${EFLYERS.length?`<section class="mt-12">
   <h2 class="font-serif text-3xl font-bold" id="fullmenu">The full menu</h2>
   <p class="mt-2 text-neutral-600">Prefer to browse the printed menus? Tap one to see it full size. You can also order through Glovo or Chowdeck.</p>
-  <div class="mt-5 grid gap-4 sm:grid-cols-3">${flyer("menu-breakfast.jpg","Breakfast menu")}${flyer("menu-shawarma.jpg","Shawarma menu")}${flyer("menu-promo.jpg","We've evolved")}</div>
-</section>`}
+  <div class="mt-5 grid gap-4 sm:grid-cols-3">${EFLYERS.map(f=>flyer(f.img,f.title)).join("")}</div>
+</section>`:""}`}
 function suppStory(){return `
 <section class="mt-16 rounded-[2rem] bg-green-50 px-5 py-10 sm:px-10">
   <p class="text-sm font-bold uppercase tracking-widest text-g2">Our supplement story</p>
@@ -745,7 +745,7 @@ async function sbCatalog(){
     if(Array.isArray(st.zones)&&st.zones.length)ZONES=st.zones;
     if(st.info&&typeof st.info==="object")INFO=st.info;
     if(!it.length)return null;
-    return {eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats,suppCats:st.suppCats,hero:st.hero};
+    return {eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats,suppCats:st.suppCats,hero:st.hero,eatStory:st.eatStory,eatFlyers:st.eatFlyers};
   }catch(e){return null}
 }
 async function loadCatalog(){
@@ -760,6 +760,8 @@ async function loadCatalog(){
     if(c.eatCats)ECATS=["All",...c.eatCats];
     if(c.suppCats)GOALS=["All",...c.suppCats];
     if(c.hero&&c.hero.length)HERO_SLIDES=c.hero;
+    if(Array.isArray(c.eatStory))ESTORY=c.eatStory.filter(x=>x&&(x.title||x.text||x.img));
+    if(Array.isArray(c.eatFlyers))EFLYERS=c.eatFlyers.filter(x=>x&&x.img);
     INGS=[...new Set(SUPP.flatMap(x=>x.ing||[]))].sort();
   }
   if(prev){const b=document.createElement("div");b.textContent="Preview mode: not live yet";b.className="fixed left-0 right-0 top-0 z-[70] bg-amber-400 py-1 text-center text-xs font-bold";document.body.appendChild(b)}
