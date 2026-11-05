@@ -114,12 +114,12 @@ async function load(){
 async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
 
 /* ---------- screens ---------- */
-const TABS=[["orders","Orders"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["content","Menus & Stories"],["cats","Categories & Hero"],["pub","Backup & Import"]];
+const TABS=[["orders","Orders"],["fin","Finance"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["content","Menus & Stories"],["cats","Categories & Hero"],["pub","Backup & Import"]];
 function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
-  $("#main").innerHTML=tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
+  $("#main").innerHTML=tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
 }
-function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();scrollTo(0,0)}
+function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
 function listView(k){
   const L=D[k].filter(x=>(x.n+(x.b||"")+(x.cat||x.g||"")).toLowerCase().includes(q.toLowerCase()));
@@ -144,7 +144,37 @@ function edit(k,id){
     ?{id:"e"+Date.now().toString(36),cat:D.eatCats[0]||"",n:"",p:0,d:"",img:"",imgs:[],i:"sandwich",o:[]}
     :{id:"p"+Date.now().toString(36),g:D.suppCats[0]||"",n:"",b:"",p:0,dose:"",r:4.5,rv:0,ing:[],d:"",img:"",imgs:[],i:"leaf"});
   if(!Array.isArray(E.imgs))E.imgs=E.img?[E.img]:[];
-  sheet();
+  PC={vc:"",dc:"",pm:""};PCS="load";EO=E.n;
+  sheet();pcInit();
+}
+let PC={vc:"",dc:"",pm:""},PCS="load",EO="";
+async function finCfgEnsure(){
+  FIN=FIN||{cfg:{},rows:{},orders:null};if(FIN.cfgOk)return true;
+  const c=await sb.from("fin_store").select("value").eq("key","cfg").maybeSingle();
+  if(c.error){FIN.setup=/fin_store|schema cache|does not exist/i.test(c.error.message||"");return false}
+  FIN.cfg=(c.data&&c.data.value)||{};FIN.cfgOk=true;FIN.setup=false;return true
+}
+async function pcInit(){
+  const ok=await finCfgEnsure();PCS=ok?"ok":"setup";
+  if(ok){const c=fcfg(),n=E.n;PC.vc=c.costs[n]??"";PC.dc=c.deliv[n]??"";PC.pm=c.target}
+  const b=$("#pcalc");if(b){b.innerHTML=pcBlock();pcalc(true)}
+}
+function pcBlock(){
+  if(PCS==="load")return '<p class="mt-3 text-xs text-neutral-500">Loading price calculator…</p>';
+  if(PCS==="setup")return '<div class="blk"><h3>Price calculator</h3><p class="pt-2 text-xs text-neutral-600">To enter private vendor and delivery costs and get an automatic price, finish the one-time setup under Finance first. You can still type the price by hand below.</p></div>';
+  return `<div class="blk"><h3>Price calculator <span class="font-normal text-neutral-500">(costs stay private)</span></h3>
+  <div class="grid grid-cols-2 gap-3"><div><label>Vendor cost (₦)</label><input name="vc" type="number" min="0" step="any" inputmode="decimal" value="${esc(PC.vc)}" oninput="pcalc()"/></div><div><label>Delivery cost (₦)</label><input name="dc" type="number" min="0" step="any" inputmode="decimal" value="${esc(PC.dc)}" oninput="pcalc()"/></div></div>
+  <label>Profit margin you want (%)</label><input name="pm" type="number" min="0" max="90" step="any" inputmode="decimal" value="${esc(PC.pm)}" oninput="pcalc()"/>
+  <p id="pres" class="mt-2 text-sm"></p><p class="mt-1 text-xs text-neutral-500">The price includes delivery, packaging and the payment gateway fee, then your margin. It fills the price box below, which you can still change.</p></div>`;
+}
+function pcalc(init){
+  const f=$("#f");if(!f||PCS!=="ok"||!f.elements.vc)return;
+  PC.vc=f.elements.vc.value;PC.dc=f.elements.dc.value;PC.pm=f.elements.pm.value;
+  const out=$("#pres");if(PC.vc.trim()===""||isNaN(+PC.vc)){if(out)out.textContent="Enter the vendor cost to get a price.";return}
+  const c=fcfg(),eats=EK==="eats",vc=+PC.vc,dc=+PC.dc||0;c.target=Math.min(90,Math.max(0,+PC.pm||0));
+  const pack=eats?(+c.packFood)+(+c.sachet):+c.packSupp,S=fsuggest(vc,dc,pack,c),gw=gwFee(S,c),profit=S-vc-dc-pack-gw;
+  if(!init)f.elements.p.value=S;
+  if(out)out.innerHTML=`Selling price <b>${fmt(S)}</b> · your profit <b class="text-g2">${fmt(Math.round(profit))}</b> per item<br><span class="text-xs text-neutral-500">After vendor ${fmt(vc)}, delivery ${fmt(dc)}, packaging ${fmt(Math.round(pack))} and gateway fee ~${fmt(Math.round(gw))}</span>`;
 }
 function stVal(){return E.hide?"hide":E.soon?"soon":E.out?"out":"ok"}
 function sheet(){
@@ -159,7 +189,8 @@ function sheet(){
       <label>Name</label><input name="n" required value="${esc(E.n)}"/>
       ${eats?"":`<label>Brand (optional)</label><input name="b" value="${esc(E.b||"")}"/>`}
       <label>${eats?"Category":"Health goal / category"}</label><select name="cat">${cats.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>
-      <label>Price (₦)</label><input name="p" type="number" min="0" step="50" inputmode="numeric" value="${E.p}"/>
+      <div id="pcalc">${pcBlock()}</div>
+      <label>Price shown on the site (₦)</label><input name="p" type="number" min="0" step="50" inputmode="numeric" value="${E.p}"/>
       <label>Description</label><textarea name="d" rows="3">${esc(E.d)}</textarea>
       ${eats?"":`<label>Dosage</label><input name="dose" value="${esc(E.dose||"")}" placeholder="1 tablet daily"/>
       <label>Key ingredients (comma separated)</label><input name="ing" value="${esc((E.ing||[]).join(", "))}"/>
@@ -192,11 +223,16 @@ function addGroup(){collect();E.o.push({t:"",k:"r",c:[]});sheet()}
 function rmGroup(i){collect();E.o.splice(i,1);sheet()}
 async function saveItem(){
   collect();if(!E.n){toast("Add a name");return}
+  const pf=$("#f").elements,pv=PCS==="ok"&&pf.vc?{vc:pf.vc.value.trim(),dc:pf.dc.value.trim()}:null;
   const btn=$("#f button.flex-1");if(btn){btn.disabled=true;btn.textContent="Saving…"}
   const sort=SORT[E.id]??Math.floor(Date.now()/1000);
   const {error}=await sb.from("items").upsert({id:E.id,kind:EK==="eats"?"eat":"supp",data:E,sort,updated_at:new Date().toISOString()});
   if(error){toast("Save failed: "+error.message);if(btn){btn.disabled=false;btn.textContent="Save"}return}
   SORT[E.id]=sort;const L=D[EK],i=L.findIndex(x=>x.id===E.id);if(i<0)L.push(E);else L[i]=E;
+  if(pv){const c=fcfg();if(EO&&EO!==E.n){delete c.costs[EO];delete c.deliv[EO]}
+    if(pv.vc===""||isNaN(+pv.vc))delete c.costs[E.n];else c.costs[E.n]=Math.max(0,+pv.vc);
+    if(pv.dc===""||isNaN(+pv.dc))delete c.deliv[E.n];else c.deliv[E.n]=Math.max(0,+pv.dc);
+    await finSaveCfg(c)}
   closeSheet();draw();toast("Saved. Live on the site now.");
 }
 async function delItem(){
@@ -517,11 +553,11 @@ function opsView(){
   const kit=D.kitchens.map((x,i)=>row("kitchens",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
   const sup=D.suppliers.map((x,i)=>row("suppliers",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
   const rid=D.riders.map((x,i)=>row("riders",i,esc(x.name),esc(x.phone)+(x.zone?" · "+esc(x.zone):""))).join("");
-  const zon=D.zones.map((x,i)=>row("zones",i,esc(x.name),x.fee==null?"Fee confirmed on WhatsApp":fmt(x.fee))).join("");
+  const zon=D.zones.map((x,i)=>row("zones",i,esc(x.name),x.fee>0?fmt(x.fee)+" charged to customer":"Free for customer (delivery included)")).join("");
   return sec("kitchens","Partner kitchens","Receive the order on WhatsApp. Their address goes to the rider as the pickup point.","Add kitchen",kit)
    +sec("suppliers","Supplement suppliers","Where supplement orders are picked up. They receive the order on WhatsApp, and their address goes to the rider as the pickup point.","Add supplier",sup)
    +sec("riders","Riders","Receive pickup (kitchen) and delivery (customer) details on WhatsApp.","Add rider",rid)
-   +sec("zones","Delivery zones","The server charges the fee for the zone a customer picks at checkout.","Add zone",zon)
+   +sec("zones","Delivery zones","Customers get free delivery (it is built into item prices), so keep zone fees at 0. Set what you pay riders under Finance, Settings.","Add zone",zon)
    +`<div class="mt-4 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Hours and delivery notes</h2><p class="mt-1 text-xs text-neutral-500">Shown to customers under Menu, Delivery and hours, and at checkout. Leave a box empty to hide it.</p>
    <form onsubmit="event.preventDefault();infoSave(this)"><label>Opening hours</label><textarea name="hours" rows="2" placeholder="e.g. Monday to Saturday, 7am to 8pm">${esc((D.info||{}).hours||"")}</textarea><label>Order cut-off</label><input name="cutoff" value="${esc((D.info||{}).cutoff||"")}" placeholder="e.g. Breakfast orders close at 9pm the night before"/><label>Good to know</label><textarea name="note" rows="2" placeholder="e.g. Delivery times can vary in heavy traffic">${esc((D.info||{}).note||"")}</textarea><button class="btn mt-3 w-full bg-g2 py-3 text-white">Save hours and notes</button></form></div>`;
 }
@@ -532,7 +568,7 @@ function pEdit(k,i){
     <div class="blk"><h3>Pickup location</h3><label>Full address (sent to riders)</label><textarea name="address" rows="3" required placeholder="Street, area, nearest landmark">${esc(x.address||"")}</textarea></div>`
   :k==="riders"?`<div class="blk"><h3>Rider details</h3><label>Full name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Tunde Bello"/><label>WhatsApp number</label><input name="phone" type="tel" inputmode="tel" required value="${esc(x.phone)}" placeholder="08012345678"/></div>
     <div class="blk"><h3>Coverage</h3><label>Zone or area (optional)</label><input name="zone" value="${esc(x.zone||"")}" placeholder="e.g. Ikeja, Alimosho"/></div>`
-  :`<div class="blk"><h3>Zone details</h3><label>Area name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Ikeja"/><label>Delivery fee (₦)</label><input name="fee" type="number" min="0" step="50" inputmode="numeric" value="${x.fee??""}" placeholder="Leave empty to confirm on WhatsApp"/></div>`;
+  :`<div class="blk"><h3>Zone details</h3><label>Area name</label><input name="name" required value="${esc(x.name)}" placeholder="e.g. Ikeja"/><label>Customer delivery fee (₦). Keep at 0 for free delivery</label><input name="fee" type="number" min="0" step="50" inputmode="numeric" value="${x.fee??""}" placeholder="0"/></div>`;
   $("#sheet").innerHTML=`<div class="scrim fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onclick="if(event.target===this)closeSheet()">
   <form id="pf" onsubmit="event.preventDefault();pSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
   <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-neutral-300 sm:hidden"></div>
@@ -555,6 +591,215 @@ async function pDel(){
   const arr=D[PK].filter((_,i)=>i!==PI);
   if(await setting(PK,arr)){D[PK]=arr;closeSheet();draw();toast("Deleted")}
 }
+
+/* ---------- finance (private: needs finance-setup.sql) ---------- */
+let FIN=null,FP="30d",FB="paid",FS="dash",FE=null,FPAY=[],FPR=[];
+const FD={gwPct:1.5,gwFlat:100,gwMin:2500,gwCap:2000,packFood:0,packSupp:0,sachet:0,autoFrom:"",target:25,costs:{},rider:{},deliv:{}};
+const fcfg=()=>{const c=(FIN&&FIN.cfg)||{};return {...FD,...c,costs:{...(c.costs||{})},rider:{...(c.rider||{})},deliv:{...(c.deliv||{})}}};
+const R0=n=>fmt(Math.round(n));
+const FPER=[["today","Today"],["7d","7 days"],["30d","30 days"],["month","This month"],["all","All time"]];
+const FTABS=[["dash","Overview"],["pay","Payouts"],["led","Orders"],["price","Pricing"],["set","Settings"]];
+function fstart(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),d=n.getDate();return FP==="today"?new Date(y,m,d):FP==="7d"?new Date(y,m,d-6):FP==="30d"?new Date(y,m,d-29):FP==="month"?new Date(y,m,1):null}
+const dk=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+function gwFee(a,c){if(!(a>0))return 0;return Math.min(c.gwCap,a*c.gwPct/100+(a>=c.gwMin?c.gwFlat:0))}
+
+async function finLoad(){
+  FIN=FIN||{cfg:{},rows:{},orders:null};FIN.err=null;FIN.setup=false;
+  try{
+    const s=await sb.auth.getSession();FIN.email=(s.data.session&&s.data.session.user.email)||"";
+    const c=await sb.from("fin_store").select("value").eq("key","cfg").maybeSingle();if(c.error)throw c.error;
+    FIN.cfg=(c.data&&c.data.value)||{};FIN.cfgOk=true;
+    const f=await sb.from("order_finance").select("*").limit(5000);if(f.error)throw f.error;
+    FIN.rows=Object.fromEntries((f.data||[]).map(r=>[String(r.order_id),r]));
+    let q=sb.from("orders").select("*").order("created_at",{ascending:false}).limit(3000);
+    const st=fstart();if(st)q=q.gte("created_at",st.toISOString());
+    const o=await q;if(o.error)throw o.error;FIN.orders=o.data||[];
+  }catch(e){const m=(e&&e.message)||"";if(/fin_store|order_finance|schema cache|does not exist/i.test(m))FIN.setup=true;else FIN.err=m||"Could not load"}
+  if(tab==="fin")draw();
+}
+function fper(k){FP=k;if(FIN)FIN.orders=null;draw();finLoad()}
+
+/* per-order split: auto numbers from your rates, unless you saved an override */
+function baseItem(n){return (D.eats||[]).concat(D.supps||[]).find(x=>x.n===n)}
+function unitCost(i,c){const k=c.costs[i.n];if(k==null||k==="")return null;const cost=+k,b=baseItem(i.n);return b&&b.p>0&&i.p>b.p?cost+(i.p-b.p)*(cost/b.p):cost}
+function fcalc(o){
+  const c=fcfg(),F=FIN.rows[String(o.id)]||{},has=k=>F[k]!=null&&F[k]!=="",sp=isSupp(o);
+  let vendor=0;const miss=[];(o.items||[]).forEach(i=>{const u=unitCost(i,c);if(u==null)miss.push(i.n);else vendor+=u*(+i.q||1)});
+  const auto=!!c.autoFrom&&new Date(o.created_at)>=new Date(c.autoFrom+"T00:00:00"),amt=+o.total||0;
+  const zr=c.rider[o.zone],noR=!has("rider_cost")&&(zr==null||zr==="");
+  const vend=has("vendor_cost")?+F.vendor_cost:vendor,rid=has("rider_cost")?+F.rider_cost:(noR?0:+zr);
+  const pack=has("packaging_cost")?+F.packaging_cost:(sp?+c.packSupp:+c.packFood)+(o.free_sachet?+c.sachet:0);
+  const gw=has("gateway_fee")?+F.gateway_fee:(auto?gwFee(amt,c):0);
+  const auto2=auto&&o.payment_status==="paid";
+  return {amt,vend,rid,gw,pack,net:amt-vend-rid-gw-pack,sp,F,auto,miss:has("vendor_cost")?[]:miss,missRider:noR,vSet:auto2||!!F.vendor_paid,rSet:auto2||!!F.rider_paid,vAuto:auto2&&!F.vendor_paid,rAuto:auto2&&!F.rider_paid};
+}
+const fset=()=>(FIN.orders||[]).filter(o=>o.status!=="cancelled").map(o=>({o,c:fcalc(o)}));
+const fbasis=()=>{const L=fset();return FB==="paid"?L.filter(x=>x.o.payment_status==="paid"):L};
+function fagg(L){const a={n:L.length,rev:0,vend:0,rid:0,gw:0,pack:0,net:0,miss:0,missR:0,f:{n:0,rev:0,net:0},s:{n:0,rev:0,net:0}};
+  L.forEach(({c})=>{a.rev+=c.amt;a.vend+=c.vend;a.rid+=c.rid;a.gw+=c.gw;a.pack+=c.pack;a.net+=c.net;if(c.miss.length)a.miss++;if(c.missRider)a.missR++;const t=c.sp?a.s:a.f;t.n++;t.rev+=c.amt;t.net+=c.net});return a}
+
+/* ---------- screens ---------- */
+function finView(){
+  if(!FIN||(!FIN.orders&&!FIN.setup&&!FIN.err))return '<p class="py-16 text-center text-neutral-500">Loading…</p>';
+  if(FIN.setup)return finSetup();
+  if(FIN.err)return `<div class="rounded-2xl bg-red-50 p-4 text-sm text-red-700"><b>Could not load finance.</b><br>${esc(FIN.err)}<br><button class="btn mt-3 border border-red-300" onclick="finLoad()">Try again</button></div>`;
+  const seg=(arr,cur,fn,cls)=>arr.map(([k,l])=>`<button class="btn shrink-0 ${cur===k?cls:"border border-neutral-300 bg-white"}" onclick="${fn}('${k}')">${l}</button>`).join("");
+  const body=FS==="pay"?finPay():FS==="led"?finLed():FS==="price"?finPrice():FS==="set"?finSettings():finDash();
+  return `<div class="noscroll flex gap-2 overflow-x-auto">${seg(FTABS,FS,"finGo","bg-neutral-800 text-white")}</div>
+  ${FS==="price"||FS==="set"?"":`<div class="noscroll mt-2 flex gap-2 overflow-x-auto">${seg(FPER,FP,"fper","bg-g2 text-white")}</div>
+  <div class="mt-2 flex items-center gap-2 text-xs text-neutral-500"><span>Count:</span>${[["paid","Paid orders"],["all","All orders (incl. unpaid)"]].map(([k,l])=>`<button class="btn ${FB===k?"bg-g1 text-white":"border border-neutral-300 bg-white"}" onclick="FB='${k}';draw()">${l}</button>`).join("")}</div>`}
+  <div class="mt-3">${body}</div>`;
+}
+function finGo(k){FS=k;draw();scrollTo(0,0)}
+const card=(t,v,sub,cls)=>`<div class="rounded-2xl bg-white p-3 shadow-sm"><p class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">${t}</p><p class="mt-1 text-xl font-extrabold ${cls||""}">${v}</p>${sub?`<p class="text-xs text-neutral-500">${sub}</p>`:""}</div>`;
+const warn=(h,btn)=>`<div class="mb-3 rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">${h}${btn||""}</div>`;
+
+function finDash(){
+  const L=fbasis(),a=fagg(L),c=fcfg(),all=fset(),pend=FB==="paid"?all.filter(x=>x.o.payment_status!=="paid"):[],pa=pend.reduce((s,x)=>s+x.c.amt,0);
+  let w="";
+  if((D.zones||[]).some(z=>z.fee>0||z.fee==null))w+=warn("<b>Delivery is still charged at checkout by the server.</b> Your site now shows free delivery, so zone fees must be ₦0 or your saved totals will not match what customers pay.",`<button class="btn mt-2 block bg-g2 text-white" onclick="finInclusive()">Make delivery included (keeps old fees as rider pay)</button>`);
+  if(a.miss)w+=warn(`<b>${a.miss} order${a.miss>1?"s":""} include items with no vendor cost.</b> Profit is overstated until you set them.`,`<button class="btn mt-2 block bg-neutral-800 text-white" onclick="finGo('price')">Set vendor costs</button>`);
+  if(a.missR)w+=warn(`<b>${a.missR} order${a.missR>1?"s":""} have no rider pay for their zone.</b> Add it in Settings.`,`<button class="btn mt-2 block bg-neutral-800 text-white" onclick="finGo('set')">Open settings</button>`);
+  if(pend.length)w+=`<p class="mb-3 text-xs text-neutral-500">${R0(pa)} from ${pend.length} unpaid order${pend.length>1?"s":""} is not counted. Mark them paid in Orders, or switch to All orders.</p>`;
+  const ppo=a.n?a.net/a.n:0,aov=a.n?a.rev/a.n:0,mg=a.rev?a.net/a.rev*100:0;
+  const parts=[["Vendors",a.vend,"#f59e0b"],["Riders",a.rid,"#3b82f6"],["Gateway fees",a.gw,"#a855f7"],["Packaging & sachets",a.pack,"#9ca3af"],["SmartyHub profit",Math.max(a.net,0),"#2E7D32"]];
+  const bar=a.rev>0?`<div class="mt-3 flex h-4 overflow-hidden rounded-full bg-neutral-100">${parts.map(([l,v,col])=>v>0?`<span title="${l}" style="width:${v/a.rev*100}%;background:${col}"></span>`:"").join("")}</div>
+  <div class="mt-3 space-y-1.5 text-sm">${parts.map(([l,v,col])=>`<div class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-full" style="background:${col}"></span>${l}</span><span><b>${R0(l==="SmartyHub profit"?a.net:v)}</b> <span class="text-xs text-neutral-500">${(((l==="SmartyHub profit"?a.net:v)/a.rev)*100).toFixed(0)}%</span></span></div>`).join("")}</div>`:'<p class="mt-3 text-sm text-neutral-500">No sales in this period yet.</p>';
+  const f=a.f,s=a.s;
+  return `${w}<div class="grid grid-cols-2 gap-2">${card("Revenue",R0(a.rev),a.n+" order"+(a.n===1?"":"s")+" · avg "+R0(aov))}${card("SmartyHub profit",R0(a.net),mg.toFixed(0)+"% margin · "+R0(ppo)+" per order",a.net<0?"text-red-600":"text-g2")}${card("Vendor payments",R0(a.vend))}${card("Delivery (riders)",R0(a.rid))}${card("Gateway fees",R0(a.gw),c.autoFrom?"from "+c.autoFrom:"set go-live date in Settings")}${card("Packaging & sachets",R0(a.pack))}</div>
+  <div class="mt-3 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Where each ₦ goes</h2><p class="text-xs text-neutral-500">The hidden split behind every customer price</p>${bar}</div>
+  ${finChart(L)}
+  <div class="mt-3 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Food vs supplements</h2><div class="mt-2 grid grid-cols-2 gap-2 text-sm">
+   <div class="rounded-xl bg-orange-50 p-3"><p class="font-bold text-orange-800">Food</p><p>${f.n} orders</p><p>Revenue <b>${R0(f.rev)}</b></p><p>Profit <b class="${f.net<0?"text-red-600":""}">${R0(f.net)}</b></p></div>
+   <div class="rounded-xl bg-blue-50 p-3"><p class="font-bold text-blue-800">Supplements</p><p>${s.n} orders</p><p>Revenue <b>${R0(s.rev)}</b></p><p>Profit <b class="${s.net<0?"text-red-600":""}">${R0(s.net)}</b></p></div></div></div>
+  <button class="btn mt-3 w-full border border-neutral-300 bg-white" onclick="finCsv()">Download this period (CSV)</button>`;
+}
+function finChart(L){
+  if(FP==="today"||!L.length)return"";
+  const by={};L.forEach(({o,c})=>{const k=dk(new Date(o.created_at));(by[k]=by[k]||{rev:0,net:0});by[k].rev+=c.amt;by[k].net+=c.net});
+  const keys=Object.keys(by).sort(),today=new Date();let st=fstart()||new Date(keys[0]+"T00:00:00");const lim=new Date(today.getFullYear(),today.getMonth(),today.getDate()-29);if(st<lim)st=lim;
+  const days=[];for(let d=new Date(st.getFullYear(),st.getMonth(),st.getDate());d<=today;d.setDate(d.getDate()+1)){const k=dk(d);days.push({k,...(by[k]||{rev:0,net:0})})}
+  if(days.length<2)return"";
+  const W=320,H=120,P=12,max=Math.max(1,...days.map(x=>x.rev)),min=Math.min(0,...days.map(x=>x.net)),y=v=>P+(H-2*P)*(1-(v-min)/(max-min)),z=y(0),bw=W/days.length;
+  const bars=days.map((x,i)=>{const X=i*bw+bw*.12,w=bw*.76;return `<rect x="${X}" y="${y(x.rev)}" width="${w}" height="${Math.max(0,z-y(x.rev))}" fill="#bbf7d0"><title>${x.k}: ${R0(x.rev)}</title></rect><rect x="${X}" y="${x.net>=0?y(x.net):z}" width="${w}" height="${Math.abs(y(x.net)-z)}" fill="${x.net>=0?"#2E7D32":"#dc2626"}"><title>${x.k} profit: ${R0(x.net)}</title></rect>`}).join("");
+  return `<div class="mt-3 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Daily revenue and profit</h2><svg viewBox="0 0 ${W} ${H}" class="mt-2 w-full">${bars}<line x1="0" x2="${W}" y1="${z}" y2="${z}" stroke="#d4d4d4" stroke-width=".5"/></svg><div class="flex justify-between text-[10px] text-neutral-500"><span>${days[0].k}</span><span><span style="color:#86efac">■</span> revenue <span style="color:#2E7D32">■</span> profit</span><span>${days[days.length-1].k}</span></div></div>`;
+}
+
+function finPay(){
+  const L=fbasis().filter(x=>x.o.status==="delivered");FPAY=[];
+  const grp=(kind)=>{const m={};L.forEach(x=>{const nm=(kind==="v"?x.o.kitchen:x.o.rider)||"Unassigned";const g=m[nm]=m[nm]||{kind,name:nm,owed:0,list:[],paid:0,auto:0,n:0};g.n++;const amt=kind==="v"?x.c.vend:x.c.rid,set=kind==="v"?x.c.vSet:x.c.rSet,au=kind==="v"?x.c.vAuto:x.c.rAuto;if(au)g.auto+=amt;else if(set)g.paid+=amt;else{g.owed+=amt;g.list.push(x.o.id)}});return Object.values(m).sort((a,b)=>b.owed-a.owed)};
+  const V=grp("v"),R=grp("r"),tv=V.reduce((s,g)=>s+g.owed,0),tr=R.reduce((s,g)=>s+g.owed,0);
+  const row=g=>{const i=FPAY.push(g)-1;return `<div class="rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(g.name)}</p><p class="text-xs text-neutral-500">${g.n} delivered · paid ${R0(g.paid)}${g.auto?" · auto-split "+R0(g.auto):""}</p></div><div class="text-right"><p class="text-[11px] font-bold uppercase text-neutral-500">Owed</p><p class="text-lg font-extrabold ${g.owed>0?"text-amber-700":"text-g2"}">${R0(g.owed)}</p></div></div>
+  ${g.owed>0&&g.name!=="Unassigned"?`<button class="btn mt-3 w-full bg-g2 text-white" onclick="finPayAll(${i})">Mark ${g.list.length} order${g.list.length>1?"s":""} paid</button>`:g.name==="Unassigned"&&g.owed>0?'<p class="mt-2 text-xs text-amber-800">Assign these orders to a '+(g.kind==="v"?"kitchen or supplier":"rider")+" in the Orders tab first.</p>":""}</div>`};
+  return `<div class="grid grid-cols-2 gap-2">${card("Owed to vendors",R0(tv),"delivered, not yet paid",tv>0?"text-amber-700":"")}${card("Owed to riders",R0(tr),"delivered, not yet paid",tr>0?"text-amber-700":"")}</div>
+  <h2 class="mb-2 mt-4 font-extrabold">Vendors &amp; suppliers</h2><div class="space-y-2">${V.length?V.map(row).join(""):'<p class="py-4 text-center text-sm text-neutral-500">No delivered orders in this period.</p>'}</div>
+  <h2 class="mb-2 mt-4 font-extrabold">Riders</h2><div class="space-y-2">${R.length?R.map(row).join(""):'<p class="py-4 text-center text-sm text-neutral-500">No delivered orders in this period.</p>'}</div>
+  <p class="mt-3 text-xs text-neutral-500">Orders after your auto-split go-live date that are marked paid count as settled by the gateway, so they never show as owed.</p>`;
+}
+async function finPayAll(i){
+  const g=FPAY[i];if(!g||!confirm(`Mark ${g.list.length} order(s) as paid to ${g.name} (${R0(g.owed)})?`))return;
+  const now=new Date().toISOString(),k=g.kind==="v"?"vendor":"rider",rows=g.list.map(id=>({order_id:String(id),[k+"_paid"]:true,[k+"_paid_at"]:now}));
+  const {error}=await sb.from("order_finance").upsert(rows,{onConflict:"order_id"});if(error)return toast("Failed: "+error.message);
+  rows.forEach(r=>{FIN.rows[r.order_id]={...(FIN.rows[r.order_id]||{}),...r}});draw();toast("Marked paid")
+}
+
+function finLed(){
+  const L=fbasis();if(!L.length)return '<p class="py-10 text-center text-neutral-500">No orders in this period.</p>';
+  return `<div class="space-y-3">${L.slice(0,100).map(({o,c})=>`<div class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+  <div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(o.ref)} <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${c.sp?"bg-blue-100 text-blue-800":"bg-orange-100 text-orange-800"}">${c.sp?"Supplements":"Food"}</span>${c.auto?' <span class="rounded-full bg-purple-100 px-2 py-0.5 text-[11px] font-bold text-purple-800">Auto-split</span>':""}${o.payment_status==="paid"?"":' <span class="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-bold">Unpaid</span>'}</p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})} · ${esc(o.zone||"")}</p></div><p class="font-extrabold">${R0(c.amt)}</p></div>
+  <div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-sm"><span>Vendor${c.vSet?" ✓":""}</span><b class="text-right">${R0(c.vend)}</b><span>Rider${c.rSet?" ✓":""}</span><b class="text-right">${R0(c.rid)}</b><span>Gateway fee</span><b class="text-right">${R0(c.gw)}</b><span>Packaging</span><b class="text-right">${R0(c.pack)}</b><span class="font-bold text-g2">SmartyHub keeps</span><b class="text-right ${c.net<0?"text-red-600":"text-g2"}">${R0(c.net)}</b></div>
+  ${c.miss.length?`<p class="mt-1 text-xs text-amber-700">⚠ No vendor cost for: ${esc(c.miss.join(", "))}</p>`:""}${c.missRider?'<p class="mt-1 text-xs text-amber-700">⚠ No rider pay set for this zone</p>':""}
+  <button class="btn mt-2 border border-neutral-300" onclick="finEdit('${o.id}')">Edit split</button></div>`).join("")}</div>${L.length>100?'<p class="mt-2 text-center text-xs text-neutral-500">Showing the latest 100. Use the CSV for everything.</p>':""}`;
+}
+function finEdit(id){
+  const o=FIN.orders.find(x=>String(x.id)===String(id)),c=fcalc(o),F=c.F;FE=String(id);
+  const inp=(n,l,v,ph)=>`<label>${l}</label><input name="${n}" type="number" min="0" step="any" inputmode="decimal" value="${v==null?"":v}" placeholder="Auto: ${R0(ph)}"/>`;
+  $("#sheet").innerHTML=`<div class="scrim fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4" onclick="if(event.target===this)closeSheet()">
+  <form id="ff" onsubmit="event.preventDefault();finOrdSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+  <div class="flex items-center justify-between px-5 py-3"><h2 class="text-lg font-extrabold">Split for ${esc(o.ref)} · ${R0(c.amt)}</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
+  <div class="overflow-y-auto px-5 pb-4"><p class="text-xs text-neutral-500">Leave a box empty to use the automatic number. Fill it in to record what really happened.</p>
+  ${inp("vc","Vendor cost (₦)",F.vendor_cost,c.vend)}${inp("rc","Rider pay (₦)",F.rider_cost,c.rid)}${inp("gf","Gateway fee (₦)",F.gateway_fee,c.gw)}${inp("pk","Packaging & sachet (₦)",F.packaging_cost,c.pack)}
+  <label>Gateway reference (Paystack / Flutterwave)</label><input name="gr" value="${esc(F.gateway_ref||"")}"/>
+  <label class="flex items-center gap-2"><input type="checkbox" name="vp" style="width:auto" ${F.vendor_paid?"checked":""}/> Vendor paid</label>
+  <label class="flex items-center gap-2"><input type="checkbox" name="rp" style="width:auto" ${F.rider_paid?"checked":""}/> Rider paid</label>
+  <label>Note</label><input name="nt" value="${esc(F.note||"")}"/></div>
+  <div class="flex gap-2 border-t border-neutral-100 px-5 py-3"><button type="button" class="btn border border-neutral-300" onclick="closeSheet()">Cancel</button><button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div></form></div>`;
+}
+async function finOrdSave(){
+  const f=$("#ff"),id=FE,prev=FIN.rows[id]||{},num=n=>{const v=f[n].value.trim();return v===""||isNaN(+v)?null:Math.max(0,+v)},now=new Date().toISOString();
+  const rec={order_id:id,vendor_cost:num("vc"),rider_cost:num("rc"),gateway_fee:num("gf"),packaging_cost:num("pk"),gateway_ref:f.gr.value.trim()||null,vendor_paid:f.vp.checked,rider_paid:f.rp.checked,vendor_paid_at:f.vp.checked?(prev.vendor_paid_at||now):null,rider_paid_at:f.rp.checked?(prev.rider_paid_at||now):null,note:f.nt.value.trim()||null,updated_at:now};
+  const {error}=await sb.from("order_finance").upsert(rec,{onConflict:"order_id"});if(error)return toast("Save failed: "+error.message);
+  FIN.rows[id]=rec;closeSheet();draw();toast("Saved")
+}
+
+function fsuggest(cost,rider,pack,c){const t=Math.min(.9,c.target/100),K=cost+rider+pack;let S=K/(1-t);for(let i=0;i<30;i++)S=(K+gwFee(S,c))/(1-t);return Math.ceil(S/50)*50}
+function finPrice(){
+  const c=fcfg(),rs=Object.values(c.rider).map(Number).filter(v=>v>0),rider=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:0;
+  const items=[...(D.eats||[]).filter(x=>!x.soon).map(x=>({x,food:1})),...(D.supps||[]).map(x=>({x,food:0}))];FPR=items.map(i=>i.x.n);
+  const rows=items.map(({x,food},i)=>{const k=c.costs[x.n],has=k!=null&&k!=="",pack=(food?+c.packFood+ +c.sachet:+c.packSupp);
+    let line='<p class="mt-1 text-xs text-neutral-500">Enter what the vendor charges you per unit.</p>';
+    if(has){const rd=c.deliv[x.n]!=null&&c.deliv[x.n]!==""?+c.deliv[x.n]:rider,g=gwFee(x.p,c),pr=x.p-(+k)-rd-pack-g,sug=fsuggest(+k,rd,pack,c);line=`<p class="mt-1 text-sm">Profit on a single-item order: <b class="${pr<0?"text-red-600":"text-g2"}">${R0(pr)}</b> · Price for ${c.target}% margin: <b>${R0(sug)}</b>${x.p<sug?` <span class="text-xs font-bold text-amber-700">(raise ${R0(sug-x.p)})</span>`:""}</p>`}
+    return `<div class="rounded-2xl bg-white p-3 shadow-sm"><div class="flex items-center justify-between gap-2"><div class="min-w-0"><p class="truncate font-bold">${esc(x.n)}</p><p class="text-xs text-neutral-500">Customer price (delivery included) <b>${R0(x.p)}</b></p></div><div class="w-28 shrink-0"><label class="!mt-0">Vendor cost ₦</label><input type="number" min="0" step="any" inputmode="decimal" value="${has?k:""}" onchange="finCost(${i},this.value)"/></div></div>${line}</div>`}).join("");
+  return `<div class="rounded-2xl bg-green-50 p-3 text-sm text-g1">With delivery included, every order carries the rider's pay, the gateway fee and packaging. Single-item orders are where you can lose money, so check each product here.${rider?` Using average rider pay of <b>${R0(rider)}</b>.`:' <b>Add rider pay per zone in Settings for accurate numbers.</b>'}</div><div class="mt-3 space-y-2">${rows}</div>`;
+}
+async function finCost(i,v){const c=fcfg(),n=FPR[i];v=String(v).trim();if(v===""||isNaN(+v))delete c.costs[n];else c.costs[n]=Math.max(0,+v);if(await finSaveCfg(c)){draw();toast("Saved")}}
+
+function finSettings(){
+  const c=fcfg(),n=(k,l,v,st)=>`<label>${l}</label><input name="${k}" type="number" min="0" step="${st||"any"}" inputmode="decimal" value="${v??""}"/>`;
+  return `<form onsubmit="event.preventDefault();finSetSave(this)">
+  <div class="blk"><h3>Auto-split go-live</h3><label>Date online auto-split payments started</label><input name="autoFrom" type="date" value="${esc(c.autoFrom||"")}"/><p class="mt-1 text-xs text-neutral-500">From this date, orders marked paid count as settled by the gateway (vendors and riders are not shown as owed) and gateway fees are counted. Leave empty until it is live.</p></div>
+  <div class="blk"><h3>Gateway fee</h3>${n("gwPct","Percentage (%)",c.gwPct)}${n("gwFlat","Flat fee (₦)",c.gwFlat)}${n("gwMin","Flat fee applies from order total (₦)",c.gwMin)}${n("gwCap","Maximum fee per transaction (₦)",c.gwCap)}<p class="mt-1 text-xs text-neutral-500">Defaults match Paystack Nigeria local payments: 1.5% + ₦100, with the ₦100 waived under ₦2,500 and a ₦2,000 cap. Check your own gateway rate.</p></div>
+  <div class="blk"><h3>Packaging per order</h3>${n("packFood","Food order packaging (₦)",c.packFood)}${n("packSupp","Supplement order packaging (₦)",c.packSupp)}${n("sachet","Free vitamin sachet cost (₦, food orders)",c.sachet)}</div>
+  <div class="blk"><h3>What you pay riders, per zone</h3>${(D.zones||[]).map(z=>`<label>${esc(z.name)} (₦)</label><input name="rz" data-z="${esc(z.name)}" type="number" min="0" step="50" inputmode="numeric" value="${c.rider[z.name]??""}"/>`).join("")||'<p class="text-xs text-neutral-500">Add delivery zones first under Delivery &amp; Partners.</p>'}</div>
+  <div class="blk"><h3>Pricing target</h3>${n("target","Target profit margin (%)",c.target)}</div>
+  <button class="btn mt-4 w-full bg-g2 py-3 text-white">Save settings</button></form>`;
+}
+async function finSetSave(f){
+  const c=fcfg(),g=k=>{const v=f[k].value.trim();return v===""||isNaN(+v)?FD[k]:Math.max(0,+v)};
+  ["gwPct","gwFlat","gwMin","gwCap","packFood","packSupp","sachet","target"].forEach(k=>c[k]=g(k));c.autoFrom=f.autoFrom.value||"";
+  c.rider={};f.querySelectorAll('input[name="rz"]').forEach(i=>{if(i.value.trim()!==""&&!isNaN(+i.value))c.rider[i.dataset.z]=Math.max(0,+i.value)});
+  if(await finSaveCfg(c)){draw();toast("Saved")}
+}
+async function finSaveCfg(cfg){const {error}=await sb.from("fin_store").upsert({key:"cfg",value:cfg,updated_at:new Date().toISOString()},{onConflict:"key"});if(error){toast("Save failed: "+error.message);return false}FIN.cfg=cfg;return true}
+async function finInclusive(){
+  if(!confirm("Set every delivery zone fee to ₦0 for customers? Your current fees are saved as what you pay riders (you can edit them in Settings)."))return;
+  const c=fcfg();(D.zones||[]).forEach(z=>{if(typeof z.fee==="number"&&z.fee>0&&c.rider[z.name]==null)c.rider[z.name]=z.fee});
+  if(!await finSaveCfg(c))return;
+  const zones=(D.zones||[]).map(z=>({...z,fee:0}));if(await setting("zones",zones)){D.zones=zones;draw();toast("Delivery is now included for customers")}
+}
+function finCsv(){
+  const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"',H=["Ref","Date","Type","Zone","Kitchen/Supplier","Rider","Status","Payment","Revenue","Vendor","Rider pay","Gateway fee","Packaging","SmartyHub profit"];
+  const R=fbasis().map(({o,c})=>[o.ref,new Date(o.created_at).toISOString(),c.sp?"Supplements":"Food",o.zone,o.kitchen,o.rider,o.status,o.payment_status,c.amt,c.vend,c.rid,Math.round(c.gw*100)/100,c.pack,Math.round(c.net*100)/100]);
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([[H,...R].map(r=>r.map(q).join(",")).join("\n")],{type:"text/csv"}));a.download="smartyhub-finance-"+FP+".csv";a.click()
+}
+function finSql(email){const e=String(email||"").replace(/'/g,"''");return `-- SmartyHub finance: private tables, admin only. Run once.
+create or replace function public.fin_admin() returns boolean language sql stable as $$
+  select lower(coalesce(auth.jwt()->>'email','')) = lower('${e}')
+$$;
+create table if not exists public.fin_store(key text primary key, value jsonb not null default '{}'::jsonb, updated_at timestamptz default now());
+create table if not exists public.order_finance(
+  order_id text primary key, vendor_cost numeric, rider_cost numeric, gateway_fee numeric, packaging_cost numeric,
+  gateway_ref text, vendor_paid boolean not null default false, rider_paid boolean not null default false,
+  vendor_paid_at timestamptz, rider_paid_at timestamptz, note text, updated_at timestamptz default now());
+alter table public.fin_store enable row level security;
+alter table public.order_finance enable row level security;
+drop policy if exists fin_store_admin on public.fin_store;
+drop policy if exists order_finance_admin on public.order_finance;
+create policy fin_store_admin on public.fin_store for all to authenticated using (public.fin_admin()) with check (public.fin_admin());
+create policy order_finance_admin on public.order_finance for all to authenticated using (public.fin_admin()) with check (public.fin_admin());
+revoke all on public.fin_store, public.order_finance from anon;
+grant select, insert, update, delete on public.fin_store, public.order_finance to authenticated;
+notify pgrst, 'reload schema';`}
+function finSetup(){
+  return `<div class="rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">One-time setup (2 minutes)</h2>
+  <p class="mt-2 text-sm text-neutral-600">Your finance numbers (vendor costs, rider pay, profit) must be stored privately. Your site's normal settings can be read by anyone, so they are kept in two new locked tables that only your admin login can open.</p>
+  <ol class="mt-3 list-decimal space-y-1 pl-5 text-sm"><li>Tap <b>Copy SQL</b></li><li>Open Supabase, then <b>SQL Editor</b>, paste it and tap <b>Run</b></li><li>Come back here and tap <b>I have run it</b></li></ol>
+  <textarea id="sqlbox" readonly rows="8" class="mt-3 font-mono !text-xs" onclick="this.select()">${esc(finSql(FIN.email))}</textarea>
+  <div class="mt-3 flex gap-2"><button class="btn flex-1 bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button><button class="btn flex-1 bg-g2 py-3 text-white" onclick="finLoad()">I have run it</button></div>
+  <p class="mt-3 text-xs text-neutral-500">Access is locked to <b>${esc(FIN.email||"your admin email")}</b>.</p></div>`;
+}
+async function finCopy(){const t=$("#sqlbox");try{await navigator.clipboard.writeText(t.value);toast("Copied")}catch(e){t.select();document.execCommand("copy");toast("Copied")}}
+
 
 init();
 </script>

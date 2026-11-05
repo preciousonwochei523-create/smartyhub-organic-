@@ -130,9 +130,10 @@ const cartGroups=()=>{const f=S.cart.filter(x=>x.food),p=S.cart.filter(x=>!x.foo
 const gsub=g=>g.items.reduce((a,x)=>a+x.p*x.q,0);
 const split=()=>cartGroups().length>1;
 const couponTarget=()=>cartGroups().reduce((a,b)=>gsub(b)>gsub(a)?b:a);
-const splitNote=()=>`<div class="flex gap-3 rounded-2xl bg-amber-50 p-3 text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p><b>2 separate deliveries.</b> Your food and supplements are packed at different locations, so they will not arrive at the same time. Each delivery has its own fee.</p></div>`;
-const feeOf=z=>{const x=ZONES.find(e=>e.name===z);return x&&typeof x.fee==="number"?x.fee:0};
-const feeTxt=z=>{const x=ZONES.find(e=>e.name===z);return !x?"Pick your area":typeof x.fee==="number"?fmt(x.fee):"Confirmed on WhatsApp"};
+const splitNote=()=>`<div class="flex gap-3 rounded-2xl bg-amber-50 p-3 text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p><b>2 separate deliveries.</b> Your food and supplements are packed at different locations, so they will not arrive at the same time. Both deliveries are free.</p></div>`;
+/* All-inclusive pricing: delivery is built into every item price, so customers are never charged a separate delivery fee. */
+const feeOf=()=>0;
+const feeTxt=()=>"Free";
 /* ---------- STATE ---------- */
 let S={eco:location.hash==="#supp"?"supp":"eats",cat:"All",q:"",goal:"All",max:8000,min:0,ing:new Set(),cart:[]};
 try{S.cart=JSON.parse(localStorage.getItem("sho-cart")||"[]")}catch(e){}
@@ -200,7 +201,7 @@ function drawEats(){
       <p class="mt-1 text-sm text-neutral-500">${x.d}</p>
       ${x.showr&&x.rv>0?`<div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">(${x.rv})</span></div>`:""}
       <div class="mt-auto flex items-center justify-between pt-3">
-        <span class="font-bold">${x.soon?"":fmt(x.p)}</span>
+        <span class="font-bold">${x.soon?"":fmt(x.p)}${x.soon?"":'<span class="block text-[11px] font-semibold text-g2">Delivery included</span>'}</span>
         ${x.soon?`<span class="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold text-neutral-500">Coming soon</span>`
         :x.out?`<span class="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold text-neutral-500">Sold out</span>`
         :`<button data-a="custom" data-v="${x.id}" class="pill flex items-center gap-1 rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white shadow-[0_6px_18px_-6px_rgba(76,175,80,.9)] hover:bg-g1" aria-label="Customize and add ${x.n}"><i data-lucide="plus" class="h-4 w-4"></i>Add</button>`}
@@ -243,7 +244,7 @@ function drawSupp(){
       <h3 class="font-serif text-lg font-bold leading-tight">${x.n}</h3>
       ${x.showr&&x.rv>0?`<div class="mt-1 flex items-center gap-2">${stars(x.r)}<span class="text-xs text-neutral-400">(${x.rv})</span></div>`:""}
       <p class="mt-2 text-sm text-neutral-500">${x.d}</p>
-      <p class="mt-3 font-bold">${fmt(x.p)}</p>
+      <p class="mt-3 font-bold">${fmt(x.p)} <span class="text-[11px] font-semibold text-g2">· Delivery included</span></p>
       <div class="mt-3 flex gap-2">
         ${x.out?`<span class="flex-1 rounded-full bg-neutral-100 py-2.5 text-center text-sm font-bold text-neutral-500">Sold out</span>`:`<button data-a="addp" data-v="${x.id}" class="pill flex-1 rounded-full bg-g2 py-2.5 text-sm font-bold text-white shadow-[0_6px_18px_-6px_rgba(76,175,80,.9)] hover:bg-g1">Add to cart</button>`}
         <button data-a="qv" data-v="${x.id}" class="pill rounded-full border border-neutral-200 px-4 py-2.5 text-sm font-bold hover:border-g3">Quick view</button>
@@ -320,7 +321,7 @@ function drawCart(){
     ${hasFood?`<p class="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-semibold text-g1"><i data-lucide="gift" class="h-4 w-4"></i>Free vitamin sachet added to your order</p>`:""}
     ${split()?splitNote():""}
     <div class="flex justify-between text-lg font-bold"><span>Subtotal</span><span id="sub">${fmt(sub())}</span></div>
-    <p class="text-xs text-neutral-500">${split()?"Delivery fee is charged for each delivery and confirmed with your address.":"Delivery fee is confirmed with your address."}</p>
+    <p class="text-xs text-neutral-500">Free delivery is included in your prices. No extra charges at checkout.</p>
     <button data-a="checkout" ${S.cart.length?"":"disabled"} class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:shadow-none">Checkout</button>
   </div>`;ic();
 }
@@ -404,11 +405,11 @@ function checkout(){
   <form id="co" class="mt-4 space-y-3">
     ${F("name","Full name","text","name")}${F("phone","Phone number (WhatsApp)","tel","tel")}${F("addr","Delivery address","text","street-address")}${F("landmark","Nearest landmark or bus stop","text","off")}
     <label class="block text-sm font-semibold">Delivery area<select required name="zone" class="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 font-normal outline-none focus:border-g3"><option value="">Select your area</option>${ZONES.map(z=>`<option>${escH(z.name)}</option>`).join("")}</select></label>
-    <details class="text-sm text-neutral-600"><summary class="cursor-pointer font-semibold text-g2">Delivery areas, fees and hours</summary><div class="mt-2">${deliveryHtml()}</div></details>
+    <details class="text-sm text-neutral-600"><summary class="cursor-pointer font-semibold text-g2">Delivery areas and hours</summary><div class="mt-2">${deliveryHtml()}</div></details>
     <label class="block text-sm font-semibold">Note for your order (optional)<input name="note" class="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 font-normal outline-none focus:border-g3"/></label>
     <div class="rounded-2xl bg-green-50 p-3"><label for="cpn" class="block text-sm font-semibold">Coupon or promo code</label><div class="mt-1 flex gap-2"><input id="cpn" autocomplete="off" autocapitalize="characters" placeholder="Enter code" class="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm uppercase outline-none focus:border-g3"/><button type="button" data-a="cpn" class="pill rounded-xl bg-g2 px-4 text-sm font-bold text-white hover:bg-g1">Apply</button></div><p id="cpm" class="mt-1 text-xs"></p></div>
     ${split()?splitNote():""}
-    <div class="space-y-1 pt-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>${fmt(sub())}</span></div><div class="flex justify-between"><span>Delivery</span><span id="fe">Pick your area</span></div><div id="dsr" class="hidden justify-between text-g2"><span id="dsl">Discount</span><span id="dsv"></span></div><div class="flex justify-between text-lg font-bold"><span>Total</span><span id="to">${fmt(sub())}</span></div></div>
+    <div class="space-y-1 pt-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>${fmt(sub())}</span></div><div class="flex justify-between"><span>Delivery</span><span id="fe" class="font-semibold text-g2">Free</span></div><div id="dsr" class="hidden justify-between text-g2"><span id="dsl">Discount</span><span id="dsv"></span></div><div class="flex justify-between text-lg font-bold"><span>Total</span><span id="to">${fmt(sub())}</span></div></div>
     <button id="pb" class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:opacity-60">Place order</button></form>`);
   if(S.pendingCode){$("#cpn").value=S.pendingCode;S.pendingCode=null;cpnApply()}
 }
@@ -421,15 +422,15 @@ async function done(d){
     const free=g.key==="food",s0=gsub(g);let ref=newRef(),fee=feeOf(d.zone),saved=false;
     while(out.some(o=>o.ref===ref))ref=newRef();
     if(C){try{const r=await fetch(C.url+"/rest/v1/rpc/place_order",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify({p:{...d,items:g.items.map(x=>({n:x.n,o:x.o||"",q:x.q,p:x.p})),subtotal:s0,sachet:free}})});
-      if(r.ok){const j=await r.json();ref=j.ref;fee=j.fee;saved=true}}catch(e){}}
+      if(r.ok){const j=await r.json();ref=j.ref;saved=true}}catch(e){}}
     let disc=0,pend=false;const cp=g.key===tg?coupon:"";
     if(saved&&(cp||AU.tok)){try{const r=await rpc("link_order",{p_ref:ref,p_phone:d.phone,p_coupon:cp||null});if(r.ok&&r.j&&r.j.ok)disc=r.j.discount||0;else if(cp){disc=CP.discount;pend=true}}catch(e){if(cp){disc=CP.discount;pend=true}}}
     else if(cp){disc=CP.discount;pend=true}
     out.push({g,ref,fee,saved,s0,disc,pend,free});
   }
   CP=null;
-  const open=feeTxt(d.zone)==="Confirmed on WhatsApp",allSaved=out.every(o=>o.saved),anyFree=out.some(o=>o.free),td=out.reduce((a,o)=>a+o.disc,0),T=o=>Math.max(0,o.s0+o.fee-o.disc);
-  const sec=o=>`*${o.g.label.toUpperCase()} ORDER ${o.ref}*\n${o.g.items.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n")}\nSubtotal: ${fmt(o.s0)}\nDelivery (${d.zone}): ${open?"to be confirmed":fmt(o.fee)}${o.disc?`\nCoupon ${coupon}: -${fmt(o.disc)}${o.pend?" (please confirm)":""}`:""}\nTotal: ${fmt(T(o))}${open?" + delivery":""}`;
+  const open=false,allSaved=out.every(o=>o.saved),anyFree=out.some(o=>o.free),td=out.reduce((a,o)=>a+o.disc,0),T=o=>Math.max(0,o.s0+o.fee-o.disc);
+  const sec=o=>`*${o.g.label.toUpperCase()} ORDER ${o.ref}*\n${o.g.items.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n")}\nSubtotal: ${fmt(o.s0)}\nDelivery (${d.zone}): Free${o.disc?`\nCoupon ${coupon}: -${fmt(o.disc)}${o.pend?" (please confirm)":""}`:""}\nTotal: ${fmt(T(o))}`;
   const msg=`Hi SmartyHub Organic, new ${multi?"orders":"order "+out[0].ref}\n\n${out.map(sec).join("\n\n")}\n\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}${multi?"\n\nI understand my food and supplements will arrive separately.":""}`;
   S.cart=[];save();badge();
   const title=multi?(allSaved?"Your 2 orders are received":"Your 2 orders are ready to send"):(allSaved?"Order "+out[0].ref+" received":"Order "+out[0].ref+" is ready to send");
@@ -540,7 +541,7 @@ function drawMenu(){
   <div class="flex-1 overflow-y-auto px-3 py-4">
     <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in with your phone number to follow your delivery and unlock member offers.</p>${signBtns("")}`}</div>
     ${L("eats","food","Breakfast &amp; Eats")}${L("supp","leaf","Supplements")}
-    ${L("orders","box","My orders",u?"Track your delivery":"Log in to track your delivery")}${L("offers","tag","Offers &amp; coupons",u?"Promo codes and member deals":"Log in to see offers")}${L("dinfo","truck","Delivery &amp; hours","Areas, fees and times")}${L("menus","img","Printed menus")}
+    ${L("orders","box","My orders",u?"Track your delivery":"Log in to track your delivery")}${L("offers","tag","Offers &amp; coupons",u?"Promo codes and member deals":"Log in to see offers")}${L("dinfo","truck","Delivery &amp; hours","Free delivery, areas and times")}${L("menus","img","Printed menus")}
     <div class="my-3 border-t border-neutral-100"></div>
     ${L("wa","chat","Chat on WhatsApp")}${L("ig","insta","Instagram")}
   </div>
@@ -549,7 +550,7 @@ function drawMenu(){
 
 /* delivery info */
 function deliveryHtml(){
-  const z=ZONES.map(x=>`<li class="flex justify-between gap-3 border-b border-neutral-100 py-2"><span>${escH(x.name)}</span><span class="font-semibold">${typeof x.fee==="number"?fmt(x.fee):"Confirmed on WhatsApp"}</span></li>`).join("");
+  const z=ZONES.map(x=>`<li class="flex justify-between gap-3 border-b border-neutral-100 py-2"><span>${escH(x.name)}</span><span class="font-semibold">Free delivery</span></li>`).join("");
   const row=(t,v)=>v?`<div class="rounded-2xl bg-neutral-50 p-3 text-sm"><p class="font-bold">${t}</p><p class="whitespace-pre-line text-neutral-600">${escH(v)}</p></div>`:"";
   return `<ul class="text-sm">${z}</ul><div class="mt-3 space-y-2">${row("Opening hours",INFO.hours)}${row("Order cut-off",INFO.cutoff)}${row("Good to know",INFO.note)}</div>`;
 }
@@ -657,8 +658,8 @@ function reorder(n){
 
 /* coupons */
 function tot(){
-  const z=($("#co")&&$("#co").zone&&$("#co").zone.value)||"",fee=feeOf(z),dis=CP?CP.discount:0,n=cartGroups().length||1,num=ZONES.some(e=>e.name===z&&typeof e.fee==="number");
-  $("#fe").textContent=n>1&&num?fmt(fee*n)+" ("+n+" deliveries)":feeTxt(z);$("#to").textContent=fmt(Math.max(0,sub()+fee*n-dis));
+  const dis=CP?CP.discount:0;
+  $("#fe").textContent="Free";$("#to").textContent=fmt(Math.max(0,sub()-dis));
   const r=$("#dsr");if(r){r.classList.toggle("hidden",!CP);r.classList.toggle("flex",!!CP);if(CP){$("#dsl").textContent="Discount ("+CP.code+")";$("#dsv").textContent="−"+fmt(CP.discount)}}
 }
 async function cpnApply(){
