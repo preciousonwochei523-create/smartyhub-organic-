@@ -119,7 +119,7 @@ function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
   $("#main").innerHTML=tab==="cust"?custView():tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
 }
-function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();if(t==="cust")custInit();scrollTo(0,0)}
+function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();if(t==="cust")custInit();if(t==="ops")bankLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
 function listView(k){
   const L=D[k].filter(x=>(x.n+(x.b||"")+(x.cat||x.g||"")).toLowerCase().includes(q.toLowerCase()));
@@ -550,13 +550,13 @@ const PT={kitchens:"kitchen",suppliers:"supplement supplier",riders:"rider",zone
 function opsView(){
   const sec=(k,title,sub,btn,body)=>`<div class="${k==="kitchens"?"":"mt-4 "}rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-center justify-between gap-2"><h2 class="font-extrabold">${title}</h2><button class="btn shrink-0 bg-g2 text-white" onclick="pEdit('${k}',-1)">+ ${btn}</button></div><p class="mt-1 text-xs text-neutral-500">${sub}</p><div class="mt-3 space-y-2">${body||'<p class="rounded-xl border border-dashed border-neutral-300 py-6 text-center text-sm text-neutral-500">Nothing added yet</p>'}</div></div>`;
   const row=(k,i,t,s)=>`<button onclick="pEdit('${k}',${i})" class="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-3 text-left"><div class="min-w-0"><p class="truncate font-bold">${t}</p><p class="truncate text-xs text-neutral-500">${s}</p></div><span class="shrink-0 text-neutral-400">›</span></button>`;
-  const kit=D.kitchens.map((x,i)=>row("kitchens",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
-  const sup=D.suppliers.map((x,i)=>row("suppliers",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):""))).join("");
-  const rid=D.riders.map((x,i)=>row("riders",i,esc(x.name),esc(x.phone)+(x.zone?" · "+esc(x.zone):""))).join("");
+  const kit=D.kitchens.map((x,i)=>row("kitchens",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):"")+bkTag("kitchens",x.name))).join("");
+  const sup=D.suppliers.map((x,i)=>row("suppliers",i,esc(x.name),esc(x.phone)+(x.address?" · "+esc(x.address):"")+bkTag("suppliers",x.name))).join("");
+  const rid=D.riders.map((x,i)=>row("riders",i,esc(x.name),esc(x.phone)+(x.zone?" · "+esc(x.zone):"")+bkTag("riders",x.name))).join("");
   const zon=D.zones.map((x,i)=>row("zones",i,esc(x.name),x.fee>0?fmt(x.fee)+" charged to customer":"Free for customer (delivery included)")).join("");
   return sec("kitchens","Partner kitchens","Receive the order on WhatsApp. Their address goes to the rider as the pickup point.","Add kitchen",kit)
    +sec("suppliers","Supplement suppliers","Where supplement orders are picked up. They receive the order on WhatsApp, and their address goes to the rider as the pickup point.","Add supplier",sup)
-   +sec("riders","Riders","Receive pickup (kitchen) and delivery (customer) details on WhatsApp.","Add rider",rid)
+   +sec("riders","Riders","Receive pickup (kitchen) and delivery (customer) details on WhatsApp. Open a rider to add their bank details for auto-split.","Add rider",rid)
    +sec("zones","Delivery zones","Customers get free delivery (it is built into item prices), so keep zone fees at 0. Set what you pay riders under Finance, Settings.","Add zone",zon)
    +`<div class="mt-4 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Hours and delivery notes</h2><p class="mt-1 text-xs text-neutral-500">Shown to customers under Menu, Delivery and hours, and at checkout. Leave a box empty to hide it.</p>
    <form onsubmit="event.preventDefault();infoSave(this)"><label>Opening hours</label><textarea name="hours" rows="2" placeholder="e.g. Monday to Saturday, 7am to 8pm">${esc((D.info||{}).hours||"")}</textarea><label>Order cut-off</label><input name="cutoff" value="${esc((D.info||{}).cutoff||"")}" placeholder="e.g. Breakfast orders close at 9pm the night before"/><label>Good to know</label><textarea name="note" rows="2" placeholder="e.g. Delivery times can vary in heavy traffic">${esc((D.info||{}).note||"")}</textarea><button class="btn mt-3 w-full bg-g2 py-3 text-white">Save hours and notes</button></form></div>`;
@@ -573,23 +573,23 @@ function pEdit(k,i){
   <form id="pf" onsubmit="event.preventDefault();pSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
   <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-neutral-300 sm:hidden"></div>
   <div class="flex items-center justify-between px-5 py-3"><h2 class="text-lg font-extrabold">${i>=0?"Edit":"Add"} ${PT[k]}</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
-  <div class="overflow-y-auto px-5 pb-4">${blocks}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
+  <div class="overflow-y-auto px-5 pb-4">${blocks}${k==="zones"?"":i>=0?`<div id="bkblock">${bankBlock(k,x.name)}</div>`:'<p class="mt-3 text-xs text-neutral-500">Save first, then open this partner again to add their bank details for auto-split.</p>'}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
   <div class="flex gap-2 border-t border-neutral-100 px-5 py-3">${i>=0?'<button type="button" class="btn border border-red-300 text-red-600" onclick="pDel()">Delete</button>':'<button type="button" class="btn border border-neutral-300" onclick="closeSheet()">Cancel</button>'}<button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div></form></div>`;
 }
 async function pSave(){
-  const f=$("#pf"),name=f.name.value.trim(),arr=[...D[PK]];let rec;
+  const f=$("#pf"),name=f.name.value.trim(),arr=[...D[PK]],oldName=PI>=0&&PK!=="zones"?D[PK][PI].name:null;let rec;
   if(D[PK].some((x,i)=>i!==PI&&x.name.toLowerCase()===name.toLowerCase()))return toast("That name already exists");
   if(PK==="zones"){const v=f.fee.value.trim();rec={name,fee:v===""?null:Math.max(0,Math.round(+v)||0)}}
   else{const phone=f.phone.value.trim();if(wn(phone).length<11)return toast("Enter a valid WhatsApp number, e.g. 08012345678");
     rec=(PK==="kitchens"||PK==="suppliers")?{name,phone,address:f.address.value.trim()}:{name,phone,zone:f.zone.value.trim()}}
   PI>=0?arr[PI]=rec:arr.push(rec);
   const btn=f.querySelector("button.flex-1");btn.disabled=true;btn.textContent="Saving…";
-  if(await setting(PK,arr)){D[PK]=arr;closeSheet();draw();toast("Saved")}else{btn.disabled=false;btn.textContent="Save"}
+  if(await setting(PK,arr)){D[PK]=arr;if(oldName&&oldName!==name)await bankRename(PK,oldName,name);closeSheet();draw();toast("Saved")}else{btn.disabled=false;btn.textContent="Save"}
 }
 async function pDel(){
   if(!confirm("Delete this "+PT[PK]+"?"))return;
-  const arr=D[PK].filter((_,i)=>i!==PI);
-  if(await setting(PK,arr)){D[PK]=arr;closeSheet();draw();toast("Deleted")}
+  const arr=D[PK].filter((_,i)=>i!==PI),gone=PK!=="zones"?D[PK][PI].name:null;
+  if(await setting(PK,arr)){if(gone)await bankDelete(PK,gone);D[PK]=arr;closeSheet();draw();toast("Deleted")}
 }
 
 /* ---------- finance (private: needs finance-setup.sql) ---------- */
@@ -604,7 +604,7 @@ const dk=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+Strin
 function gwFee(a,c){if(!(a>0))return 0;return Math.min(c.gwCap,a*c.gwPct/100+(a>=c.gwMin?c.gwFlat:0))}
 
 async function finLoad(){
-  FIN=FIN||{cfg:{},rows:{},orders:null};FIN.err=null;FIN.setup=false;
+  FIN=FIN||{cfg:{},rows:{},orders:null};FIN.err=null;FIN.setup=false;if(BANKS===null)bankLoad();
   try{
     const s=await sb.auth.getSession();FIN.email=(s.data.session&&s.data.session.user.email)||"";
     const c=await sb.from("fin_store").select("value").eq("key","cfg").maybeSingle();if(c.error)throw c.error;
@@ -691,9 +691,9 @@ function finPay(){
   const L=fbasis().filter(x=>x.o.status==="delivered");FPAY=[];
   const grp=(kind)=>{const m={};L.forEach(x=>{const nm=(kind==="v"?x.o.kitchen:x.o.rider)||"Unassigned";const g=m[nm]=m[nm]||{kind,name:nm,owed:0,list:[],paid:0,auto:0,n:0};g.n++;const amt=kind==="v"?x.c.vend:x.c.rid,set=kind==="v"?x.c.vSet:x.c.rSet,au=kind==="v"?x.c.vAuto:x.c.rAuto;if(au)g.auto+=amt;else if(set)g.paid+=amt;else{g.owed+=amt;g.list.push(x.o.id)}});return Object.values(m).sort((a,b)=>b.owed-a.owed)};
   const V=grp("v"),R=grp("r"),tv=V.reduce((s,g)=>s+g.owed,0),tr=R.reduce((s,g)=>s+g.owed,0);
-  const row=g=>{const i=FPAY.push(g)-1;return `<div class="rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(g.name)}</p><p class="text-xs text-neutral-500">${g.n} delivered · paid ${R0(g.paid)}${g.auto?" · auto-split "+R0(g.auto):""}</p></div><div class="text-right"><p class="text-[11px] font-bold uppercase text-neutral-500">Owed</p><p class="text-lg font-extrabold ${g.owed>0?"text-amber-700":"text-g2"}">${R0(g.owed)}</p></div></div>
+  const row=g=>{const i=FPAY.push(g)-1;return `<div class="rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(g.name)}</p><p class="text-xs text-neutral-500">${g.n} delivered · paid ${R0(g.paid)}${g.auto?" · auto-split "+R0(g.auto):""}</p>${bkLine(g)}</div><div class="text-right"><p class="text-[11px] font-bold uppercase text-neutral-500">Owed</p><p class="text-lg font-extrabold ${g.owed>0?"text-amber-700":"text-g2"}">${R0(g.owed)}</p></div></div>
   ${g.owed>0&&g.name!=="Unassigned"?`<button class="btn mt-3 w-full bg-g2 text-white" onclick="finPayAll(${i})">Mark ${g.list.length} order${g.list.length>1?"s":""} paid</button>`:g.name==="Unassigned"&&g.owed>0?'<p class="mt-2 text-xs text-amber-800">Assign these orders to a '+(g.kind==="v"?"kitchen or supplier":"rider")+" in the Orders tab first.</p>":""}</div>`};
-  return `<div class="grid grid-cols-2 gap-2">${card("Owed to vendors",R0(tv),"delivered, not yet paid",tv>0?"text-amber-700":"")}${card("Owed to riders",R0(tr),"delivered, not yet paid",tr>0?"text-amber-700":"")}</div>
+  return `${bankReadyHtml()}<div class="grid grid-cols-2 gap-2">${card("Owed to vendors",R0(tv),"delivered, not yet paid",tv>0?"text-amber-700":"")}${card("Owed to riders",R0(tr),"delivered, not yet paid",tr>0?"text-amber-700":"")}</div>
   <h2 class="mb-2 mt-4 font-extrabold">Vendors &amp; suppliers</h2><div class="space-y-2">${V.length?V.map(row).join(""):'<p class="py-4 text-center text-sm text-neutral-500">No delivered orders in this period.</p>'}</div>
   <h2 class="mb-2 mt-4 font-extrabold">Riders</h2><div class="space-y-2">${R.length?R.map(row).join(""):'<p class="py-4 text-center text-sm text-neutral-500">No delivered orders in this period.</p>'}</div>
   <p class="mt-3 text-xs text-neutral-500">Orders after your auto-split go-live date that are marked paid count as settled by the gateway, so they never show as owed.</p>`;
@@ -953,6 +953,78 @@ async function bCreate(idx,quiet){
 }
 async function bAll(){let n=0;for(let i=0;i<CBL.length;i++){if(!bIssued(CBL[i])&&await bCreate(i,true))n++}draw();toast(n+" coupon"+(n===1?"":"s")+" created")}
 async function bCopy(idx){const x=CBL[idx],c=x&&bIssued(x);if(!c)return;try{await navigator.clipboard.writeText(bMsg(x,c));toast("Message copied")}catch(e){toast("Could not copy")}}
+
+/* ---------- partner payout accounts (private, for auto-split) ---------- */
+let BANKS=null,BKS=false,BKV=null,BKE="";
+const BANK_LIST=[["Access Bank","044"],["Ecobank","050"],["Fidelity Bank","070"],["First Bank","011"],["FCMB","214"],["Globus Bank","103"],["GTBank","058"],["Heritage Bank","030"],["Jaiz Bank","301"],["Keystone Bank","082"],["Kuda","50211"],["Moniepoint","50515"],["OPay","999992"],["PalmPay","999991"],["Polaris Bank","076"],["Providus Bank","101"],["Stanbic IBTC","221"],["Standard Chartered","068"],["Sterling Bank","232"],["Titan Trust Bank","102"],["UBA","033"],["Union Bank","032"],["Unity Bank","215"],["Wema Bank","035"],["Zenith Bank","057"]];
+const bkId=(k,n)=>k+":"+String(n).trim().toLowerCase();
+const bankOf=(k,n)=>(BANKS||[]).find(r=>r.id===bkId(k,n));
+const bkTag=(k,n)=>BANKS===null||BKS?"":bankOf(k,n)?(bankOf(k,n).subaccount_code?" · 🏦 auto-split ready":" · 🏦 bank saved"):" · no bank details";
+async function bankLoad(){
+  await custInit();
+  const {data,error}=await sb.from("payout_accounts").select("*");
+  if(error){BKS=/payout_accounts|schema cache|does not exist/i.test(error.message||"");BANKS=BANKS||[]}else{BANKS=data||[];BKS=false}
+  if(tab==="ops"||tab==="fin")draw()
+}
+function bankSetupSql(){const e=String(CEM||"").replace(/'/g,"''");return `create or replace function public.fin_admin() returns boolean language sql stable as $$
+  select lower(coalesce(auth.jwt()->>'email','')) = lower('${e}')
+$$;
+create table if not exists public.payout_accounts(
+  id text primary key, kind text not null, name text not null,
+  bank_code text not null, bank_name text, account_number text not null, account_name text,
+  subaccount_code text, provider text default 'paystack', updated_at timestamptz default now());
+alter table public.payout_accounts enable row level security;
+drop policy if exists payout_accounts_admin on public.payout_accounts;
+create policy payout_accounts_admin on public.payout_accounts for all to authenticated
+  using (public.fin_admin()) with check (public.fin_admin());
+revoke all on public.payout_accounts from anon;
+grant select, insert, update, delete on public.payout_accounts to authenticated;
+notify pgrst, 'reload schema';`}
+function bankBlock(k,name){
+  const r=bankOf(k,name);BKV=null;
+  if(BKS)return `<div class="blk"><h3>Bank details (private)</h3><p class="pt-2 text-xs text-amber-800">One-time setup needed. Copy this SQL, run it in Supabase, SQL Editor, then reopen this partner.</p><textarea id="sqlbox" readonly rows="6" class="mt-2 font-mono !text-xs" onclick="this.select()">${esc(bankSetupSql())}</textarea><button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button></div>`;
+  const known=r&&BANK_LIST.some(b=>b[1]===r.bank_code);
+  return `<div class="blk"><h3>Bank details for auto-split <span class="font-normal text-neutral-500">(private)</span></h3>
+  ${r?`<p class="rounded-xl bg-green-50 p-2 text-xs text-g1">✓ ${esc(r.account_name||"")} · ${esc(r.bank_name||"")} ${esc(r.account_number)}${r.subaccount_code?"<br>Payout account "+esc(r.subaccount_code):"<br>Not linked to Paystack yet"}</p>`:'<p class="pt-1 text-xs text-neutral-500">Add the account this partner is paid into. We check the name with the bank before saving.</p>'}
+  <label>Bank</label><select name="bk_bank" onchange="bkInput()"><option value="">Choose bank</option>${BANK_LIST.map(b=>`<option value="${b[1]}" ${r&&r.bank_code===b[1]?"selected":""}>${b[0]}</option>`).join("")}<option value="other" ${r&&!known?"selected":""}>Other (type bank code)</option></select>
+  <div id="bkother" class="${r&&!known?"":"hidden"}"><label>Bank code</label><input name="bk_code" inputmode="numeric" value="${r&&!known?esc(r.bank_code):""}" oninput="bkInput()" onkeydown="if(event.key==='Enter')event.preventDefault()"/></div>
+  <label>Account number</label><input name="bk_no" inputmode="numeric" maxlength="10" value="${r?esc(r.account_number):""}" placeholder="10 digits" oninput="bkInput()" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
+  <p id="bkres" class="mt-2 min-h-[1.25rem] text-sm font-semibold"></p>
+  <button type="button" id="bksave" class="btn mt-2 w-full bg-neutral-800 py-3 text-white disabled:opacity-40" disabled onclick="bkSave()">${r?"Update payout account":"Verify and save payout account"}</button></div>`;
+}
+function bkVals(){const f=$("#pf");if(!f)return null;let sel=f.bk_bank.value,code=sel==="other"?f.bk_code.value.trim():sel;return {code,no:f.bk_no.value.replace(/\D/g,""),bank:sel==="other"?"Bank "+code:(BANK_LIST.find(b=>b[1]===sel)||[""])[0]}}
+async function fnErr(error){try{if(error&&error.context&&error.context.json){const j=await error.context.json();if(j&&j.error)return j.error}}catch(e){}const m=(error&&error.message)||"";return /not found|404|Failed to send|fetch/i.test(m)?"The payout-account function is not deployed yet. See payouts-setup.md.":m||"Something went wrong"}
+async function bkInput(){
+  const f=$("#pf");if(!f)return;$("#bkother").classList.toggle("hidden",f.bk_bank.value!=="other");
+  const v=bkVals(),res=$("#bkres"),btn=$("#bksave");BKV=null;btn.disabled=true;
+  if(!v.code||v.no.length!==10){res.textContent="";return}
+  res.className="mt-2 min-h-[1.25rem] text-sm font-semibold text-neutral-500";res.textContent="Checking account…";
+  const key=v.code+v.no,{data,error}=await sb.functions.invoke("payout-account",{body:{action:"resolve",bank_code:v.code,account_number:v.no}});
+  const cur=bkVals();if(!cur||cur.code+cur.no!==key)return;
+  if(error||!data||!data.account_name){res.className="mt-2 min-h-[1.25rem] text-sm font-semibold text-red-600";res.textContent=await fnErr(error)||"Could not verify this account";return}
+  BKV={...v,name:data.account_name};res.className="mt-2 min-h-[1.25rem] text-sm font-semibold text-g2";res.textContent="✓ "+data.account_name;btn.disabled=false
+}
+async function bkSave(){
+  if(!BKV)return;const f=$("#pf"),nm=f.name.value.trim(),btn=$("#bksave"),r=bankOf(PK,nm)||(PI>=0?bankOf(PK,D[PK][PI].name):null);
+  btn.disabled=true;btn.textContent="Saving…";
+  const {data,error}=await sb.functions.invoke("payout-account",{body:{action:"save",bank_code:BKV.code,account_number:BKV.no,business_name:nm,subaccount_code:r&&r.subaccount_code||undefined}});
+  if(error||!data||!data.subaccount_code){toast(await fnErr(error)||"Could not create payout account");btn.disabled=false;btn.textContent="Verify and save payout account";return}
+  const rec={id:bkId(PK,nm),kind:PK,name:nm,bank_code:BKV.code,bank_name:BKV.bank,account_number:BKV.no,account_name:data.account_name||BKV.name,subaccount_code:data.subaccount_code,provider:"paystack",updated_at:new Date().toISOString()};
+  const up=await sb.from("payout_accounts").upsert(rec,{onConflict:"id"});
+  if(up.error){toast("Saved at Paystack but not here: "+up.error.message);btn.disabled=false;return}
+  BANKS=(BANKS||[]).filter(x=>x.id!==rec.id).concat(rec);const b=$("#bkblock");if(b)b.innerHTML=bankBlock(PK,nm);toast("Payout account saved")
+}
+async function bankRename(k,old,nu){const r=bankOf(k,old);if(!r)return;const n={...r,id:bkId(k,nu),name:nu,updated_at:new Date().toISOString()};
+  const a=await sb.from("payout_accounts").upsert(n,{onConflict:"id"});if(a.error)return;await sb.from("payout_accounts").delete().eq("id",r.id);BANKS=BANKS.filter(x=>x.id!==r.id).concat(n)}
+async function bankDelete(k,n){const r=bankOf(k,n);if(!r)return;await sb.from("payout_accounts").delete().eq("id",r.id);BANKS=BANKS.filter(x=>x.id!==r.id)}
+function bkFind(g){return (BANKS||[]).find(r=>r.name.toLowerCase()===String(g.name).toLowerCase()&&(g.kind==="v"?r.kind!=="riders":r.kind==="riders"))}
+function bkLine(g){if(BANKS===null||BKS||g.name==="Unassigned")return"";const r=bkFind(g);
+  return r?`<p class="mt-1 text-xs text-neutral-600">🏦 ${esc(r.bank_name||"")} <b>${esc(r.account_number)}</b> · ${esc(r.account_name||"")} <button type="button" class="font-bold text-g2 underline" onclick="bkCopy('${esc(r.account_number)}')">Copy</button></p>`:'<p class="mt-1 text-xs text-amber-700">No bank details yet. Add them under Delivery &amp; Partners.</p>'}
+async function bkCopy(n){try{await navigator.clipboard.writeText(n);toast("Account number copied")}catch(e){toast("Could not copy")}}
+function bankReadyHtml(){
+  if(BANKS===null||BKS)return"";const all=[...(D.kitchens||[]).map(x=>["kitchens",x.name]),...(D.suppliers||[]).map(x=>["suppliers",x.name]),...(D.riders||[]).map(x=>["riders",x.name])];
+  if(!all.length)return"";const ok=all.filter(([k,n])=>{const r=bankOf(k,n);return r&&r.subaccount_code}).length;
+  return `<div class="mb-3 rounded-2xl ${ok===all.length?"bg-green-50 text-g1":"bg-amber-50 text-amber-900"} p-3 text-sm"><b>${ok} of ${all.length}</b> partners are ready for auto-split.${ok<all.length?` <button class="underline font-bold" onclick="go('ops')">Add bank details</button>`:""}</div>`}
 
 init();
 </script>
