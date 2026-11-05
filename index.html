@@ -85,9 +85,9 @@ const WA="2348066611017", $=s=>document.querySelector(s), fmt=n=>"₦"+n.toLocal
 const SIZES={t:"Size",k:"r",c:[["Regular (500ml)",0],["Large (750ml)",300]]};
 const SPICE={t:"Spice level",k:"r",c:[["Mild",0],["Medium",0],["Hot",0]]};
 let EATS=[
- {id:"d1",img:"d1.jpg",cat:"Tiger Nut Drinks",n:"Classic Energy",p:800,i:"cup-soda",d:"Cold-pressed tiger nut, naturally sweet and filling.",o:[SIZES]},
- {id:"d2",img:"d2.jpg",cat:"Tiger Nut Drinks",n:"Honey Gold",p:1000,i:"cup-soda",d:"Tiger nut finished with natural honey.",o:[SIZES]},
- {id:"d3",img:"d3.jpg",cat:"Tiger Nut Drinks",n:"Citrus Boost",p:1200,i:"cup-soda",d:"Tiger nut with a bright citrus lift.",o:[SIZES]},
+ {id:"d1",img:"d1.jpg",cat:"Fresh Drinks & Parfait",n:"Classic Energy",p:800,i:"cup-soda",d:"Cold-pressed tiger nut, naturally sweet and filling.",o:[SIZES]},
+ {id:"d2",img:"d2.jpg",cat:"Fresh Drinks & Parfait",n:"Honey Gold",p:1000,i:"cup-soda",d:"Tiger nut finished with natural honey.",o:[SIZES]},
+ {id:"d3",img:"d3.jpg",cat:"Fresh Drinks & Parfait",n:"Citrus Boost",p:1200,i:"cup-soda",d:"Tiger nut with a bright citrus lift.",o:[SIZES]},
  {id:"b1",img:"b1.jpg",cat:"Breakfast Combos",n:"Power Start Combo",p:1800,i:"sunrise",d:"A balanced breakfast to start the day right.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
  {id:"b2",img:"b2.jpg",cat:"Breakfast Combos",n:"Sardine Energy Combo",p:2100,i:"fish",d:"Sardine-based breakfast built for a busy morning.",o:[{t:"Add a side",k:"c",c:[["Extra boiled egg",300],["Fried plantain",400],["Classic Energy tiger nut drink",800]]}]},
  {id:"b3",img:"b3.jpg",cat:"Breakfast Combos",n:"Fruits Salad Combo",p:2400,i:"salad",d:"Fresh fruit salad combo, light and refreshing.",o:[{t:"Add a side",k:"c",c:[["Honey drizzle",200],["Classic Energy tiger nut drink",800]]}]},
@@ -101,7 +101,9 @@ let EATS=[
  {id:"s7",img:"s7.jpg",cat:"Shawarma",n:"Honey Mix Beef Shawarma",p:1500,i:"sandwich",d:"Beef shawarma with a honey mix.",o:[SPICE]},
  {id:"s8",img:"s8.jpg",cat:"Shawarma",n:"Crunchy Suya Shawarma",p:0,i:"sandwich",d:"Suya spice and a crunch. On the way.",soon:1}
 ];
-let ECATS=["All","Tiger Nut Drinks","Breakfast Combos","Shawarma"];
+let ECATS=["All","Fresh Drinks & Parfait","Breakfast Combos","Shawarma"];
+/* Old category names that saved admin data may still use. They display under the new name. */
+const CAT_RENAME={"Tiger Nut Drinks":"Fresh Drinks & Parfait"};const rc=c=>CAT_RENAME[c]||c;
 /* Sample catalog: prices, ratings and reviews for items marked * are placeholders. Replace with real data. */
 let SUPP=[
  {id:"p1",n:"Vitamin C + Zinc",b:"Fidson",g:"Immunity",p:1500,dose:"1 tablet daily",r:4.6,rv:128,ing:["Vitamin C","Zinc"],i:"shield-check",d:"Immune support and faster recovery for daily use or during illness."},
@@ -174,7 +176,7 @@ function heroHTML(label,title,sub,chips){return `
 function eatsView(){return `
 ${heroHTML("Fresh breakfast delivered to your door","Fresh breakfast, delivered to your door.","Fresh drinks, yogurt parfaits, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.",["Made to order","Delivered in Lagos"])}
 ${ecoSwitch()}
-<div class="-mx-4 px-4 py-3"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
+<div class="-mx-4 px-4 py-3"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${escH(c)}" class="${pillCls(c===S.cat)}">${escH(c)}</button>`).join("")}</div></div>
 <div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div><div id="pager"></div>${eatsStory()}`}
 
 const PER=8;
@@ -755,8 +757,8 @@ async function loadCatalog(){
     if(!c){const r=await fetch("catalog.json",{cache:"no-cache"});if(r.ok)c=await r.json()}
   }catch(e){}
   if(c&&Array.isArray(c.eats)&&Array.isArray(c.supps)){
-    EATS=c.eats;SUPP=c.supps;
-    if(c.eatCats)ECATS=["All",...c.eatCats];
+    EATS=c.eats.map(x=>x&&x.cat?{...x,cat:rc(x.cat)}:x);SUPP=c.supps;
+    if(c.eatCats)ECATS=["All",...new Set(c.eatCats.map(rc))];
     if(c.suppCats)GOALS=["All",...c.suppCats];
     if(c.hero&&c.hero.length)HERO_SLIDES=c.hero;
     if(Array.isArray(c.eatStory))ESTORY=c.eatStory.filter(x=>x&&(x.title||x.text||x.img));
