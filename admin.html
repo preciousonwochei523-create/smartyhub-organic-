@@ -812,7 +812,7 @@ async function finCopy(){const t=$("#sqlbox");try{await navigator.clipboard.writ
 let CTP="",CEM="",CNEED=false,CSET="";
 const custPw=()=>{const a="abcdefghjkmnpqrstuvwxyz23456789",r=crypto.getRandomValues(new Uint8Array(8));return Array.from(r,x=>a[x%a.length]).join("")};
 async function custInit(){try{const s=await sb.auth.getSession();CEM=(s.data.session&&s.data.session.user.email)||""}catch(e){}}
-function custView(){return `<div class="blk"><h3>Reset a customer's password</h3>
+function custResetView(){return `<div class="blk"><h3>Reset a customer's password</h3>
   <p class="pt-2 text-xs text-neutral-600">A customer asked on WhatsApp? First check the message came from the phone number on their account. Enter their number, tap <b>Set password</b>, then paste the message into their chat.</p>
   <label>Customer phone</label><input id="cph" type="tel" inputmode="numeric" placeholder="08012345678" oninput="CSET='';custGen()"/><div id="cout" class="mt-3"></div></div>`}
 function custDigits(){let d=($("#cph").value||"").replace(/\D/g,"");if(d.startsWith("0"))d="234"+d.slice(1);else if(d.length===10)d="234"+d;return d.length>=11&&d.length<=15?d:""}
@@ -836,6 +836,7 @@ async function custSet(d){
 function custSetupSql(){const e=String(CEM||"").replace(/'/g,"''");return `create or replace function public.fin_admin() returns boolean language sql stable as $$
   select lower(coalesce(auth.jwt()->>'email','')) = lower('${e}')
 $$;
+
 create or replace function public.admin_set_temp_password(p_phone text, p_password text) returns integer
 language plpgsql security definer set search_path = public, extensions, auth as $$
 declare n integer;
@@ -848,12 +849,110 @@ begin
   get diagnostics n = row_count;
   return n;
 end $$;
+
+create or replace function public.admin_list_customers()
+returns table(id uuid, phone text, name text, email text, birthday text, marketing boolean, created_at timestamptz)
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not public.fin_admin() then raise exception 'not allowed'; end if;
+  return query
+    select u.id, u.phone::text,
+      coalesce(u.raw_user_meta_data->>'full_name','')::text,
+      coalesce(u.raw_user_meta_data->>'contact_email', u.email, '')::text,
+      coalesce(u.raw_user_meta_data->>'birthday','')::text,
+      coalesce(u.raw_user_meta_data->>'marketing','false') = 'true',
+      u.created_at
+    from auth.users u
+    where coalesce(u.phone,'') <> ''
+    order by u.created_at desc
+    limit 10000;
+end $$;
+
 revoke all on function public.admin_set_temp_password(text,text) from public, anon;
+revoke all on function public.admin_list_customers() from public, anon;
 grant execute on function public.admin_set_temp_password(text,text) to authenticated;
+grant execute on function public.admin_list_customers() to authenticated;
 notify pgrst, 'reload schema';`}
-function custSetupHtml(){return `<div class="rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><b>One-time setup.</b> Copy this SQL, run it in Supabase, SQL Editor, then come back and tap the button again. It lets only your admin login set customer passwords, and makes the customer choose their own new password after logging in.</div>
+function custSetupHtml(){return `<div class="rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><b>One-time setup.</b> Copy this SQL, run it in Supabase, SQL Editor, then tap "I have run it". It lets only your admin login see customer details and set temporary passwords.</div>
   <textarea id="sqlbox" readonly rows="8" class="mt-2 font-mono !text-xs" onclick="this.select()">${esc(custSetupSql())}</textarea>
-  <div class="mt-3 flex gap-2"><button class="btn flex-1 bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button><button class="btn flex-1 bg-g2 py-3 text-white" onclick="CNEED=false;custGen()">I have run it</button></div>`}
+  <div class="mt-3 flex gap-2"><button class="btn flex-1 bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button><button class="btn flex-1 bg-g2 py-3 text-white" onclick="custRun()">I have run it</button></div>`}
+
+/* ---------- customers: list, signups, birthdays ---------- */
+let CS="list",CUST=null,CQ="",CBW="7",CLOADING=false,CBL=[];
+const CMON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const BD0={kind:"fixed",value:1000,days:7,min:0,max:""};
+const bcfg=()=>{try{return {...BD0,...JSON.parse(localStorage.getItem("sh-bday")||"{}")}}catch(e){return {...BD0}}};
+const bdParse=v=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(v||"").trim());if(!m)return null;const mo=+m[1],d=+m[2];return mo>=1&&mo<=12&&d>=1&&d<=31?{m:mo,d}:null};
+const bLabel=b=>b.d+" "+CMON[b.m-1];
+const cFirst=u=>((u.name||"").trim().split(/\s+/)[0])||"there";
+const cDigits=u=>String(u.phone||"").replace(/\D/g,"");
+function bInfo(u,mode){const b=bdParse(u.birthday);if(!b)return null;const T=new Date();T.setHours(0,0,0,0);const y=T.getFullYear();let o=new Date(y,b.m-1,b.d),passed=false;
+  if(o<T){if(mode==="month"&&b.m-1===T.getMonth()){passed=true;o=T}else o=new Date(y+1,b.m-1,b.d)}
+  return {b,o,passed,du:Math.round((o-T)/864e5),year:o.getFullYear()}}
+async function custRun(){CNEED=false;CUST=null;draw()}
+async function custLoad(){
+  if(CLOADING)return;CLOADING=true;
+  const {data,error}=await sb.rpc("admin_list_customers");CLOADING=false;
+  if(error){const m=error.message||"";if(/could not find|schema cache|does not exist|function/i.test(m))CNEED=true;else{CUST=[];toast(/not allowed/i.test(m)?"Not allowed. Re-run the setup SQL with the email you sign in with.":"Could not load customers: "+m)}}
+  else CUST=data||[];
+  if(CPN===null)await cLoad();
+  if(tab==="cust")draw();
+}
+function custView(){
+  const seg=[["list","Customers"],["bday","Birthdays"],["reset","Reset password"]].map(([k,l])=>`<button class="btn shrink-0 ${CS===k?"bg-neutral-800 text-white":"border border-neutral-300 bg-white"}" onclick="CS='${k}';draw()">${l}</button>`).join("");
+  let body;
+  if(CS==="reset")body=custResetView();
+  else if(CNEED)body=custSetupHtml();
+  else if(CUST===null){custLoad();body='<p class="py-10 text-center text-neutral-500">Loading…</p>'}
+  else body=CS==="bday"?custBday():custList();
+  return `<div class="noscroll flex gap-2 overflow-x-auto">${seg}</div><div class="mt-3">${body}</div>`;
+}
+function custRows(){
+  const q=CQ.trim().toLowerCase();let d=q.replace(/\D/g,"");if(d.startsWith("0"))d=d.slice(1);
+  const L=q?CUST.filter(u=>(u.name||"").toLowerCase().includes(q)||(d&&cDigits(u).includes(d))):CUST;
+  if(!L.length)return '<p class="py-8 text-center text-sm text-neutral-500">No customers found.</p>';
+  return L.slice(0,150).map(u=>{const b=bdParse(u.birthday);return `<div class="flex items-center justify-between gap-2 rounded-2xl bg-white p-3 shadow-sm"><div class="min-w-0"><p class="truncate font-bold">${esc(u.name||"No name")}</p><p class="text-xs text-neutral-500">+${esc(cDigits(u))} · joined ${new Date(u.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</p><p class="text-xs ${b?"text-g2 font-semibold":"text-neutral-400"}">${b?"🎂 "+bLabel(b):"No birthday saved"}</p></div><a class="btn shrink-0 border border-neutral-300" target="_blank" rel="noopener" href="https://wa.me/${cDigits(u)}">Chat</a></div>`}).join("")+(L.length>150?'<p class="text-center text-xs text-neutral-500">Showing 150. Search or download the CSV for everyone.</p>':"");
+}
+function custList(){
+  const U=CUST,now=Date.now(),n7=U.filter(u=>now-new Date(u.created_at)<=7*864e5).length,n30=U.filter(u=>now-new Date(u.created_at)<=30*864e5).length,wb=U.filter(u=>bdParse(u.birthday)).length,mk=U.filter(u=>u.marketing).length,T=new Date().getMonth()+1,bm=U.filter(u=>{const b=bdParse(u.birthday);return b&&b.m===T}).length;
+  return `<div class="grid grid-cols-2 gap-2">${card("Total signups",U.length)}${card("New, last 7 days",n7,n30+" in 30 days")}${card("Birthday saved",wb,U.length?Math.round(wb/U.length*100)+"% of customers":"")}${card("Birthdays this month",bm)}${card("Agreed to offers",mk,"ticked the marketing box")}</div>
+  <input class="mt-3" type="search" placeholder="Search name or phone" value="${esc(CQ)}" oninput="CQ=this.value;$('#clist').innerHTML=custRows()"/>
+  <div id="clist" class="mt-3 space-y-2">${custRows()}</div>
+  <button class="btn mt-3 w-full border border-neutral-300 bg-white" onclick="custCsv()">Download all customers (CSV)</button>`;
+}
+function custCsv(){
+  const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"',H=["Name","Phone","Email","Birthday","Joined","Agreed to offers"];
+  const R=CUST.map(u=>{const b=bdParse(u.birthday);return [u.name,"+"+cDigits(u),u.email,b?bLabel(b):"",new Date(u.created_at).toISOString().slice(0,10),u.marketing?"yes":"no"]});
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([[H,...R].map(r=>r.map(q).join(",")).join("\n")],{type:"text/csv"}));a.download="smartyhub-customers.csv";a.click()
+}
+function bCode(first){const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789",r=crypto.getRandomValues(new Uint8Array(4));return "BDAY"+first.replace(/[^a-z]/gi,"").toUpperCase().slice(0,5)+Array.from(r,x=>a[x%a.length]).join("")}
+const bIssued=x=>(CPN||[]).find(c=>c.description==="bday:"+x.u.id+":"+x.i.year);
+const bOffer=c=>(c.kind==="percent"?c.value+"% off":fmt(c.value)+" off")+" your order"+(c.min_order?" (from "+fmt(c.min_order)+")":"");
+function bMsg(x,c){const ex=new Date(c.expires_at).toLocaleDateString("en-NG",{day:"numeric",month:"long"});return `Happy Birthday ${cFirst(x.u)}! 🎂 SmartyHub Organic has a gift for you: ${bOffer(c)}. Use code ${c.code} at checkout (log in first). Valid until ${ex}. Enjoy your day!`}
+function bcSave(){const f=$("#bcf");if(!f)return;const v={kind:f.kind.value,value:Math.max(1,+f.value.value||1),days:Math.max(1,Math.round(+f.days.value)||7),min:Math.max(0,+f.min.value||0),max:f.max.value.trim()===""?"":Math.max(0,+f.max.value||0)};if(v.kind==="percent"&&v.value>100){v.value=100;f.value.value=100}try{localStorage.setItem("sh-bday",JSON.stringify(v))}catch(e){}toast("Birthday offer saved")}
+function custBday(){
+  const c=bcfg(),T=new Date().getMonth()+1;
+  CBL=CUST.map(u=>({u,i:bInfo(u,CBW)})).filter(x=>x.i&&(CBW==="today"?x.i.du===0:CBW==="7"?x.i.du<=7:CBW==="30"?x.i.du<=30:x.i.b.m===T)).sort((a,b)=>CBW==="month"?a.i.b.d-b.i.b.d:a.i.du-b.i.du);
+  const todo=CBL.filter(x=>!bIssued(x)).length;
+  const seg=[["today","Today"],["7","Next 7 days"],["30","Next 30 days"],["month","This month"]].map(([k,l])=>`<button class="btn shrink-0 ${CBW===k?"bg-g2 text-white":"border border-neutral-300 bg-white"}" onclick="CBW='${k}';draw()">${l}</button>`).join("");
+  const rows=CBL.map((x,idx)=>{const c2=bIssued(x),when=x.i.passed?"passed this month":x.i.du===0?"today":x.i.du===1?"tomorrow":"in "+x.i.du+" days";
+    return `<div class="rounded-2xl bg-white p-3 shadow-sm"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="truncate font-bold">${esc(x.u.name||"No name")}</p><p class="text-xs text-neutral-500">+${esc(cDigits(x.u))}</p><p class="text-xs font-semibold text-g2">🎂 ${bLabel(x.i.b)} · ${when}</p></div>${c2?`<span class="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-g1">${esc(c2.code)}</span>`:`<button class="btn shrink-0 bg-g2 text-white" onclick="bCreate(${idx})">Create coupon</button>`}</div>
+    ${c2?`<div class="mt-2 flex gap-2"><button class="btn flex-1 border border-neutral-300" onclick="bCopy(${idx})">Copy message</button><a class="btn flex-1 bg-g2 text-center text-white" target="_blank" rel="noopener" href="https://wa.me/${cDigits(x.u)}?text=${encodeURIComponent(bMsg(x,c2))}">Send on WhatsApp</a></div>`:""}</div>`}).join("");
+  return `<form id="bcf" onchange="bcSave()" onsubmit="event.preventDefault()" class="blk"><h3>Birthday gift</h3><div class="grid grid-cols-2 gap-3"><div><label>Type</label><select name="kind"><option value="fixed" ${c.kind==="fixed"?"selected":""}>Fixed amount (₦)</option><option value="percent" ${c.kind==="percent"?"selected":""}>Percent (%)</option></select></div><div><label>Value</label><input name="value" type="number" min="1" value="${c.value}"/></div><div><label>Valid for (days)</label><input name="days" type="number" min="1" value="${c.days}"/></div><div><label>Minimum order (₦)</label><input name="min" type="number" min="0" value="${c.min}"/></div></div><label>Max discount (₦, optional)</label><input name="max" type="number" min="0" value="${c.max}"/><p class="mt-1 text-xs text-neutral-500">Each coupon is a one-time code made just for that customer, for signed-in members only, and hidden from the public offers list.</p></form>
+  <div class="noscroll mt-3 flex gap-2 overflow-x-auto">${seg}</div>
+  ${todo?`<button class="btn mt-3 w-full bg-neutral-800 py-3 text-white" onclick="bAll()">Create coupons for all ${todo} without one</button>`:""}
+  <div class="mt-3 space-y-2">${rows||'<p class="py-8 text-center text-sm text-neutral-500">No birthdays in this range. Customers add their birthday when they sign up (optional).</p>'}</div>`;
+}
+async function bCreate(idx,quiet){
+  const x=CBL[idx];if(!x)return false;if(CPN===null)await cLoad();if(bIssued(x)){return true}
+  const c=bcfg(),first=cFirst(x.u),o=x.i.o,exp=new Date(o.getFullYear(),o.getMonth(),o.getDate()+Math.max(1,c.days)-1,23,59,59);
+  const rec={code:bCode(first),title:"Happy Birthday "+first+"!",description:"bday:"+x.u.id+":"+x.i.year,kind:c.kind,value:Math.max(1,Math.round(+c.value)||1),min_order:Math.max(0,Math.round(+c.min)||0),max_discount:c.max===""||c.max==null?null:Math.round(+c.max),max_uses:1,expires_at:exp.toISOString(),members_only:true,show_public:false,active:true};
+  const {error}=await sb.from("coupons").insert(rec);
+  if(error){toast("Could not create coupon: "+error.message);return false}
+  (CPN=CPN||[]).unshift({...rec,used:0});if(!quiet){draw();toast("Coupon "+rec.code+" created")}return true
+}
+async function bAll(){let n=0;for(let i=0;i<CBL.length;i++){if(!bIssued(CBL[i])&&await bCreate(i,true))n++}draw();toast(n+" coupon"+(n===1?"":"s")+" created")}
+async function bCopy(idx){const x=CBL[idx],c=x&&bIssued(x);if(!c)return;try{await navigator.clipboard.writeText(bMsg(x,c));toast("Message copied")}catch(e){toast("Could not copy")}}
 
 init();
 </script>
