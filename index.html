@@ -172,7 +172,7 @@ function heroHTML(label,title,sub,chips){return `
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>`}
 function eatsView(){return `
-${heroHTML("Organic breakfast delivered fresh","Organic breakfast, delivered fresh.","Fresh drinks, yogurt parfaits, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.",["Made to order","Delivered in Lagos"])}
+${heroHTML("Fresh breakfast delivered to your door","Fresh breakfast, delivered to your door.","Fresh drinks, yogurt parfaits, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.",["Made to order","Delivered in Lagos"])}
 ${ecoSwitch()}
 <div class="-mx-4 px-4 py-3"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
 <div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div><div id="pager"></div>${eatsStory()}`}
