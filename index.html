@@ -5,11 +5,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>SmartyHub Organic — Fresh Organic Meals &amp; Wellness Supplements · Lagos</title>
-<meta name="description" content="Organic breakfast, tiger nut drinks and shawarma delivered fresh, plus quality health supplements. Every food order comes with a free vitamin sachet."/>
+<meta name="description" content="Fresh breakfast, drinks, yogurt parfaits and shawarma delivered in Lagos, plus quality health supplements. Every food order comes with a free vitamin sachet."/>
 <meta name="theme-color" content="#1B5E20"/>
 <meta property="og:type" content="website"/><meta property="og:site_name" content="SmartyHub Organic"/>
 <meta property="og:title" content="SmartyHub Organic: fresh meals &amp; wellness supplements in Lagos"/>
-<meta property="og:description" content="Tiger nut drinks, breakfast combos, shawarma and quality supplements delivered in Lagos. Free vitamin sachet with every food order."/>
+<meta property="og:description" content="Fresh drinks, yogurt parfaits, breakfast combos, shawarma and quality supplements delivered in Lagos. Free vitamin sachet with every food order."/>
 <meta property="og:image" content="https://smartyhuborganic.vercel.app/menu-promo.jpg"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="icon" href="favicon.ico?v=2" sizes="any"/>
@@ -164,8 +164,7 @@ function heroHTML(label,title,sub,chips){return `
   <div class="absolute inset-0" aria-hidden="true">${HB_SLIDES.map((u,i)=>`<img src="${u}" alt="" loading="${i?"lazy":"eager"}" class="hb-slide${i?"":" on"}" onerror="this.remove()"/>`).join("")}</div>
   <div class="absolute inset-0 bg-gradient-to-t from-[#0b2413]/90 via-[#0b2413]/60 to-[#0b2413]/30 sm:bg-gradient-to-r sm:from-[#0b2413]/90 sm:via-[#0b2413]/55 sm:to-[#0b2413]/5"></div>
   <div class="relative mx-auto flex min-h-[320px] max-w-6xl flex-col justify-center px-4 pb-14 pt-8 sm:min-h-[380px] sm:pb-16 sm:pt-12">
-    <span class="inline-flex w-max items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[.14em] text-white ring-1 ring-white/30 backdrop-blur"><span class="h-1.5 w-1.5 rounded-full bg-g3"></span>SmartyHub Organic &middot; Lagos</span>
-    <h1 class="hb-tx mt-4 max-w-2xl font-serif text-[1.95rem] font-bold leading-[1.1] text-white sm:text-5xl lg:text-6xl">${title}</h1>
+    <h1 class="hb-tx max-w-2xl font-serif text-[1.95rem] font-bold leading-[1.1] text-white sm:text-5xl lg:text-6xl">${title}</h1>
     <p class="hb-tx mt-3 max-w-lg text-[15px] leading-relaxed text-white/95 sm:text-lg">${sub}</p>
     <label class="relative mt-5 block max-w-xl"><span class="sr-only">Search</span><i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400"></i><input id="q" type="search" value="${escH(S.q)}" placeholder="Search" class="w-full rounded-full border-0 bg-white py-4 pl-12 pr-4 text-base shadow-[0_14px_34px_-10px_rgba(0,0,0,.55)] outline-none ring-2 ring-transparent focus:ring-g3"/></label>
     <div class="hb-chips mt-4 flex flex-wrap gap-2">${chips.map(c=>`<span class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/25 backdrop-blur">${c}</span>`).join("")}</div>
@@ -173,7 +172,7 @@ function heroHTML(label,title,sub,chips){return `
   <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="hb-dots">${HB_SLIDES.map((u,i)=>`<span class="hb-dot${i?"":" on"}"></span>`).join("")}</div>
 </section>`}
 function eatsView(){return `
-${heroHTML("Organic breakfast delivered fresh","Organic breakfast, delivered fresh.","Tiger nut drinks, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.",["Made to order","Delivered in Lagos"])}
+${heroHTML("Organic breakfast delivered fresh","Organic breakfast, delivered fresh.","Fresh drinks, yogurt parfaits, breakfast combos and shawarma, made to order in Lagos. Order from home or the office.",["Made to order","Delivered in Lagos"])}
 ${ecoSwitch()}
 <div class="-mx-4 px-4 py-3"><div class="noscroll flex gap-2 overflow-x-auto" role="tablist">${ECATS.map(c=>`<button role="tab" aria-selected="${c===S.cat}" data-a="cat" data-v="${c}" class="${pillCls(c===S.cat)}">${c}</button>`).join("")}</div></div>
 <div id="grid" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div><div id="pager"></div>${eatsStory()}`}

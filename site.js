@@ -19,7 +19,7 @@
   /* left: brand, My order, social (desktop) */
   '<div class="md:col-span-5">'+
    '<div class="flex items-center gap-4"><img src="logo-mark.png?v=3" alt="SmartyHub Organic logo" class="h-14 w-auto shrink-0 md:h-16"/><span class="shrink-0 leading-none"><span class="block font-serif text-xl font-bold text-neutral-900">SmartyHub</span><span class="block text-sm font-bold text-g2">Organic</span></span></div>'+
-   '<p class="mt-4 text-sm leading-relaxed text-neutral-600">SmartyHub Organic is a Lagos brand offering fresh organic breakfast, tiger nut drinks, shawarma and quality wellness supplements, delivered to your door.</p>'+
+   '<p class="mt-4 text-sm leading-relaxed text-neutral-600">SmartyHub Organic is a Lagos brand offering fresh breakfast, drinks, yogurt parfaits, shawarma and quality wellness supplements, delivered to your door.</p>'+
    '<a href="index.html" data-go="orders" class="mt-6 flex items-center justify-between rounded-xl bg-black px-4 py-4 font-semibold text-white md:max-w-sm"><span class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-g2">'+box+'</span>My order</span><span aria-hidden="true" class="text-xl">&rsaquo;</span></a>'+
    '<div class="mt-8 hidden md:block">'+social+'</div>'+
   '</div>'+
