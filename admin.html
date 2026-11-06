@@ -117,7 +117,7 @@ async function setting(key,value){const {error}=await sb.from("settings").upsert
 const TABS=[["orders","Orders"],["fin","Finance"],["cust","Customers"],["eats","Breakfast & Eats"],["supps","Supplements"],["offers","Offers & Coupons"],["ops","Delivery & Partners"],["content","Menus & Stories"],["cats","Categories & Hero"],["pub","Backup & Import"]];
 function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
-  $("#main").innerHTML=tab==="cust"?custView():tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
+  $("#main").innerHTML=tab==="cust"?custView():tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?(CPERR?cpFixHtml():"")+offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
 }
 function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();if(t==="cust")custInit();if(t==="ops")bankLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
@@ -357,8 +357,8 @@ function csvExport(k){
 let CPN=null,CC=null;
 async function cLoad(){
   const {data,error}=await sb.from("coupons").select("*").order("created_at",{ascending:false});
-  if(error){CPN=[];toast(/relation|does not exist|schema cache/i.test(error.message)?"Offers are not set up yet. Run the SQL setup file in Supabase first.":"Could not load coupons: "+error.message)}else CPN=data||[];
-  if(tab==="offers")$("#main").innerHTML=offersView();
+  if(error){CPN=[];CPERR=/permission denied|row-level/i.test(error.message||"");if(!CPERR)toast(/relation|does not exist|schema cache/i.test(error.message)?"Offers are not set up yet. Run the SQL setup file in Supabase first.":"Could not load coupons: "+error.message)}else{CPN=data||[];CPERR=false}
+  if(tab==="offers")$("#main").innerHTML=(CPERR?cpFixHtml():"")+offersView();
 }
 function cState(c){return !c.active?["Paused","bg-neutral-200 text-neutral-700"]:(c.expires_at&&new Date(c.expires_at)<new Date())?["Expired","bg-red-100 text-red-700"]:(c.max_uses&&c.used>=c.max_uses)?["Used up","bg-amber-100 text-amber-800"]:["Live","bg-green-100 text-g1"]}
 function offersView(){
@@ -850,28 +850,30 @@ begin
   return n;
 end $$;
 
-create or replace function public.admin_list_customers()
-returns table(id uuid, phone text, name text, email text, birthday text, marketing boolean, created_at timestamptz)
+drop function if exists public.admin_list_customers();
+create or replace function public.admin_list_customers_v2()
+returns table(id uuid, phone text, name text, email text, birthday text, marketing boolean, created_at timestamptz, provider text)
 language plpgsql security definer set search_path = public, auth as $$
 begin
   if not public.fin_admin() then raise exception 'not allowed'; end if;
   return query
-    select u.id, u.phone::text,
-      coalesce(u.raw_user_meta_data->>'full_name','')::text,
+    select u.id, coalesce(u.phone,'')::text,
+      coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', '')::text,
       coalesce(u.raw_user_meta_data->>'contact_email', u.email, '')::text,
       coalesce(u.raw_user_meta_data->>'birthday','')::text,
       coalesce(u.raw_user_meta_data->>'marketing','false') = 'true',
-      u.created_at
+      u.created_at,
+      coalesce(u.raw_app_meta_data->>'provider','')::text
     from auth.users u
-    where coalesce(u.phone,'') <> ''
+    where lower(coalesce(u.email,'')) <> lower(coalesce(auth.jwt()->>'email','x'))
     order by u.created_at desc
     limit 10000;
 end $$;
 
 revoke all on function public.admin_set_temp_password(text,text) from public, anon;
-revoke all on function public.admin_list_customers() from public, anon;
+revoke all on function public.admin_list_customers_v2() from public, anon;
 grant execute on function public.admin_set_temp_password(text,text) to authenticated;
-grant execute on function public.admin_list_customers() to authenticated;
+grant execute on function public.admin_list_customers_v2() to authenticated;
 notify pgrst, 'reload schema';`}
 function custSetupHtml(){return `<div class="rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><b>One-time setup.</b> Copy this SQL, run it in Supabase, SQL Editor, then tap "I have run it". It lets only your admin login see customer details and set temporary passwords.</div>
   <textarea id="sqlbox" readonly rows="8" class="mt-2 font-mono !text-xs" onclick="this.select()">${esc(custSetupSql())}</textarea>
@@ -886,23 +888,38 @@ const bdParse=v=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(v||"").trim());if(
 const bLabel=b=>b.d+" "+CMON[b.m-1];
 const cFirst=u=>((u.name||"").trim().split(/\s+/)[0])||"there";
 const cDigits=u=>String(u.phone||"").replace(/\D/g,"");
+const cContact=u=>cDigits(u)?"+"+cDigits(u):(u.email||"email signup")+(u.provider&&u.provider!=="email"&&u.provider!=="phone"?" ("+u.provider+")":"");
 function bInfo(u,mode){const b=bdParse(u.birthday);if(!b)return null;const T=new Date();T.setHours(0,0,0,0);const y=T.getFullYear();let o=new Date(y,b.m-1,b.d),passed=false;
   if(o<T){if(mode==="month"&&b.m-1===T.getMonth()){passed=true;o=T}else o=new Date(y+1,b.m-1,b.d)}
   return {b,o,passed,du:Math.round((o-T)/864e5),year:o.getFullYear()}}
-async function custRun(){CNEED=false;CUST=null;draw()}
+async function custRun(){CNEED=false;CERR="";CUST=null;draw()}
+let CERR="",CPERR=false;
 async function custLoad(){
-  if(CLOADING)return;CLOADING=true;
-  const {data,error}=await sb.rpc("admin_list_customers");CLOADING=false;
-  if(error){const m=error.message||"";if(/could not find|schema cache|does not exist|function/i.test(m))CNEED=true;else{CUST=[];toast(/not allowed/i.test(m)?"Not allowed. Re-run the setup SQL with the email you sign in with.":"Could not load customers: "+m)}}
+  if(CLOADING)return;CLOADING=true;CERR="";
+  const {data,error}=await sb.rpc("admin_list_customers_v2");CLOADING=false;
+  if(error){const m=error.message||"";if(/could not find|schema cache|does not exist|permission denied for function/i.test(m))CNEED=true;else{CUST=[];CERR=m||"Unknown error"}}
   else CUST=data||[];
-  if(CPN===null)await cLoad();
+  await cQuiet();
   if(tab==="cust")draw();
 }
+async function cQuiet(){if(CPN!==null)return;const {data,error}=await sb.from("coupons").select("*").order("created_at",{ascending:false});if(error)CPERR=/permission denied|row-level/i.test(error.message||"");else{CPN=data||[];CPERR=false}}
+const fixSql=()=>`create or replace function public.fin_admin() returns boolean language sql stable as $$
+  select lower(coalesce(auth.jwt()->>'email','')) = lower('${String(CEM||"").replace(/'/g,"''")}')
+$$;`;
+function cpFixSql(){return fixSql()+`
+alter table public.coupons enable row level security;
+drop policy if exists coupons_admin on public.coupons;
+create policy coupons_admin on public.coupons for all to authenticated using (public.fin_admin()) with check (public.fin_admin());
+grant select, insert, update, delete on public.coupons to authenticated;
+notify pgrst, 'reload schema';`}
+function cpFixHtml(){return `<div class="mb-3 rounded-2xl bg-amber-50 p-3 text-sm text-amber-900"><b>Coupons are locked for your admin login.</b> Copy this SQL, run it once in Supabase, SQL Editor, then tap "I have run it".</div><textarea id="sqlbox" readonly rows="8" class="font-mono !text-xs" onclick="this.select()">${esc(cpFixSql())}</textarea><div class="mb-3 mt-2 flex gap-2"><button class="btn flex-1 bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button><button class="btn flex-1 bg-g2 py-3 text-white" onclick="CPN=null;CPERR=false;cQuiet().then(()=>{if(tab==='offers')cLoad();else draw()})">I have run it</button></div>`}
+function custErrHtml(){const na=/not allowed/i.test(CERR);return `<div class="rounded-2xl bg-red-50 p-4 text-sm text-red-800"><b>${na?"Your admin email does not match the lock.":"Could not load customers."}</b><br>${na?`The database was locked to a different email than the one you are signed in with (<b>${esc(CEM)}</b>). Run this once in Supabase, SQL Editor, then tap Try again.`:esc(CERR)}</div>${na?`<textarea id="sqlbox" readonly rows="5" class="mt-3 font-mono !text-xs" onclick="this.select()">${esc(fixSql())}</textarea><button class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button>`:""}<button class="btn mt-2 w-full bg-g2 py-3 text-white" onclick="custRun()">Try again</button>`}
 function custView(){
   const seg=[["list","Customers"],["bday","Birthdays"],["reset","Reset password"]].map(([k,l])=>`<button class="btn shrink-0 ${CS===k?"bg-neutral-800 text-white":"border border-neutral-300 bg-white"}" onclick="CS='${k}';draw()">${l}</button>`).join("");
   let body;
   if(CS==="reset")body=custResetView();
   else if(CNEED)body=custSetupHtml();
+  else if(CERR)body=custErrHtml();
   else if(CUST===null){custLoad();body='<p class="py-10 text-center text-neutral-500">Loading…</p>'}
   else body=CS==="bday"?custBday():custList();
   return `<div class="noscroll flex gap-2 overflow-x-auto">${seg}</div><div class="mt-3">${body}</div>`;
@@ -911,7 +928,7 @@ function custRows(){
   const q=CQ.trim().toLowerCase();let d=q.replace(/\D/g,"");if(d.startsWith("0"))d=d.slice(1);
   const L=q?CUST.filter(u=>(u.name||"").toLowerCase().includes(q)||(d&&cDigits(u).includes(d))):CUST;
   if(!L.length)return '<p class="py-8 text-center text-sm text-neutral-500">No customers found.</p>';
-  return L.slice(0,150).map(u=>{const b=bdParse(u.birthday);return `<div class="flex items-center justify-between gap-2 rounded-2xl bg-white p-3 shadow-sm"><div class="min-w-0"><p class="truncate font-bold">${esc(u.name||"No name")}</p><p class="text-xs text-neutral-500">+${esc(cDigits(u))} · joined ${new Date(u.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</p><p class="text-xs ${b?"text-g2 font-semibold":"text-neutral-400"}">${b?"🎂 "+bLabel(b):"No birthday saved"}</p></div><a class="btn shrink-0 border border-neutral-300" target="_blank" rel="noopener" href="https://wa.me/${cDigits(u)}">Chat</a></div>`}).join("")+(L.length>150?'<p class="text-center text-xs text-neutral-500">Showing 150. Search or download the CSV for everyone.</p>':"");
+  return L.slice(0,150).map(u=>{const b=bdParse(u.birthday);return `<div class="flex items-center justify-between gap-2 rounded-2xl bg-white p-3 shadow-sm"><div class="min-w-0"><p class="truncate font-bold">${esc(u.name||"No name")}</p><p class="truncate text-xs text-neutral-500">${esc(cContact(u))} · joined ${new Date(u.created_at).toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}</p><p class="text-xs ${b?"text-g2 font-semibold":"text-neutral-400"}">${b?"🎂 "+bLabel(b):"No birthday saved"}</p></div>${cDigits(u)?`<a class="btn shrink-0 border border-neutral-300" target="_blank" rel="noopener" href="https://wa.me/${cDigits(u)}">Chat</a>`:""}</div>`}).join("")+(L.length>150?'<p class="text-center text-xs text-neutral-500">Showing 150. Search or download the CSV for everyone.</p>':"");
 }
 function custList(){
   const U=CUST,now=Date.now(),n7=U.filter(u=>now-new Date(u.created_at)<=7*864e5).length,n30=U.filter(u=>now-new Date(u.created_at)<=30*864e5).length,wb=U.filter(u=>bdParse(u.birthday)).length,mk=U.filter(u=>u.marketing).length,T=new Date().getMonth()+1,bm=U.filter(u=>{const b=bdParse(u.birthday);return b&&b.m===T}).length;
@@ -922,7 +939,7 @@ function custList(){
 }
 function custCsv(){
   const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"',H=["Name","Phone","Email","Birthday","Joined","Agreed to offers"];
-  const R=CUST.map(u=>{const b=bdParse(u.birthday);return [u.name,"+"+cDigits(u),u.email,b?bLabel(b):"",new Date(u.created_at).toISOString().slice(0,10),u.marketing?"yes":"no"]});
+  const R=CUST.map(u=>{const b=bdParse(u.birthday);return [u.name,cDigits(u)?"+"+cDigits(u):"",u.email,b?bLabel(b):"",new Date(u.created_at).toISOString().slice(0,10),u.marketing?"yes":"no"]});
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([[H,...R].map(r=>r.map(q).join(",")).join("\n")],{type:"text/csv"}));a.download="smartyhub-customers.csv";a.click()
 }
 function bCode(first){const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789",r=crypto.getRandomValues(new Uint8Array(4));return "BDAY"+first.replace(/[^a-z]/gi,"").toUpperCase().slice(0,5)+Array.from(r,x=>a[x%a.length]).join("")}
@@ -931,20 +948,21 @@ const bOffer=c=>(c.kind==="percent"?c.value+"% off":fmt(c.value)+" off")+" your 
 function bMsg(x,c){const ex=new Date(c.expires_at).toLocaleDateString("en-NG",{day:"numeric",month:"long"});return `Happy Birthday ${cFirst(x.u)}! 🎂 SmartyHub Organic has a gift for you: ${bOffer(c)}. Use code ${c.code} at checkout (log in first). Valid until ${ex}. Enjoy your day!`}
 function bcSave(){const f=$("#bcf");if(!f)return;const v={kind:f.kind.value,value:Math.max(1,+f.value.value||1),days:Math.max(1,Math.round(+f.days.value)||7),min:Math.max(0,+f.min.value||0),max:f.max.value.trim()===""?"":Math.max(0,+f.max.value||0)};if(v.kind==="percent"&&v.value>100){v.value=100;f.value.value=100}try{localStorage.setItem("sh-bday",JSON.stringify(v))}catch(e){}toast("Birthday offer saved")}
 function custBday(){
+  if(CPERR)return cpFixHtml();
   const c=bcfg(),T=new Date().getMonth()+1;
   CBL=CUST.map(u=>({u,i:bInfo(u,CBW)})).filter(x=>x.i&&(CBW==="today"?x.i.du===0:CBW==="7"?x.i.du<=7:CBW==="30"?x.i.du<=30:x.i.b.m===T)).sort((a,b)=>CBW==="month"?a.i.b.d-b.i.b.d:a.i.du-b.i.du);
   const todo=CBL.filter(x=>!bIssued(x)).length;
   const seg=[["today","Today"],["7","Next 7 days"],["30","Next 30 days"],["month","This month"]].map(([k,l])=>`<button class="btn shrink-0 ${CBW===k?"bg-g2 text-white":"border border-neutral-300 bg-white"}" onclick="CBW='${k}';draw()">${l}</button>`).join("");
   const rows=CBL.map((x,idx)=>{const c2=bIssued(x),when=x.i.passed?"passed this month":x.i.du===0?"today":x.i.du===1?"tomorrow":"in "+x.i.du+" days";
-    return `<div class="rounded-2xl bg-white p-3 shadow-sm"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="truncate font-bold">${esc(x.u.name||"No name")}</p><p class="text-xs text-neutral-500">+${esc(cDigits(x.u))}</p><p class="text-xs font-semibold text-g2">🎂 ${bLabel(x.i.b)} · ${when}</p></div>${c2?`<span class="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-g1">${esc(c2.code)}</span>`:`<button class="btn shrink-0 bg-g2 text-white" onclick="bCreate(${idx})">Create coupon</button>`}</div>
-    ${c2?`<div class="mt-2 flex gap-2"><button class="btn flex-1 border border-neutral-300" onclick="bCopy(${idx})">Copy message</button><a class="btn flex-1 bg-g2 text-center text-white" target="_blank" rel="noopener" href="https://wa.me/${cDigits(x.u)}?text=${encodeURIComponent(bMsg(x,c2))}">Send on WhatsApp</a></div>`:""}</div>`}).join("");
+    return `<div class="rounded-2xl bg-white p-3 shadow-sm"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="truncate font-bold">${esc(x.u.name||"No name")}</p><p class="truncate text-xs text-neutral-500">${esc(cContact(x.u))}</p><p class="text-xs font-semibold text-g2">🎂 ${bLabel(x.i.b)} · ${when}</p></div>${c2?`<span class="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-g1">${esc(c2.code)}</span>`:`<button class="btn shrink-0 bg-g2 text-white" onclick="bCreate(${idx})">Create coupon</button>`}</div>
+    ${c2?`<div class="mt-2 flex gap-2"><button class="btn flex-1 border border-neutral-300" onclick="bCopy(${idx})">Copy message</button>${cDigits(x.u)?`<a class="btn flex-1 bg-g2 text-center text-white" target="_blank" rel="noopener" href="https://wa.me/${cDigits(x.u)}?text=${encodeURIComponent(bMsg(x,c2))}">Send on WhatsApp</a>`:""}</div>`:""}</div>`}).join("");
   return `<form id="bcf" onchange="bcSave()" onsubmit="event.preventDefault()" class="blk"><h3>Birthday gift</h3><div class="grid grid-cols-2 gap-3"><div><label>Type</label><select name="kind"><option value="fixed" ${c.kind==="fixed"?"selected":""}>Fixed amount (₦)</option><option value="percent" ${c.kind==="percent"?"selected":""}>Percent (%)</option></select></div><div><label>Value</label><input name="value" type="number" min="1" value="${c.value}"/></div><div><label>Valid for (days)</label><input name="days" type="number" min="1" value="${c.days}"/></div><div><label>Minimum order (₦)</label><input name="min" type="number" min="0" value="${c.min}"/></div></div><label>Max discount (₦, optional)</label><input name="max" type="number" min="0" value="${c.max}"/><p class="mt-1 text-xs text-neutral-500">Each coupon is a one-time code made just for that customer, for signed-in members only, and hidden from the public offers list.</p></form>
   <div class="noscroll mt-3 flex gap-2 overflow-x-auto">${seg}</div>
   ${todo?`<button class="btn mt-3 w-full bg-neutral-800 py-3 text-white" onclick="bAll()">Create coupons for all ${todo} without one</button>`:""}
   <div class="mt-3 space-y-2">${rows||'<p class="py-8 text-center text-sm text-neutral-500">No birthdays in this range. Customers add their birthday when they sign up (optional).</p>'}</div>`;
 }
 async function bCreate(idx,quiet){
-  const x=CBL[idx];if(!x)return false;if(CPN===null)await cLoad();if(bIssued(x)){return true}
+  const x=CBL[idx];if(!x)return false;if(CPN===null)await cQuiet();if(CPN===null){CPERR=true;draw();toast("Coupons are locked. Run the coupon SQL first.");return false}if(bIssued(x)){return true}
   const c=bcfg(),first=cFirst(x.u),o=x.i.o,exp=new Date(o.getFullYear(),o.getMonth(),o.getDate()+Math.max(1,c.days)-1,23,59,59);
   const rec={code:bCode(first),title:"Happy Birthday "+first+"!",description:"bday:"+x.u.id+":"+x.i.year,kind:c.kind,value:Math.max(1,Math.round(+c.value)||1),min_order:Math.max(0,Math.round(+c.min)||0),max_discount:c.max===""||c.max==null?null:Math.round(+c.max),max_uses:1,expires_at:exp.toISOString(),members_only:true,show_public:false,active:true};
   const {error}=await sb.from("coupons").insert(rec);
