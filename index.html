@@ -155,7 +155,7 @@ function ecoSwitch(){return `<div class="sticky top-[var(--hh,64px)] z-20 -mx-4 
   <button data-a="eco" data-v="supp" id="t-supp" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="leaf" class="h-4 w-4"></i>Supplements</button></nav></div>`}
 function drawHdr(){const h=$("#hauth");if(!h)return;const u=AU.user;
   h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-10 w-10 rounded-full object-cover"/>`:`<span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}</button>`
-  :`<button type="button" data-a="signsheet" class="pill whitespace-nowrap rounded-full border border-neutral-300 bg-white px-3.5 py-2 text-sm font-bold hover:border-neutral-500">Sign in</button>`}
+  :`<button type="button" data-a="signup" class="pill whitespace-nowrap rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Sign up</button>`}
 function render(){
   const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
   $("#app").innerHTML=S.eco==="eats"?eatsView():suppView();
