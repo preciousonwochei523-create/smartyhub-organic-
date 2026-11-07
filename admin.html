@@ -109,7 +109,7 @@ async function load(){
   if(a.error||b.error)toast("Could not load: "+(a.error||b.error).message);
   const it=a.data||[],st=Object.fromEntries((b.data||[]).map(r=>[r.key,r.value]));
   SORT={};it.forEach(r=>SORT[r.id]=r.sort);
-  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],eatStory:st.eatStory||[],eatFlyers:st.eatFlyers||[],zones:st.zones||[],kitchens:st.kitchens||[],suppliers:st.suppliers||[],riders:st.riders||[],info:st.info||{}};
+  D={eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats||[],suppCats:st.suppCats||[],hero:st.hero||[],eatStory:st.eatStory||[],eatFlyers:st.eatFlyers||[],zones:st.zones||[],kitchens:st.kitchens||[],suppliers:st.suppliers||[],riders:st.riders||[],info:st.info||{},payment:st.payment||{}};
 }
 async function setting(key,value){const {error}=await sb.from("settings").upsert({key,value});if(error){toast("Save failed: "+error.message);return false}return true}
 
@@ -144,10 +144,10 @@ function edit(k,id){
     ?{id:"e"+Date.now().toString(36),cat:D.eatCats[0]||"",n:"",p:0,d:"",img:"",imgs:[],i:"sandwich",o:[]}
     :{id:"p"+Date.now().toString(36),g:D.suppCats[0]||"",n:"",b:"",p:0,dose:"",r:4.5,rv:0,ing:[],d:"",img:"",imgs:[],i:"leaf"});
   if(!Array.isArray(E.imgs))E.imgs=E.img?[E.img]:[];
-  PC={vc:"",dc:"",pm:""};PCS="load";EO=E.n;
+  PC={vc:"",dc:"",pm:"",vd:""};PCS="load";EO=E.n;
   sheet();pcInit();
 }
-let PC={vc:"",dc:"",pm:""},PCS="load",EO="";
+let PC={vc:"",dc:"",pm:"",vd:""},PCS="load",EO="";
 async function finCfgEnsure(){
   FIN=FIN||{cfg:{},rows:{},orders:null};if(FIN.cfgOk)return true;
   const c=await sb.from("fin_store").select("value").eq("key","cfg").maybeSingle();
@@ -156,7 +156,7 @@ async function finCfgEnsure(){
 }
 async function pcInit(){
   const ok=await finCfgEnsure();PCS=ok?"ok":"setup";
-  if(ok){const c=fcfg(),n=E.n;PC.vc=c.costs[n]??"";PC.dc=c.deliv[n]??"";PC.pm=c.target}
+  if(ok){const c=fcfg(),n=E.n;PC.vc=c.costs[n]??"";PC.dc=c.deliv[n]??"";PC.pm=c.target;PC.vd=c.vendorOf[n]??""}
   const b=$("#pcalc");if(b){b.innerHTML=pcBlock();pcalc(true)}
 }
 function pcBlock(){
@@ -164,6 +164,7 @@ function pcBlock(){
   if(PCS==="setup")return '<div class="blk"><h3>Price calculator</h3><p class="pt-2 text-xs text-neutral-600">To enter private vendor and delivery costs and get an automatic price, finish the one-time setup under Finance first. You can still type the price by hand below.</p></div>';
   return `<div class="blk"><h3>Price calculator <span class="font-normal text-neutral-500">(costs stay private)</span></h3>
   <div class="grid grid-cols-2 gap-3"><div><label>Vendor cost (₦)</label><input name="vc" type="number" min="0" step="any" inputmode="decimal" value="${esc(PC.vc)}" oninput="pcalc()"/></div><div><label>Delivery cost (₦)</label><input name="dc" type="number" min="0" step="any" inputmode="decimal" value="${esc(PC.dc)}" oninput="pcalc()"/></div></div>
+  <label>Default vendor (only used if the zone has none set)</label><select name="vd" onchange="PC.vd=this.value"><option value="">Not set</option>${((EK==="eats"?D.kitchens:D.suppliers)||[]).map(x=>`<option value="${esc(x.name)}" ${PC.vd===x.name?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
   <label>Profit margin you want (%)</label><input name="pm" type="number" min="0" max="90" step="any" inputmode="decimal" value="${esc(PC.pm)}" oninput="pcalc()"/>
   <p id="pres" class="mt-2 text-sm"></p><p class="mt-1 text-xs text-neutral-500">The price includes delivery, packaging and the payment gateway fee, then your margin. It fills the price box below, which you can still change.</p></div>`;
 }
@@ -223,13 +224,14 @@ function addGroup(){collect();E.o.push({t:"",k:"r",c:[]});sheet()}
 function rmGroup(i){collect();E.o.splice(i,1);sheet()}
 async function saveItem(){
   collect();if(!E.n){toast("Add a name");return}
-  const pf=$("#f").elements,pv=PCS==="ok"&&pf.vc?{vc:pf.vc.value.trim(),dc:pf.dc.value.trim()}:null;
+  const pf=$("#f").elements,pv=PCS==="ok"&&pf.vc?{vc:pf.vc.value.trim(),dc:pf.dc.value.trim(),vd:pf.vd?pf.vd.value:""}:null;
   const btn=$("#f button.flex-1");if(btn){btn.disabled=true;btn.textContent="Saving…"}
   const sort=SORT[E.id]??Math.floor(Date.now()/1000);
   const {error}=await sb.from("items").upsert({id:E.id,kind:EK==="eats"?"eat":"supp",data:E,sort,updated_at:new Date().toISOString()});
   if(error){toast("Save failed: "+error.message);if(btn){btn.disabled=false;btn.textContent="Save"}return}
   SORT[E.id]=sort;const L=D[EK],i=L.findIndex(x=>x.id===E.id);if(i<0)L.push(E);else L[i]=E;
-  if(pv){const c=fcfg();if(EO&&EO!==E.n){delete c.costs[EO];delete c.deliv[EO]}
+  if(pv){const c=fcfg();if(EO&&EO!==E.n){delete c.costs[EO];delete c.deliv[EO];delete c.vendorOf[EO]}
+    if(pv.vd)c.vendorOf[E.n]=pv.vd;else delete c.vendorOf[E.n];
     if(pv.vc===""||isNaN(+pv.vc))delete c.costs[E.n];else c.costs[E.n]=Math.max(0,+pv.vc);
     if(pv.dc===""||isNaN(+pv.dc))delete c.deliv[E.n];else c.deliv[E.n]=Math.max(0,+pv.dc);
     await finSaveCfg(c)}
@@ -573,7 +575,7 @@ function pEdit(k,i){
   <form id="pf" onsubmit="event.preventDefault();pSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
   <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-neutral-300 sm:hidden"></div>
   <div class="flex items-center justify-between px-5 py-3"><h2 class="text-lg font-extrabold">${i>=0?"Edit":"Add"} ${PT[k]}</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
-  <div class="overflow-y-auto px-5 pb-4">${blocks}${k==="zones"?"":i>=0?`<div id="bkblock">${bankBlock(k,x.name)}</div>`:'<p class="mt-3 text-xs text-neutral-500">Save first, then open this partner again to add their bank details for auto-split.</p>'}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
+  <div class="overflow-y-auto px-5 pb-4">${blocks}${k==="zones"?"":i>=0?`<div id="bkblock">${bankBlock(k,x.name)}</div>${k!=="riders"?`<div id="kiblock">${kiBlock(k,x.name)}</div>`:""}<div id="plblock">${plBlock(k,x.name)}</div>`:'<p class="mt-3 text-xs text-neutral-500">Save first, then open this partner again to add their bank details for auto-split.</p>'}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
   <div class="flex gap-2 border-t border-neutral-100 px-5 py-3">${i>=0?'<button type="button" class="btn border border-red-300 text-red-600" onclick="pDel()">Delete</button>':'<button type="button" class="btn border border-neutral-300" onclick="closeSheet()">Cancel</button>'}<button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div></form></div>`;
 }
 async function pSave(){
@@ -584,18 +586,18 @@ async function pSave(){
     rec=(PK==="kitchens"||PK==="suppliers")?{name,phone,address:f.address.value.trim()}:{name,phone,zone:f.zone.value.trim()}}
   PI>=0?arr[PI]=rec:arr.push(rec);
   const btn=f.querySelector("button.flex-1");btn.disabled=true;btn.textContent="Saving…";
-  if(await setting(PK,arr)){D[PK]=arr;if(oldName&&oldName!==name)await bankRename(PK,oldName,name);closeSheet();draw();toast("Saved")}else{btn.disabled=false;btn.textContent="Save"}
+  if(await setting(PK,arr)){D[PK]=arr;if(oldName&&oldName!==name){await bankRename(PK,oldName,name);await kiRename(oldName,name);await plRename(PK,oldName,name)}closeSheet();draw();toast("Saved")}else{btn.disabled=false;btn.textContent="Save"}
 }
 async function pDel(){
   if(!confirm("Delete this "+PT[PK]+"?"))return;
   const arr=D[PK].filter((_,i)=>i!==PI),gone=PK!=="zones"?D[PK][PI].name:null;
-  if(await setting(PK,arr)){if(gone)await bankDelete(PK,gone);D[PK]=arr;closeSheet();draw();toast("Deleted")}
+  if(await setting(PK,arr)){if(gone){await bankDelete(PK,gone);await plDelete(PK,gone)}D[PK]=arr;closeSheet();draw();toast("Deleted")}
 }
 
 /* ---------- finance (private: needs finance-setup.sql) ---------- */
 let FIN=null,FP="30d",FB="paid",FS="dash",FE=null,FPAY=[],FPR=[];
-const FD={gwPct:1.5,gwFlat:100,gwMin:2500,gwCap:2000,packFood:0,packSupp:0,sachet:0,autoFrom:"",target:25,costs:{},rider:{},deliv:{}};
-const fcfg=()=>{const c=(FIN&&FIN.cfg)||{};return {...FD,...c,costs:{...(c.costs||{})},rider:{...(c.rider||{})},deliv:{...(c.deliv||{})}}};
+const FD={gwPct:1.5,gwFlat:100,gwMin:2500,gwCap:2000,packFood:0,packSupp:0,sachet:0,autoFrom:"",target:25,costs:{},rider:{},deliv:{},vendorOf:{},riderOf:{},riderOfSupp:{},zoneVendor:{},kitchenItems:{}};
+const fcfg=()=>{const c=(FIN&&FIN.cfg)||{};return {...FD,...c,costs:{...(c.costs||{})},rider:{...(c.rider||{})},deliv:{...(c.deliv||{})},vendorOf:{...(c.vendorOf||{})},riderOf:{...(c.riderOf||{})},riderOfSupp:{...(c.riderOfSupp||{})},zoneVendor:{...(c.zoneVendor||{})},kitchenItems:{...(c.kitchenItems||{})}}};
 const R0=n=>fmt(Math.round(n));
 const FPER=[["today","Today"],["7d","7 days"],["30d","30 days"],["month","This month"],["all","All time"]];
 const FTABS=[["dash","Overview"],["pay","Payouts"],["led","Orders"],["price","Pricing"],["set","Settings"]];
@@ -627,13 +629,12 @@ function unitCost(i,c){const k=c.costs[i.n];if(k==null||k==="")return null;const
 function fcalc(o){
   const c=fcfg(),F=FIN.rows[String(o.id)]||{},has=k=>F[k]!=null&&F[k]!=="",sp=isSupp(o);
   let vendor=0;const miss=[];(o.items||[]).forEach(i=>{const u=unitCost(i,c);if(u==null)miss.push(i.n);else vendor+=u*(+i.q||1)});
-  const auto=!!c.autoFrom&&new Date(o.created_at)>=new Date(c.autoFrom+"T00:00:00"),amt=+o.total||0;
+  const auto=has("gateway_ref"),amt=+o.total||0;
   const zr=c.rider[o.zone],noR=!has("rider_cost")&&(zr==null||zr==="");
   const vend=has("vendor_cost")?+F.vendor_cost:vendor,rid=has("rider_cost")?+F.rider_cost:(noR?0:+zr);
   const pack=has("packaging_cost")?+F.packaging_cost:(sp?+c.packSupp:+c.packFood)+((o.items||[]).some(sachetItem)?+c.sachet:0);
   const gw=has("gateway_fee")?+F.gateway_fee:(auto?gwFee(amt,c):0);
-  const auto2=auto&&o.payment_status==="paid";
-  return {amt,vend,rid,gw,pack,net:amt-vend-rid-gw-pack,sp,F,auto,miss:has("vendor_cost")?[]:miss,missRider:noR,vSet:auto2||!!F.vendor_paid,rSet:auto2||!!F.rider_paid,vAuto:auto2&&!F.vendor_paid,rAuto:auto2&&!F.rider_paid};
+  return {amt,vend,rid,gw,pack,net:amt-vend-rid-gw-pack,sp,F,auto,miss:has("vendor_cost")?[]:miss,missRider:noR,vSet:!!F.vendor_paid,rSet:!!F.rider_paid,vAuto:auto&&!!F.vendor_paid,rAuto:false};
 }
 const fset=()=>(FIN.orders||[]).filter(o=>o.status!=="cancelled").map(o=>({o,c:fcalc(o)}));
 const fbasis=()=>{const L=fset();return FB==="paid"?L.filter(x=>x.o.payment_status==="paid"):L};
@@ -668,7 +669,7 @@ function finDash(){
   const bar=a.rev>0?`<div class="mt-3 flex h-4 overflow-hidden rounded-full bg-neutral-100">${parts.map(([l,v,col])=>v>0?`<span title="${l}" style="width:${v/a.rev*100}%;background:${col}"></span>`:"").join("")}</div>
   <div class="mt-3 space-y-1.5 text-sm">${parts.map(([l,v,col])=>`<div class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-full" style="background:${col}"></span>${l}</span><span><b>${R0(l==="SmartyHub profit"?a.net:v)}</b> <span class="text-xs text-neutral-500">${(((l==="SmartyHub profit"?a.net:v)/a.rev)*100).toFixed(0)}%</span></span></div>`).join("")}</div>`:'<p class="mt-3 text-sm text-neutral-500">No sales in this period yet.</p>';
   const f=a.f,s=a.s;
-  return `${w}<div class="grid grid-cols-2 gap-2">${card("Revenue",R0(a.rev),a.n+" order"+(a.n===1?"":"s")+" · avg "+R0(aov))}${card("SmartyHub profit",R0(a.net),mg.toFixed(0)+"% margin · "+R0(ppo)+" per order",a.net<0?"text-red-600":"text-g2")}${card("Vendor payments",R0(a.vend))}${card("Delivery (riders)",R0(a.rid))}${card("Gateway fees",R0(a.gw),c.autoFrom?"from "+c.autoFrom:"set go-live date in Settings")}${card("Packaging & sachets",R0(a.pack))}</div>
+  return `${w}<div class="grid grid-cols-2 gap-2">${card("Revenue",R0(a.rev),a.n+" order"+(a.n===1?"":"s")+" · avg "+R0(aov))}${card("SmartyHub profit",R0(a.net),mg.toFixed(0)+"% margin · "+R0(ppo)+" per order",a.net<0?"text-red-600":"text-g2")}${card("Vendor payments",R0(a.vend))}${card("Delivery (riders)",R0(a.rid))}${card("Gateway fees",R0(a.gw),"online payments")}${card("Packaging & sachets",R0(a.pack))}</div>
   <div class="mt-3 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Where each ₦ goes</h2><p class="text-xs text-neutral-500">The hidden split behind every customer price</p>${bar}</div>
   ${finChart(L)}
   <div class="mt-3 rounded-2xl bg-white p-4 shadow-sm"><h2 class="font-extrabold">Food vs supplements</h2><div class="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -692,11 +693,11 @@ function finPay(){
   const grp=(kind)=>{const m={};L.forEach(x=>{const nm=(kind==="v"?x.o.kitchen:x.o.rider)||"Unassigned";const g=m[nm]=m[nm]||{kind,name:nm,owed:0,list:[],paid:0,auto:0,n:0};g.n++;const amt=kind==="v"?x.c.vend:x.c.rid,set=kind==="v"?x.c.vSet:x.c.rSet,au=kind==="v"?x.c.vAuto:x.c.rAuto;if(au)g.auto+=amt;else if(set)g.paid+=amt;else{g.owed+=amt;g.list.push(x.o.id)}});return Object.values(m).sort((a,b)=>b.owed-a.owed)};
   const V=grp("v"),R=grp("r"),tv=V.reduce((s,g)=>s+g.owed,0),tr=R.reduce((s,g)=>s+g.owed,0);
   const row=g=>{const i=FPAY.push(g)-1;return `<div class="rounded-2xl bg-white p-4 shadow-sm"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${esc(g.name)}</p><p class="text-xs text-neutral-500">${g.n} delivered · paid ${R0(g.paid)}${g.auto?" · auto-split "+R0(g.auto):""}</p>${bkLine(g)}</div><div class="text-right"><p class="text-[11px] font-bold uppercase text-neutral-500">Owed</p><p class="text-lg font-extrabold ${g.owed>0?"text-amber-700":"text-g2"}">${R0(g.owed)}</p></div></div>
-  ${g.owed>0&&g.name!=="Unassigned"?`<button class="btn mt-3 w-full bg-g2 text-white" onclick="finPayAll(${i})">Mark ${g.list.length} order${g.list.length>1?"s":""} paid</button>`:g.name==="Unassigned"&&g.owed>0?'<p class="mt-2 text-xs text-amber-800">Assign these orders to a '+(g.kind==="v"?"kitchen or supplier":"rider")+" in the Orders tab first.</p>":""}</div>`};
+  ${g.owed>0&&g.name!=="Unassigned"?`<button class="btn mt-3 w-full bg-g2 text-white" onclick="finPayAll(${i})">Mark ${g.list.length} order${g.list.length>1?"s":""} paid</button>${g.kind==="r"&&bkFind(g)&&bkFind(g).account_number?`<button class="btn mt-2 w-full bg-neutral-800 text-white" onclick="finRiderPay(${i})">Pay ${R0(g.owed)} via Paystack</button>`:""}`:g.name==="Unassigned"&&g.owed>0?'<p class="mt-2 text-xs text-amber-800">Assign these orders to a '+(g.kind==="v"?"kitchen or supplier":"rider")+" in the Orders tab first.</p>":""}</div>`};
   return `${bankReadyHtml()}<div class="grid grid-cols-2 gap-2">${card("Owed to vendors",R0(tv),"delivered, not yet paid",tv>0?"text-amber-700":"")}${card("Owed to riders",R0(tr),"delivered, not yet paid",tr>0?"text-amber-700":"")}</div>
   <h2 class="mb-2 mt-4 font-extrabold">Vendors &amp; suppliers</h2><div class="space-y-2">${V.length?V.map(row).join(""):'<p class="py-4 text-center text-sm text-neutral-500">No delivered orders in this period.</p>'}</div>
   <h2 class="mb-2 mt-4 font-extrabold">Riders</h2><div class="space-y-2">${R.length?R.map(row).join(""):'<p class="py-4 text-center text-sm text-neutral-500">No delivered orders in this period.</p>'}</div>
-  <p class="mt-3 text-xs text-neutral-500">Orders after your auto-split go-live date that are marked paid count as settled by the gateway, so they never show as owed.</p>`;
+  <p class="mt-3 text-xs text-neutral-500">Vendors paid through the online split show as auto-split and never as owed. Riders are paid after delivery: tap Pay via Paystack, or mark them paid if you paid another way.</p>`;
 }
 async function finPayAll(i){
   const g=FPAY[i];if(!g||!confirm(`Mark ${g.list.length} order(s) as paid to ${g.name} (${R0(g.owed)})?`))return;
@@ -749,18 +750,28 @@ async function finCost(i,v){const c=fcfg(),n=FPR[i];v=String(v).trim();if(v===""
 function finSettings(){
   const c=fcfg(),n=(k,l,v,st)=>`<label>${l}</label><input name="${k}" type="number" min="0" step="${st||"any"}" inputmode="decimal" value="${v??""}"/>`;
   return `<form onsubmit="event.preventDefault();finSetSave(this)">
-  <div class="blk"><h3>Auto-split go-live</h3><label>Date online auto-split payments started</label><input name="autoFrom" type="date" value="${esc(c.autoFrom||"")}"/><p class="mt-1 text-xs text-neutral-500">From this date, orders marked paid count as settled by the gateway (vendors and riders are not shown as owed) and gateway fees are counted. Leave empty until it is live.</p></div>
+  ${autoReadyHtml()}
+  <div class="blk"><h3>Checkout mode</h3><label class="flex items-center gap-2"><input type="checkbox" name="online" style="width:auto" ${(D.payment&&D.payment.online)?"checked":""}/> Online payment only (customers can not order on WhatsApp)</label><p class="mt-1 text-xs text-neutral-500">When on, customers pick their area, we check it is covered, then they pay on Paystack. An area with no kitchen, supplier or rider set cannot order. Turn this on only after the checklist above is complete and you have tested a payment.</p></div>
   <div class="blk"><h3>Gateway fee</h3>${n("gwPct","Percentage (%)",c.gwPct)}${n("gwFlat","Flat fee (₦)",c.gwFlat)}${n("gwMin","Flat fee applies from order total (₦)",c.gwMin)}${n("gwCap","Maximum fee per transaction (₦)",c.gwCap)}<p class="mt-1 text-xs text-neutral-500">Defaults match Paystack Nigeria local payments: 1.5% + ₦100, with the ₦100 waived under ₦2,500 and a ₦2,000 cap. Check your own gateway rate.</p></div>
   <div class="blk"><h3>Packaging per order</h3>${n("packFood","Food order packaging (₦)",c.packFood)}${n("packSupp","Supplement order packaging (₦)",c.packSupp)}${n("sachet","Free vitamin sachet cost (₦, shawarma and breakfast only)",c.sachet)}</div>
-  <div class="blk"><h3>What you pay riders, per zone</h3>${(D.zones||[]).map(z=>`<label>${esc(z.name)} (₦)</label><input name="rz" data-z="${esc(z.name)}" type="number" min="0" step="50" inputmode="numeric" value="${c.rider[z.name]??""}"/>`).join("")||'<p class="text-xs text-neutral-500">Add delivery zones first under Delivery &amp; Partners.</p>'}</div>
+  <div class="blk"><h3>Per zone: kitchen, supplier, rider and rider pay</h3>${(D.zones||[]).map(z=>`<label>${esc(z.name)}: pay per delivery (₦)</label><input name="rz" data-z="${esc(z.name)}" type="number" min="0" step="50" inputmode="numeric" value="${c.rider[z.name]??""}"/><label>${esc(z.name)}: food kitchen</label><select name="zk" data-z="${esc(z.name)}"><option value="">Not set</option>${(D.kitchens||[]).map(k=>`<option value="${esc(k.name)}" ${(c.zoneVendor[z.name]||{}).food===k.name?"selected":""}>${esc(k.name)}</option>`).join("")}</select><label>${esc(z.name)}: supplement supplier</label><select name="zs" data-z="${esc(z.name)}"><option value="">Not set</option>${(D.suppliers||[]).map(k=>`<option value="${esc(k.name)}" ${(c.zoneVendor[z.name]||{}).supp===k.name?"selected":""}>${esc(k.name)}</option>`).join("")}</select><label>${esc(z.name)}: main rider for food</label><select name="rd" data-z="${esc(z.name)}"><option value="">Not set</option>${(D.riders||[]).map(r=>`<option value="${esc(r.name)}" ${c.riderOf[z.name]===r.name?"selected":""}>${esc(r.name)}</option>`).join("")}</select><label>${esc(z.name)}: rider for supplements (optional)</label><select name="rds" data-z="${esc(z.name)}"><option value="">Same as food rider</option>${(D.riders||[]).map(r=>`<option value="${esc(r.name)}" ${c.riderOfSupp[z.name]===r.name?"selected":""}>${esc(r.name)}</option>`).join("")}</select>`).join("")||'<p class="text-xs text-neutral-500">Add delivery zones first under Delivery &amp; Partners.</p>'}</div>
   <div class="blk"><h3>Pricing target</h3>${n("target","Target profit margin (%)",c.target)}</div>
   <button class="btn mt-4 w-full bg-g2 py-3 text-white">Save settings</button></form>`;
 }
 async function finSetSave(f){
   const c=fcfg(),g=k=>{const v=f[k].value.trim();return v===""||isNaN(+v)?FD[k]:Math.max(0,+v)};
-  ["gwPct","gwFlat","gwMin","gwCap","packFood","packSupp","sachet","target"].forEach(k=>c[k]=g(k));c.autoFrom=f.autoFrom.value||"";
+  ["gwPct","gwFlat","gwMin","gwCap","packFood","packSupp","sachet","target"].forEach(k=>c[k]=g(k));
+  c.riderOf={};f.querySelectorAll('select[name="rd"]').forEach(i=>{if(i.value)c.riderOf[i.dataset.z]=i.value});
+  c.zoneVendor={};f.querySelectorAll('select[name="zk"]').forEach(i=>{const z=i.dataset.z,sp=f.querySelector('select[name="zs"][data-z="'+z.replace(/"/g,"&quot;")+'"]');const o={food:i.value,supp:sp?sp.value:""};if(o.food||o.supp)c.zoneVendor[z]=o});
+  c.riderOfSupp={};f.querySelectorAll('select[name="rds"]').forEach(i=>{if(i.value)c.riderOfSupp[i.dataset.z]=i.value});
   c.rider={};f.querySelectorAll('input[name="rz"]').forEach(i=>{if(i.value.trim()!==""&&!isNaN(+i.value))c.rider[i.dataset.z]=Math.max(0,+i.value)});
-  if(await finSaveCfg(c)){draw();toast("Saved")}
+  if(!await finSaveCfg(c))return;
+  const on=!!f.online.checked;
+  if(on!==!!(D.payment&&D.payment.online)){
+    if(on&&!confirm("Turn on online-only checkout? Customers will no longer be able to order on WhatsApp. Areas that are not fully set up will show as not available."))return draw();
+    if(await setting("payment",{online:on}))D.payment={online:on}
+  }
+  draw();toast("Saved")
 }
 async function finSaveCfg(cfg){const {error}=await sb.from("fin_store").upsert({key:"cfg",value:cfg,updated_at:new Date().toISOString()},{onConflict:"key"});if(error){finErr(error);return false}FIN.cfg=cfg;return true}
 async function finInclusive(){
@@ -1043,6 +1054,104 @@ function bankReadyHtml(){
   if(BANKS===null||BKS)return"";const all=[...(D.kitchens||[]).map(x=>["kitchens",x.name]),...(D.suppliers||[]).map(x=>["suppliers",x.name]),...(D.riders||[]).map(x=>["riders",x.name])];
   if(!all.length)return"";const ok=all.filter(([k,n])=>{const r=bankOf(k,n);return r&&r.subaccount_code}).length;
   return `<div class="mb-3 rounded-2xl ${ok===all.length?"bg-green-50 text-g1":"bg-amber-50 text-amber-900"} p-3 text-sm"><b>${ok} of ${all.length}</b> partners are ready for auto-split.${ok<all.length?` <button class="underline font-bold" onclick="go('ops')">Add bank details</button>`:""}</div>`}
+
+/* ---------- auto-split readiness + rider pay after delivery ---------- */
+function autoReadyHtml(){
+  const c=fcfg(),items=[...(D.eats||[]).filter(x=>!x.soon),...(D.supps||[])],noZ=(D.zones||[]).filter(z=>{const v=c.zoneVendor[z.name]||{};return !(v.food&&v.supp)}).length,noC=items.filter(x=>c.costs[x.n]==null||c.costs[x.n]==="").length,zs=D.zones||[],noR=zs.filter(z=>!c.riderOf[z.name]).length;
+  const vp=[...(D.kitchens||[]).map(x=>["kitchens",x.name]),...(D.suppliers||[]).map(x=>["suppliers",x.name])],noB=BANKS===null||BKS?null:vp.filter(([k,n])=>{const r=bankOf(k,n);return !(r&&r.subaccount_code)}).length;
+  const rb=BANKS===null||BKS?null:(D.riders||[]).filter(r=>{const x=bankOf("riders",r.name);return !(x&&x.account_number)}).length;
+  const li=(ok,t)=>`<li>${ok?"✅":"⚠️"} ${t}</li>`;
+  return `<div class="blk"><h3>Online payment checklist</h3><ul class="space-y-1 pt-2 text-sm">${li(!noZ,noZ?noZ+" zone(s) are missing a food kitchen or supplement supplier (below).":"Every zone has a food kitchen and a supplement supplier")}${li(!noC,noC?noC+" product(s) have no vendor cost.":"Every product has a vendor cost")}${li(!noR,noR?noR+" zone(s) have no main rider (below).":"Every zone has a main rider")}${noB===null?"":li(!noB,noB?noB+" vendor(s) have no payout account yet.":"Every vendor has a payout account")}${rb===null?"":li(!rb,rb?rb+" rider(s) have no bank details yet.":"Every rider has bank details")}</ul><p class="mt-2 text-xs text-neutral-500">If any of these is missing, the customer simply sees WhatsApp checkout instead of Pay online. Nothing breaks.</p></div>`}
+async function finMarkG(g,note){
+  const now=new Date().toISOString(),k=g.kind==="v"?"vendor":"rider",rows=g.list.map(id=>({order_id:String(id),[k+"_paid"]:true,[k+"_paid_at"]:now,...(note?{note}:{})}));
+  const {error}=await sb.from("order_finance").upsert(rows,{onConflict:"order_id"});if(error)return error;
+  rows.forEach(r=>{FIN.rows[r.order_id]={...(FIN.rows[r.order_id]||{}),...r}});return null
+}
+async function finRiderPay(i){
+  const g=FPAY[i];if(!g||g.owed<=0)return;
+  if(!confirm(`Send ${R0(g.owed)} to ${g.name} now from your Paystack balance? Paystack charges a small transfer fee.`))return;
+  toast("Sending…");
+  const {data,error}=await sb.functions.invoke("rider-payout",{body:{name:g.name,amount:Math.round(g.owed),reason:"SmartyHub delivery pay"}});
+  if(error||!data||data.error){toast((await fnErr(error))||(data&&data.error)||"Transfer failed");return}
+  const e2=await finMarkG(g,"Paystack transfer "+(data.reference||""));
+  if(e2){alert("The transfer was SENT ("+(data.reference||"")+") but the orders could not be marked paid: "+e2.message+". Do not send it again. Mark them paid by hand.");return}
+  draw();toast(data.status==="success"?"Sent to "+g.name:"Transfer started. Paystack is processing it")
+}
+
+/* ---------- which items each kitchen / supplier makes ---------- */
+let KIS=false;
+function kiList(k){return (k==="kitchens"?(D.eats||[]).filter(x=>!x.soon):(D.supps||[])).map(x=>x.n)}
+function kiBlock(k,name){
+  if(!KIS){finCfgEnsure().then(ok=>{if(ok){KIS=true;const b=$("#kiblock");if(b)b.innerHTML=kiBlock(k,name)}});return '<div class="blk"><h3>Items this partner makes</h3><p class="pt-2 text-xs text-neutral-500">Loading…</p></div>'}
+  if(FIN&&FIN.setup)return "";
+  const c=fcfg(),sel=c.kitchenItems[name],all=kiList(k),on=n=>!Array.isArray(sel)||!sel.length||sel.includes(n);
+  return `<div class="blk"><h3>Items this partner makes</h3><p class="pt-2 text-xs text-neutral-500">Untick what they do not make. Customers in their area will be told those items are not available.</p>
+  <div class="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-xl bg-white p-2">${all.map(n=>`<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="ki" value="${esc(n)}" style="width:auto" ${on(n)?"checked":""}/> ${esc(n)}</label>`).join("")||'<p class="text-xs text-neutral-500">No items yet.</p>'}</div>
+  <button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="kiSave()">Save items</button></div>`
+}
+async function kiSave(){
+  const f=$("#pf"),nm=f.name.value.trim(),all=kiList(PK),on=[...f.querySelectorAll('input[name="ki"]:checked')].map(i=>i.value),c=fcfg();
+  if(!on.length){toast("Tick at least one item");return}
+  if(on.length===all.length)delete c.kitchenItems[nm];else c.kitchenItems[nm]=on;
+  if(await finSaveCfg(c))toast("Items saved")
+}
+async function kiRename(old,nu){if(!await finCfgEnsure())return;const c=fcfg();if(c.kitchenItems[old]){c.kitchenItems[nu]=c.kitchenItems[old];delete c.kitchenItems[old];await finSaveCfg(c)}}
+
+/* ---------- partner portal logins (vendor.html) ---------- */
+let PLG=null,PLS=false;
+const plNorm=v=>{const d=String(v||"").replace(/\D/g,"");return d.startsWith("0")?"234"+d.slice(1):d.length===10?"234"+d:d};
+async function shaHex(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+async function plLoad(){
+  await custInit();
+  const {data,error}=await sb.from("partner_logins").select("id,kind,name,phone,updated_at");
+  if(error){PLS=/partner_logins|schema cache|does not exist/i.test(error.message||"");PLG={}}else{PLG=Object.fromEntries((data||[]).map(r=>[r.id,r]));PLS=false}
+}
+function plSql(){const e=String(CEM||"").replace(/'/g,"''");return `create or replace function public.fin_admin() returns boolean language sql stable as $$
+  select lower(coalesce(auth.jwt()->>'email','')) = lower('${e}')
+$$;
+create table if not exists public.partner_logins(
+  id text primary key, kind text not null, name text not null, phone text not null,
+  code_hash text not null, fails int not null default 0, locked_until timestamptz,
+  updated_at timestamptz default now());
+create table if not exists public.order_events(
+  id bigserial primary key, ref text not null, event text not null, by_name text, at timestamptz default now());
+create index if not exists order_events_ref on public.order_events(ref);
+alter table public.partner_logins enable row level security;
+alter table public.order_events enable row level security;
+drop policy if exists partner_logins_admin on public.partner_logins;
+drop policy if exists order_events_admin on public.order_events;
+create policy partner_logins_admin on public.partner_logins for all to authenticated using (public.fin_admin()) with check (public.fin_admin());
+create policy order_events_admin on public.order_events for all to authenticated using (public.fin_admin()) with check (public.fin_admin());
+revoke all on public.partner_logins, public.order_events from anon;
+grant select, insert, update, delete on public.partner_logins, public.order_events to authenticated;
+-- the server functions use the service role: make sure it can reach every table they read or write
+grant all on public.partner_logins, public.order_events, public.fin_store, public.order_finance, public.payout_accounts to service_role;
+grant usage, select on sequence public.order_events_id_seq to service_role;
+notify pgrst, 'reload schema';`}
+function plBlock(k,name){
+  if(PLG===null){plLoad().then(()=>{const b=$("#plblock");if(b)b.innerHTML=plBlock(k,name)});return '<div class="blk"><h3>Partner login</h3><p class="pt-2 text-xs text-neutral-500">Loading…</p></div>'}
+  if(PLS)return `<div class="blk"><h3>Partner login</h3><p class="pt-2 text-xs text-amber-800">One-time setup needed. Copy this SQL, run it in Supabase, SQL Editor, then reopen this partner.</p><textarea id="sqlbox" readonly rows="6" class="mt-2 font-mono !text-xs" onclick="this.select()">${esc(plSql())}</textarea><button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button></div>`;
+  const r=PLG[bkId(k,name)];
+  return `<div class="blk"><h3>Partner login <span class="font-normal text-neutral-500">(vendor.html)</span></h3>
+  <p class="pt-1 text-xs text-neutral-600">${r?"✓ Login is set up for +"+esc(r.phone)+". Making a new code logs them out and replaces the old code.":"They log in at vendor.html with their phone number and an access code from you, to see paid orders and update them."}</p>
+  <button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="plMake()">${r?"Make a new access code":"Create access code"}</button><div id="plout"></div></div>`
+}
+async function plMake(){
+  const f=$("#pf"),nm=f.name.value.trim(),ph=plNorm(f.phone.value);
+  if(!nm||ph.length<11){toast("Add the partner's name and phone number first");return}
+  const code=custPw().toUpperCase(),id=bkId(PK,nm),rec={id,kind:PK,name:nm,phone:ph,code_hash:await shaHex("sh:"+code),fails:0,locked_until:null,updated_at:new Date().toISOString()};
+  const {error}=await sb.from("partner_logins").upsert(rec,{onConflict:"id"});
+  if(error){if(/partner_logins|schema cache|does not exist/i.test(error.message||"")){PLS=true;const b=$("#plblock");if(b)b.innerHTML=plBlock(PK,nm)}else if(/row-level|permission/i.test(error.message||""))finErr(error);else toast("Failed: "+error.message);return}
+  PLG[id]=rec;const link=location.origin+"/vendor.html",msg=`Hi ${nm}, here is your SmartyHub partner login.\nPage: ${link}\nPhone number: ${f.phone.value.trim()}\nAccess code: ${code}\nOpen the page, log in, and keep it open to receive new paid orders.`;
+  window.__plmsg=msg;
+  $("#plout").innerHTML=`<div class="mt-3 rounded-xl bg-green-50 p-3 text-sm text-g1">Access code: <b class="font-mono text-lg">${code}</b><br><span class="text-xs">Shown once. Send it to them now.</span></div><div class="mt-2 flex gap-2"><button type="button" class="btn flex-1 border border-neutral-300 py-3" onclick="plCopy()">Copy message</button><a class="btn flex-1 bg-g2 py-3 text-center text-white" target="_blank" rel="noopener" href="https://wa.me/${ph}?text=${encodeURIComponent(msg)}">Send on WhatsApp</a></div>`;
+}
+async function plCopy(){try{await navigator.clipboard.writeText(window.__plmsg||"");toast("Copied")}catch(e){toast("Could not copy")}}
+async function plRename(k,old,nu){if(PLG===null)await plLoad();const r=PLG&&PLG[bkId(k,old)];if(!r)return;const n={...r,id:bkId(k,nu),name:nu};
+  const {data}=await sb.from("partner_logins").select("*").eq("id",r.id).maybeSingle();if(!data)return;
+  const a=await sb.from("partner_logins").upsert({...data,id:n.id,name:nu,updated_at:new Date().toISOString()},{onConflict:"id"});if(a.error)return;
+  await sb.from("partner_logins").delete().eq("id",r.id);delete PLG[r.id];PLG[n.id]=n}
+async function plDelete(k,name){if(PLG===null)await plLoad();const id=bkId(k,name);if(PLG&&PLG[id]){await sb.from("partner_logins").delete().eq("id",id);delete PLG[id]}}
 
 init();
 </script>

@@ -124,6 +124,7 @@ let GOALS=["All","Immunity","Bone & Joint","Heart & Brain","Daily Vitamins","Org
 let INGS=[...new Set(SUPP.flatMap(x=>x.ing))].sort();
 
 /* Delivery zones: managed in admin (Delivery & Partners). fee:null = confirmed on WhatsApp. */
+let ONLINE=false;
 let ZONES=[{name:"Ikeja",fee:1500},{name:"Alimosho",fee:1500},{name:"Ajah",fee:2000},{name:"Other Lagos area",fee:null}];
 const escH=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cartGroups=()=>{const f=S.cart.filter(x=>x.food),p=S.cart.filter(x=>!x.food);return[f.length&&{key:"food",label:"Food",items:f},p.length&&{key:"supp",label:"Supplements",items:p}].filter(Boolean)};
@@ -412,11 +413,22 @@ function checkout(){
     <div class="rounded-2xl bg-green-50 p-3"><label for="cpn" class="block text-sm font-semibold">Coupon or promo code</label><div class="mt-1 flex gap-2"><input id="cpn" autocomplete="off" autocapitalize="characters" placeholder="Enter code" class="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm uppercase outline-none focus:border-g3"/><button type="button" data-a="cpn" class="pill rounded-xl bg-g2 px-4 text-sm font-bold text-white hover:bg-g1">Apply</button></div><p id="cpm" class="mt-1 text-xs"></p></div>
     ${split()?splitNote():""}
     <div class="space-y-1 pt-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>${fmt(sub())}</span></div><div class="flex justify-between"><span>Delivery</span><span id="fe" class="font-semibold text-g2">Free</span></div><div id="dsr" class="hidden justify-between text-g2"><span id="dsl">Discount</span><span id="dsv"></span></div><div class="flex justify-between text-lg font-bold"><span>Total</span><span id="to">${fmt(sub())}</span></div></div>
-    <button id="pb" class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:opacity-60">Place order</button></form>`);
+    <p id="coer" role="alert" class="text-sm font-semibold text-red-600"></p>
+    <button id="pb" class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:opacity-60">${ONLINE?"Continue to payment":"Place order"}</button></form>`);
   if(S.pendingCode){$("#cpn").value=S.pendingCode;S.pendingCode=null;cpnApply()}
 }
+let LASTPAY=null;
+async function payOnline(b){const C=SBC();if(!C||!LASTPAY)return;b.disabled=true;const t0=b.textContent;b.textContent="Opening payment…";
+  try{const r=await fetch(C.url+"/functions/v1/pay-init",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify(LASTPAY)});
+    const j=await r.json().catch(()=>({}));if(r.ok&&j.url){location.href=j.url;return}
+    toast(j.message||(ONLINE?"Online payment is not available right now. Please try again.":"Online payment is not available for this order yet. Please confirm on WhatsApp."))}
+  catch(e){toast(ONLINE?"Could not start the payment. Tap Pay online now to try again.":"Could not start the payment. Please confirm on WhatsApp.")}
+  b.disabled=false;b.textContent=t0}
 async function done(d){
   const groups=cartGroups();if(!groups.length)return;
+  if(ONLINE){const C0=SBC(),er=$("#coer"),pb0=$("#pb");pb0.disabled=true;pb0.textContent="Checking your area…";let chk=null;
+    try{if(C0){const r=await fetch(C0.url+"/functions/v1/check-cart",{method:"POST",headers:{apikey:C0.key,Authorization:"Bearer "+C0.key,"Content-Type":"application/json"},body:JSON.stringify({zone:d.zone,items:S.cart.map(x=>({n:x.n,q:x.q,p:x.p}))})});chk=await r.json().catch(()=>null)}}catch(e){}
+    if(!chk||chk.ok!==true){if(er)er.textContent=(chk&&chk.message)||"We could not check your area. Please try again.";pb0.disabled=false;pb0.textContent="Continue to payment";return}}
   const pb=$("#pb");pb.disabled=true;pb.textContent="Placing order…";
   const C=SBC(),multi=groups.length>1,coupon=CP?CP.code:"",tg=couponTarget().key,out=[];
   const newRef=()=>"SHO-"+Math.floor(1000+Math.random()*9000);
@@ -431,17 +443,21 @@ async function done(d){
     out.push({g,ref,fee,saved,s0,disc,pend,free});
   }
   CP=null;
+  if(ONLINE&&(!out.every(o=>o.saved)||out.some(o=>o.pend))){modal(`<div class="py-4 text-center"><h2 class="font-serif text-2xl font-bold">We could not finish your order</h2><p class="mt-2 text-neutral-600">Nothing has been charged. Please try again in a moment. If it keeps happening, chat with us and we will help.</p><a href="https://wa.me/${WA}" target="_blank" rel="noopener" class="mt-4 block text-sm font-semibold text-g2 underline">Chat with us</a><button data-a="mclose" class="pill mt-4 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white">Back to menu</button></div>`);return}
   const open=false,allSaved=out.every(o=>o.saved),anyFree=out.some(o=>o.free),td=out.reduce((a,o)=>a+o.disc,0),T=o=>Math.max(0,o.s0+o.fee-o.disc);
   const sec=o=>`*${o.g.label.toUpperCase()} ORDER ${o.ref}*\n${o.g.items.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n")}\nSubtotal: ${fmt(o.s0)}\nDelivery (${d.zone}): Free${o.disc?`\nCoupon ${coupon}: -${fmt(o.disc)}${o.pend?" (please confirm)":""}`:""}\nTotal: ${fmt(T(o))}`;
   const msg=`Hi SmartyHub Organic, new ${multi?"orders":"order "+out[0].ref}\n\n${out.map(sec).join("\n\n")}\n\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}${multi?"\n\nI understand my food and supplements will arrive separately.":""}`;
   S.cart=[];save();badge();
+  const payOk=!!C&&allSaved&&out.every(o=>!o.pend);LASTPAY=payOk?{refs:out.map(o=>o.ref),phone:d.phone,email:(AU.user&&/@/.test(AU.user.email||"")&&!/^\+/.test(AU.user.email||""))?AU.user.email:""}:null;
   const title=multi?(allSaved?"Your 2 orders are received":"Your 2 orders are ready to send"):(allSaved?"Order "+out[0].ref+" received":"Order "+out[0].ref+" is ready to send");
   const rows=multi?`<div class="mt-4 space-y-2 text-left">${out.map(o=>`<div class="flex items-center justify-between rounded-2xl bg-neutral-50 px-4 py-3 text-sm"><span class="font-bold">${o.g.label} · ${o.ref}</span><span class="font-semibold text-g2">${fmt(T(o))}</span></div>`).join("")}</div><div class="mt-3 flex gap-3 rounded-2xl bg-amber-50 p-3 text-left text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p>Your food and supplements are packed at different locations, so they will arrive separately, at different times. We will confirm each delivery time on WhatsApp.</p></div>`:"";
   modal(`<div class="py-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div>
   <h2 class="mt-4 font-serif text-2xl font-bold">${title}</h2>
-  <p class="mt-2 text-neutral-600">${allSaved?(multi?"Tap below to confirm both orders on WhatsApp.":"Tap below to confirm on WhatsApp so we can confirm your delivery time."):"Send it on WhatsApp and we will confirm your delivery."}${anyFree?" Your free vitamin sachet is included with your food order.":""}${td?` You saved ${fmt(td)} with ${escH(coupon)}.`:""}${AU.user&&allSaved?" Track each one any time from the menu, under My orders.":""}</p>${rows}
-  <a href="https://wa.me/${WA}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="pill mt-5 block rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Confirm on WhatsApp</a>
+  <p class="mt-2 text-neutral-600">${ONLINE?"Opening your secure payment. If it does not open, tap Pay online now.":allSaved?(multi?"Tap below to confirm both orders on WhatsApp.":"Tap below to confirm on WhatsApp so we can confirm your delivery time."):"Send it on WhatsApp and we will confirm your delivery."}${anyFree?" Your free vitamin sachet is included with your food order.":""}${td?` You saved ${fmt(td)} with ${escH(coupon)}.`:""}${AU.user&&allSaved?" Track each one any time from the menu, under My orders.":""}</p>${rows}
+  ${payOk?`<button data-a="payonline" class="pill mt-5 block w-full rounded-full bg-neutral-900 py-3.5 font-bold text-white">Pay online now</button><p class="mt-1 text-xs text-neutral-500">Card or bank transfer, secured by Paystack</p>`:""}
+  ${ONLINE?`<a href="https://wa.me/${WA}" target="_blank" rel="noopener" class="mt-3 block text-sm font-semibold text-g2 underline">Need help? Chat with us</a>`:`<a href="https://wa.me/${WA}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="pill ${payOk?"mt-3":"mt-5"} block rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Confirm on WhatsApp</a>`}
   <button data-a="mclose" class="mt-3 text-sm font-bold text-neutral-500 underline">Back to menu</button></div>`);
+  if(ONLINE&&payOk)setTimeout(()=>{const b=document.querySelector('[data-a="payonline"]');if(b)payOnline(b)},400);
 }
 
 /* ---------- ACCOUNT, OFFERS, ORDER TRACKING, COUPONS ---------- */
@@ -734,6 +750,7 @@ document.addEventListener("click",e=>{
   else if(a==="signsheet"){openMenu(false);openSignIn(t.dataset.n||"")}
   else if(a==="signup"){openMenu(false);openSignUp(t.dataset.n||"")}
   else if(a==="forgot")openForgot(t.dataset.n||"");
+  else if(a==="payonline")payOnline(t);
   else if(a==="pwt"){const i=t.parentElement.querySelector("input");i.type=i.type==="password"?"text":"password"}
   else if(a==="signout"){openMenu(false);signOut()}
   else if(a==="cpn")cpnApply();
@@ -768,6 +785,7 @@ async function sbCatalog(){
     const it=await a.json(),st=Object.fromEntries((await b.json()).map(r=>[r.key,r.value]));
     if(Array.isArray(st.zones)&&st.zones.length)ZONES=st.zones;
     if(st.info&&typeof st.info==="object")INFO=st.info;
+    ONLINE=!!(st.payment&&st.payment.online);
     if(!it.length)return null;
     return {eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats,suppCats:st.suppCats,hero:st.hero,eatStory:st.eatStory,eatFlyers:st.eatFlyers};
   }catch(e){return null}
@@ -793,6 +811,9 @@ async function loadCatalog(){
 const setHH=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hh",h.offsetHeight+"px")};setHH();addEventListener("resize",setHH);addEventListener("load",setHH);try{new ResizeObserver(setHH).observe(document.querySelector("header"))}catch(e){}
 drawHdr();authInit();
 loadCatalog().then(()=>{render();drawCart();drawMenu();loadRatings();try{const t=+sessionStorage.getItem("sho-go-orders")||0;sessionStorage.removeItem("sho-go-orders");if(t&&Date.now()-t<30000)openOrders()}catch(e){}});
+
+/* back from Paystack */
+(function(){try{const q=new URLSearchParams(location.search);if(q.get("paid")==="1"){history.replaceState(null,"",location.pathname);setTimeout(()=>modal(`<div class="flex justify-end">${xBtn}</div><div class="pb-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div><h2 class="mt-4 font-serif text-2xl font-bold">Payment received</h2><p class="mt-2 text-neutral-600">Thank you! We are confirming your payment now and will message you on WhatsApp with your delivery time.</p><button data-a="mclose" class="pill mt-5 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white">Back to menu</button></div>`),600)}}catch(e){}})();
 </script>
 </body>
 </html>
