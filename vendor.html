@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow"/>
 <meta name="theme-color" content="#2E7D32"/>
 <title>SmartyHub Partner</title>
-<script src="supabase-config.js"></script>
+<script src="/supabase-config.js"></script>
 <style>
 :root{--g:#2E7D32;--g1:#1B5E20;--bg:#f6f7f5;--tx:#171717;--mu:#6b7280;--bd:#e5e7eb;--card:#fff}
 @media (prefers-color-scheme:dark){:root{--bg:#111513;--tx:#f3f4f6;--mu:#9ca3af;--bd:#2a302c;--card:#1b201d}}
@@ -30,6 +30,7 @@ ul{margin:8px 0;padding-left:18px}li{margin:2px 0}
 .err{color:#dc2626;font-weight:600;min-height:20px;margin-top:10px;font-size:14px}
 .box{background:rgba(46,125,50,.08);border-radius:12px;padding:10px;margin-top:8px;font-size:14px}
 a{color:var(--g)}
+.tabs{display:flex;gap:6px;margin-bottom:6px}.tab{flex:1;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}.tab.on{background:var(--g);color:#fff;border-color:var(--g)}
 .sec{margin-top:10px}
 .big{font-size:20px;font-weight:800}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;display:none;z-index:9}
@@ -53,15 +54,23 @@ async function api(body){
   if(!r.ok)throw new Error(j.error||"Something went wrong");return j}
 function logout(msg){T=null;try{localStorage.removeItem(KEY)}catch(e){}clearInterval(timer);seen=null;$("#out").style.display="none";$("#hn").textContent="SmartyHub Partner";$("#hs").textContent="";loginView(msg)}
 $("#out").onclick=()=>logout();
-function loginView(msg){
-  $("#app").innerHTML=`<div class="card"><h2 style="margin-top:0">Partner log in</h2>
-  <form id="lf"><label>Phone number</label><input name="p" type="tel" inputmode="numeric" autocomplete="username" placeholder="08012345678" required/>
-  <label>Access code</label><input name="c" autocomplete="current-password" autocapitalize="characters" placeholder="From SmartyHub" required/>
-  <p class="err" id="er">${esc(msg||"")}</p><button class="pri" id="lb">Log in</button></form>
-  <p class="mu" style="margin-top:12px">Kitchens, suppliers and riders log in here to see paid orders and update them.</p></div>`;
-  $("#lf").onsubmit=async e=>{e.preventDefault();const f=e.target,b=$("#lb");b.disabled=true;b.textContent="Please wait…";$("#er").textContent="";
-    try{const j=await api({action:"login",phone:f.p.value,code:f.c.value});T=j.token;ROLE=j.kind;NAME=j.name;localStorage.setItem(KEY,JSON.stringify({token:T,kind:ROLE,name:NAME}));start()}
-    catch(err){$("#er").textContent=err.message;b.disabled=false;b.textContent="Log in"}}}
+function loginView(msg,mode){
+  mode=mode||"login";const first=mode==="first";
+  $("#app").innerHTML=`<div class="card"><div class="tabs"><button class="tab ${first?"":"on"}" data-m="login">Log in</button><button class="tab ${first?"on":""}" data-m="first">First time here</button></div>
+  <form id="lf"><label>Phone number (your WhatsApp number)</label><input name="p" type="tel" inputmode="numeric" autocomplete="username" placeholder="08012345678" required/>
+  ${first?`<label>Activation code from SmartyHub</label><input name="c" autocapitalize="characters" autocomplete="off" required/>
+  <label>Choose your password</label><input name="w" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required/>
+  <label>Type the password again</label><input name="w2" type="password" autocomplete="new-password" minlength="6" required/>`
+  :`<label>Password</label><input name="w" type="password" autocomplete="current-password" required/>`}
+  <p class="err" id="er">${esc(msg||"")}</p><button class="pri" id="lb">${first?"Create my login":"Log in"}</button></form>
+  <p class="mu" style="margin-top:12px">${first?"SmartyHub sends you an activation code on WhatsApp. You use it once to create your own password.":"Forgot your password? Message SmartyHub and we will send a new activation code."}</p></div>`;
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>loginView("",b.dataset.m));
+  $("#lf").onsubmit=async e=>{e.preventDefault();const f=e.target,b=$("#lb");$("#er").textContent="";
+    if(first&&f.w.value!==f.w2.value){$("#er").textContent="The two passwords do not match.";return}
+    b.disabled=true;b.textContent="Please wait…";
+    try{const j=await api(first?{action:"activate",phone:f.p.value,code:f.c.value,password:f.w.value}:{action:"login",phone:f.p.value,password:f.w.value});
+      T=j.token;ROLE=j.kind;NAME=j.name;localStorage.setItem(KEY,JSON.stringify({token:T,kind:ROLE,name:NAME}));start()}
+    catch(err){$("#er").textContent=err.message;b.disabled=false;b.textContent=first?"Create my login":"Log in"}}}
 const ago=d=>{const m=Math.max(0,Math.round((Date.now()-new Date(d))/60000));return m<1?"just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":Math.floor(m/1440)+" d ago"};
 function beep(){try{navigator.vibrate&&navigator.vibrate([200,100,200]);const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();a.close()},350)}catch(e){}}
 function action(o){
