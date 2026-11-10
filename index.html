@@ -78,6 +78,7 @@ body{overflow-x:hidden}
 <div id="modal" class="fixed inset-0 z-50 hidden items-end justify-center p-0 sm:items-center sm:p-4"><div id="mbox" class="rise max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl"></div></div>
 <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 translate-y-20 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white opacity-0 transition-all duration-300"></div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="supabase-config.js"></script>
 <script>
 const WA="2348066611017", $=s=>document.querySelector(s), fmt=n=>"₦"+n.toLocaleString("en-NG");
@@ -483,7 +484,7 @@ const goBtn=t=>`<button type="submit" data-sb disabled class="pill mt-5 w-full r
 const orLine=t=>`<div class="my-5 flex items-center gap-3 text-neutral-500"><span class="h-px flex-1 bg-neutral-200"></span><span class="text-sm">${t}</span><span class="h-px flex-1 bg-neutral-200"></span></div>`;
 /* Google / Apple only appear once they are switched on in Supabase */
 const socialBtns=a=>{const g=!!SBC()&&PROV&&PROV.google,p=PROV&&PROV.apple;if(!g&&!p)return "";
-  return `${orLine("or continue with")}<div class="space-y-2">${g?`<button type="button" data-a="signin" data-v="google" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl border border-neutral-300 bg-white py-3.5 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl bg-black py-3.5 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
+  return `${orLine("or continue with")}<div class="space-y-2">${g?`<div data-gsi data-n="${a||""}" class="flex min-h-[44px] w-full justify-center"></div>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl bg-black py-3.5 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
 const signBtns=a=>`<div class="grid grid-cols-2 gap-2"><button type="button" data-a="signsheet" data-n="${a||""}" class="pill rounded-full bg-g2 py-3 text-sm font-bold text-white hover:bg-g1">Log in</button><button type="button" data-a="signup" data-n="${a||""}" class="pill rounded-full border border-neutral-300 bg-white py-3 text-sm font-bold hover:border-neutral-500">Sign up</button></div>`;
 function openSignIn(after,title,msg){modal(`<div class="flex justify-end">${xBtn}</div><form id="lf" data-n="${after||""}" class="pb-2" novalidate><h2 class="text-center font-serif text-2xl font-bold">${title||"Log in to your account"}</h2><p class="mb-6 mt-2 text-center text-neutral-600">${msg||"Welcome back! Enter your phone number and password to log in."}</p><div class="space-y-4">${phoneRow()}${pwBox("current-password","Your password")}</div><p data-er role="alert" class="mt-3 min-h-[1.25rem] text-sm font-semibold text-red-600"></p>${goBtn("Continue")}<p class="mt-3 text-center text-sm"><button type="button" data-a="forgot" data-n="${after||""}" class="font-bold text-g2 underline">Forgot password?</button></p>${orLine("Don’t have an account?")}<button type="button" data-a="signup" data-n="${after||""}" class="pill w-full rounded-2xl bg-green-50 py-4 text-base font-bold text-g2">Sign up</button>${socialBtns(after)}</form>`)}
 function openForgot(after){modal(`<div class="flex justify-end">${xBtn}</div><form id="rf" data-n="${after||""}" class="pb-2" novalidate><h2 class="text-center font-serif text-2xl font-bold">Reset your password</h2><p class="mb-6 mt-2 text-center text-neutral-600">Enter the phone number on your account. We will open WhatsApp with your request, confirm it is you, then send you a temporary password. You will choose your own new password after you log in.</p><div class="space-y-4">${phoneRow()}</div><p data-er role="alert" class="mt-3 min-h-[1.25rem] text-sm font-semibold text-red-600"></p><button type="submit" class="pill mt-3 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white hover:bg-g1">Request reset on WhatsApp</button><p class="mt-4 text-center text-sm"><button type="button" data-a="signsheet" data-n="${after||""}" class="font-bold text-g2 underline">Back to log in</button></p></form>`)}
@@ -531,6 +532,44 @@ async function authGo(f,mode){const C=SBC(),b=f.querySelector("[data-sb]"),er=f.
   b.textContent=t0;authChk(f)}
 const rpc=async(fn,body)=>{const C=SBC();if(!C)throw new Error("off");const t=await authToken();const r=await fetch(C.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+(t||C.key),"Content-Type":"application/json"},body:JSON.stringify(body||{})});let j=null;try{j=await r.json()}catch(e){}return{ok:r.ok,j}};
 const saveAuth=()=>{try{localStorage.setItem("sho-auth",JSON.stringify({tok:AU.tok,ref:AU.ref,exp:AU.exp}))}catch(e){}};
+
+/* Google sign-in popup (Google Identity Services): Google shows smartyhuborganic.com instead of the Supabase address */
+const GCID="414651612509-kqp17t76v27f11hgup6neajpplan6gv4.apps.googleusercontent.com";
+let GSI_P=null,GSI_NONCE="",GSI_AFTER="";
+const hex=u=>Array.from(u,b=>b.toString(16).padStart(2,"0")).join("");
+function gsiReady(){
+  if(GSI_P)return GSI_P;
+  GSI_P=(async()=>{
+    if(!(window.google&&google.accounts&&google.accounts.id))throw new Error("gsi");
+    const raw=hex(crypto.getRandomValues(new Uint8Array(16)));
+    const hashed=hex(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw))));
+    GSI_NONCE=raw;
+    google.accounts.id.initialize({client_id:GCID,nonce:hashed,callback:gsiCb,auto_select:false});
+  })().catch(e=>{GSI_P=null;throw e});
+  return GSI_P;
+}
+async function gsiCb(resp){
+  const C=SBC();if(!C||!resp||!resp.credential){toast("Google sign-in was cancelled");return}
+  try{
+    const r=await fetch(C.url+"/auth/v1/token?grant_type=id_token",{method:"POST",headers:{apikey:C.key,"Content-Type":"application/json"},body:JSON.stringify({provider:"google",id_token:resp.credential,nonce:GSI_NONCE})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.access_token){authFinish(j,GSI_AFTER);return}
+    toast("Google sign-in failed. Please try again")
+  }catch(e){toast("Network problem. Check your connection and try again")}
+}
+function gsiRender(){
+  document.querySelectorAll("[data-gsi]:not([data-done])").forEach(el=>{
+    el.dataset.done="1";
+    gsiReady().then(()=>{
+      GSI_AFTER=el.dataset.n||"";
+      const w=Math.max(200,Math.min(400,Math.round(el.offsetWidth)||320));
+      google.accounts.id.renderButton(el,{type:"standard",theme:"outline",size:"large",text:"continue_with",shape:"pill",width:w,logo_alignment:"center"});
+    }).catch(()=>{
+      el.innerHTML=`<button type="button" data-a="signin" data-v="google" data-n="${el.dataset.n||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl border border-neutral-300 bg-white py-3.5 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`;
+    });
+  });
+}
+new MutationObserver(gsiRender).observe(document.documentElement,{childList:true,subtree:true});
 
 function authInit(){
   try{
