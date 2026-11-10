@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>if(location.hostname==="smartyhuborganic.vercel.app")location.replace("https://smartyhuborganic.com"+location.pathname+location.search+location.hash);</script>
 <script>if(location.hash.indexOf("type=recovery")>-1)location.replace("admin.html"+location.hash);</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -10,7 +11,7 @@
 <meta property="og:type" content="website"/><meta property="og:site_name" content="SmartyHub Organic"/>
 <meta property="og:title" content="SmartyHub Organic: fresh meals &amp; wellness supplements in Lagos"/>
 <meta property="og:description" content="Fresh drinks, yogurt parfaits, breakfast combos, shawarma and quality supplements delivered in Lagos. Free vitamin sachet with every food order."/>
-<meta property="og:image" content="https://smartyhuborganic.vercel.app/menu-promo.jpg"/>
+<meta property="og:image" content="https://smartyhuborganic.com/menu-promo.jpg"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="icon" href="favicon.ico?v=2" sizes="any"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2"/>
@@ -154,7 +155,7 @@ function ecoSwitch(){return `<div class="sticky top-[var(--hh,64px)] z-20 -mx-4 
   <button data-a="eco" data-v="eats" id="t-eats" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="utensils" class="h-4 w-4"></i>Eats</button>
   <button data-a="eco" data-v="supp" id="t-supp" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="leaf" class="h-4 w-4"></i>Supplements</button></nav></div>`}
 function drawHdr(){const h=$("#hauth");if(!h)return;const u=AU.user;
-  h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-10 w-10 rounded-full object-cover"/>`:`<span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}</button>`
+  h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span></button>`
   :`<button type="button" data-a="signup" class="pill whitespace-nowrap rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Sign up</button>`}
 function render(){
   const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
@@ -564,7 +565,7 @@ async function authUser(){
 }
 function signIn(p,after){const C=SBC();if(!C||(PROV&&PROV[p]===false)){toast("Sign-in with "+(p==="apple"?"Apple":"Google")+" isn't switched on yet");return}
   try{if(after)sessionStorage.setItem("sho-after",after)}catch(e){}
-  location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent(location.origin+location.pathname)}
+  location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent((location.hostname==="localhost"||location.hostname==="127.0.0.1"?location.origin:"https://smartyhuborganic.com")+location.pathname)}
 async function signOut(){const C=SBC();try{if(C&&AU.tok)await fetch(C.url+"/auth/v1/logout",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+AU.tok}})}catch(e){}authClear();S.cart=[];save();badge();try{localStorage.removeItem("sho-cart-uid")}catch(e){}toast("Signed out")}
 
 function openMenu(o){
@@ -578,7 +579,7 @@ function drawMenu(){
   const L=(v,ic,t,sub)=>`<button data-a="mn" data-v="${v}" class="pill flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left font-semibold hover:bg-neutral-50"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-50 text-g2">${svgI(IC[ic])}</span><span class="min-w-0"><span class="block">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span></button>`;
   m.innerHTML=`<div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4"><p class="font-serif text-xl font-bold">Menu</p><button data-a="menux" class="rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close menu">${svgI(IC.x)}</button></div>
   <div class="flex-1 overflow-y-auto px-3 py-4">
-    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in with your phone number to follow your delivery and unlock member offers.</p>${signBtns("")}`}</div>
+    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span><div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in with your phone number to follow your delivery and unlock member offers.</p>${signBtns("")}`}</div>
     ${L("eats","food","Breakfast &amp; Eats")}${L("supp","leaf","Supplements")}
     ${L("orders","box","My orders",u?"Track your delivery":"Log in to track your delivery")}${L("offers","tag","Offers &amp; coupons",u?"Promo codes and member deals":"Log in to see offers")}${L("dinfo","truck","Delivery &amp; hours","Free delivery, areas and times")}${L("menus","img","Printed menus")}
     <div class="my-3 border-t border-neutral-100"></div>
