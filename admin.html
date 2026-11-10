@@ -144,10 +144,10 @@ function edit(k,id){
     ?{id:"e"+Date.now().toString(36),cat:D.eatCats[0]||"",n:"",p:0,d:"",img:"",imgs:[],i:"sandwich",o:[]}
     :{id:"p"+Date.now().toString(36),g:D.suppCats[0]||"",n:"",b:"",p:0,dose:"",r:4.5,rv:0,ing:[],d:"",img:"",imgs:[],i:"leaf"});
   if(!Array.isArray(E.imgs))E.imgs=E.img?[E.img]:[];
-  PC={vc:"",dc:"",pm:"",vds:[]};PCS="load";EO=E.n;
+  PC={vc:"",dc:"",pm:"",vds:[],rv:{}};PCS="load";EO=E.n;
   sheet();pcInit();
 }
-let PC={vc:"",dc:"",pm:"",vds:[]},PCS="load",EO="";
+let PC={vc:"",dc:"",pm:"",vds:[],rv:{}},PCS="load",EO="";
 async function finCfgEnsure(){
   FIN=FIN||{cfg:{},rows:{},orders:null};if(FIN.cfgOk)return true;
   const c=await sb.from("fin_store").select("value").eq("key","cfg").maybeSingle();
@@ -156,7 +156,7 @@ async function finCfgEnsure(){
 }
 async function pcInit(){
   const ok=await finCfgEnsure();PCS=ok?"ok":"setup";
-  if(ok){const c=fcfg(),n=E.n;PC.vc=c.costs[n]??"";PC.dc=c.deliv[n]??"";PC.pm=c.target;PC.vds=n?((EK==="eats"?D.kitchens:D.suppliers)||[]).filter(v=>{const cur=c.kitchenItems[v.name];return !Array.isArray(cur)||!cur.length||cur.includes(n)}).map(v=>v.name):[]}
+  if(ok){const c=fcfg(),n=E.n;PC.vc=c.costs[n]??"";PC.dc=c.deliv[n]??"";PC.pm=c.target;PC.rv={...c.riderOfVendor};PC.vds=n?((EK==="eats"?D.kitchens:D.suppliers)||[]).filter(v=>{const cur=c.kitchenItems[v.name];return !Array.isArray(cur)||!cur.length||cur.includes(n)}).map(v=>v.name):[]}
   const b=$("#pcalc");if(b){b.innerHTML=pcBlock();pcalc(true)}
 }
 function pcBlock(){
@@ -165,8 +165,8 @@ function pcBlock(){
   return `<div class="blk"><h3>Price calculator <span class="font-normal text-neutral-500">(costs stay private)</span></h3>
   <div class="grid grid-cols-2 gap-3"><div><label>Vendor cost (₦)</label><input name="vc" type="number" min="0" step="any" inputmode="decimal" value="${esc(PC.vc)}" oninput="pcalc()"/></div><div><label>Delivery cost (₦)</label><input name="dc" type="number" min="0" step="any" inputmode="decimal" value="${esc(PC.dc)}" oninput="pcalc()"/></div></div>
   <label>${EK==="eats"?"Made by (tick every kitchen that makes it)":"Supplied by (tick every supplier that stocks it)"}</label>
-  <div class="max-h-40 space-y-1 overflow-y-auto rounded-xl bg-white p-2">${((EK==="eats"?D.kitchens:D.suppliers)||[]).map(v=>`<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="mk" value="${esc(v.name)}" style="width:auto" ${PC.vds.includes(v.name)?"checked":""} onchange="pcv()"/> ${esc(v.name)}</label>`).join("")||'<p class="text-xs text-neutral-500">Add a '+(EK==="eats"?"kitchen":"supplier")+' under Delivery &amp; Partners first.</p>'}</div>
-  <p class="mt-1 text-xs text-neutral-500">Customers in an area can only order this if that area's partner is ticked here.</p>
+  <div class="max-h-40 space-y-1 overflow-y-auto rounded-xl bg-white p-2">${((EK==="eats"?D.kitchens:D.suppliers)||[]).map(v=>`<div class="rounded-lg border border-neutral-200 p-2"><label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="mk" value="${esc(v.name)}" style="width:auto" ${PC.vds.includes(v.name)?"checked":""} onchange="pcv()"/> ${esc(v.name)}</label><select data-v="${esc(v.name)}" onchange="PC.rv[this.dataset.v]=this.value" class="mt-1"><option value="">Rider who picks up here: not set</option>${(D.riders||[]).map(r=>`<option value="${esc(r.name)}" ${PC.rv[v.name]===r.name?"selected":""}>Rider: ${esc(r.name)}</option>`).join("")}</select></div>`).join("")||'<p class="text-xs text-neutral-500">Add a '+(EK==="eats"?"kitchen":"supplier")+' under Delivery &amp; Partners first.</p>'}</div>
+  <p class="mt-1 text-xs text-neutral-500">Tick who makes it and pick the rider who picks up from each. Customers in an area can only order this if that area's partner is ticked. The rider is saved on the partner, so it applies to all their items.</p>
   <label>Profit margin you want (%)</label><input name="pm" type="number" min="0" max="90" step="any" inputmode="decimal" value="${esc(PC.pm)}" oninput="pcalc()"/>
   <p id="pres" class="mt-2 text-sm"></p><p class="mt-1 text-xs text-neutral-500">The price includes delivery, packaging and the payment gateway fee, then your margin. It fills the price box below, which you can still change.</p></div>`;
 }
@@ -242,6 +242,7 @@ async function saveItem(){
   SORT[E.id]=sort;const L=D[EK],i=L.findIndex(x=>x.id===E.id);if(i<0)L.push(E);else L[i]=E;
   if(pv){const c=fcfg();if(EO&&EO!==E.n){delete c.costs[EO];delete c.deliv[EO];delete c.vendorOf[EO]}
     kiApply(c,(EK==="eats"?D.kitchens:D.suppliers)||[],PC.vds,E.n,EO,D[EK].map(x=>x.n));
+    PC.vds.forEach(vn=>{const r=PC.rv[vn];if(r)c.riderOfVendor[vn]=r;else if(r==="")delete c.riderOfVendor[vn]});
     if(pv.vc===""||isNaN(+pv.vc))delete c.costs[E.n];else c.costs[E.n]=Math.max(0,+pv.vc);
     if(pv.dc===""||isNaN(+pv.dc))delete c.deliv[E.n];else c.deliv[E.n]=Math.max(0,+pv.dc);
     await finSaveCfg(c)}

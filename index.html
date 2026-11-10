@@ -417,7 +417,7 @@ function checkout(){
     <button id="pb" class="pill w-full rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1 disabled:opacity-60">${ONLINE?"Continue to payment":"Place order"}</button></form>`);
   if(S.pendingCode){$("#cpn").value=S.pendingCode;S.pendingCode=null;cpnApply()}
 }
-let LASTPAY=null;
+let LASTPAY=null,KCH={};
 async function payOnline(b){const C=SBC();if(!C||!LASTPAY)return;b.disabled=true;const t0=b.textContent;b.textContent="Opening payment…";
   try{const r=await fetch(C.url+"/functions/v1/pay-init",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify(LASTPAY)});
     const j=await r.json().catch(()=>({}));if(r.ok&&j.url){location.href=j.url;return}
@@ -426,9 +426,10 @@ async function payOnline(b){const C=SBC();if(!C||!LASTPAY)return;b.disabled=true
   b.disabled=false;b.textContent=t0}
 async function done(d){
   const groups=cartGroups();if(!groups.length)return;
+  KCH={};
   if(ONLINE){const C0=SBC(),er=$("#coer"),pb0=$("#pb");pb0.disabled=true;pb0.textContent="Checking your area…";let chk=null;
     try{if(C0){const r=await fetch(C0.url+"/functions/v1/check-cart",{method:"POST",headers:{apikey:C0.key,Authorization:"Bearer "+C0.key,"Content-Type":"application/json"},body:JSON.stringify({zone:d.zone,items:S.cart.map(x=>({n:x.n,q:x.q,p:x.p}))})});chk=await r.json().catch(()=>null)}}catch(e){}
-    if(!chk||chk.ok!==true){if(er)er.textContent=(chk&&chk.message)||"We could not check your area. Please try again.";pb0.disabled=false;pb0.textContent="Continue to payment";return}}
+    if(!chk||chk.ok!==true){if(er)er.textContent=(chk&&chk.message)||"We could not check your area. Please try again.";pb0.disabled=false;pb0.textContent="Continue to payment";return}KCH=chk.kitchens||{}}
   const pb=$("#pb");pb.disabled=true;pb.textContent="Placing order…";
   const C=SBC(),multi=groups.length>1,coupon=CP?CP.code:"",tg=couponTarget().key,out=[];
   const newRef=()=>"SHO-"+Math.floor(1000+Math.random()*9000);
@@ -450,10 +451,11 @@ async function done(d){
   S.cart=[];save();badge();
   const payOk=!!C&&allSaved&&out.every(o=>!o.pend);LASTPAY=payOk?{refs:out.map(o=>o.ref),phone:d.phone,email:(AU.user&&/@/.test(AU.user.email||"")&&!/^\+/.test(AU.user.email||""))?AU.user.email:""}:null;
   const title=multi?(allSaved?"Your 2 orders are received":"Your 2 orders are ready to send"):(allSaved?"Order "+out[0].ref+" received":"Order "+out[0].ref+" is ready to send");
+  const kl=out.map(o=>KCH[o.g.key]?o.g.label+" prepared by "+escH(KCH[o.g.key]):"").filter(Boolean);
   const rows=multi?`<div class="mt-4 space-y-2 text-left">${out.map(o=>`<div class="flex items-center justify-between rounded-2xl bg-neutral-50 px-4 py-3 text-sm"><span class="font-bold">${o.g.label} · ${o.ref}</span><span class="font-semibold text-g2">${fmt(T(o))}</span></div>`).join("")}</div><div class="mt-3 flex gap-3 rounded-2xl bg-amber-50 p-3 text-left text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p>Your food and supplements are packed at different locations, so they will arrive separately, at different times. We will confirm each delivery time on WhatsApp.</p></div>`:"";
   modal(`<div class="py-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div>
   <h2 class="mt-4 font-serif text-2xl font-bold">${title}</h2>
-  <p class="mt-2 text-neutral-600">${ONLINE?"Opening your secure payment. If it does not open, tap Pay online now.":allSaved?(multi?"Tap below to confirm both orders on WhatsApp.":"Tap below to confirm on WhatsApp so we can confirm your delivery time."):"Send it on WhatsApp and we will confirm your delivery."}${anyFree?" Your free vitamin sachet is included with your food order.":""}${td?` You saved ${fmt(td)} with ${escH(coupon)}.`:""}${AU.user&&allSaved?" Track each one any time from the menu, under My orders.":""}</p>${rows}
+  <p class="mt-2 text-neutral-600">${ONLINE?"Opening your secure payment. If it does not open, tap Pay online now.":allSaved?(multi?"Tap below to confirm both orders on WhatsApp.":"Tap below to confirm on WhatsApp so we can confirm your delivery time."):"Send it on WhatsApp and we will confirm your delivery."}${anyFree?" Your free vitamin sachet is included with your food order.":""}${td?` You saved ${fmt(td)} with ${escH(coupon)}.`:""}${AU.user&&allSaved?" Track each one any time from the menu, under My orders.":""}</p>${kl.length?`<p class="mt-3 text-sm font-semibold text-g1">${kl.join("<br>")}</p>`:""}${rows}
   ${payOk?`<button data-a="payonline" class="pill mt-5 block w-full rounded-full bg-neutral-900 py-3.5 font-bold text-white">Pay online now</button><p class="mt-1 text-xs text-neutral-500">Card or bank transfer, secured by Paystack</p>`:""}
   ${ONLINE?`<a href="https://wa.me/${WA}" target="_blank" rel="noopener" class="mt-3 block text-sm font-semibold text-g2 underline">Need help? Chat with us</a>`:`<a href="https://wa.me/${WA}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" class="pill ${payOk?"mt-3":"mt-5"} block rounded-full bg-g2 py-3.5 font-bold text-white shadow-[0_8px_24px_-8px_rgba(76,175,80,.9)] hover:bg-g1">Confirm on WhatsApp</a>`}
   <button data-a="mclose" class="mt-3 text-sm font-bold text-neutral-500 underline">Back to menu</button></div>`);
@@ -615,6 +617,7 @@ function ordHtml(){
   return ORDS.map((o,n)=>{const i=STEPS.findIndex(x=>x[0]===o.status),can=o.status==="cancelled";
     return `<div class="rounded-2xl border border-neutral-200 p-4"><div class="flex items-start justify-between gap-2"><div><p class="font-extrabold">${escH(o.ref)} <span class="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-g1">${(o.items||[]).length&&(o.items||[]).every(i=>SUPP.some(x=>x.n===i.n))?"Supplements":"Food"}</span></p><p class="text-xs text-neutral-500">${new Date(o.created_at).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}</p></div><p class="font-extrabold text-g2">${fmt(o.total||0)}</p></div>
     <p class="mt-3 text-sm font-semibold ${can?"text-red-600":"text-g1"}">${STX[o.status]||escH(o.status)}</p>
+    ${o.kitchen?`<p class="text-xs text-neutral-500">Prepared by ${escH(o.kitchen)}</p>`:""}
     ${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}
     <ul class="mt-3 list-disc pl-5 text-sm text-neutral-600">${(o.items||[]).map(it=>`<li>${it.q} × ${escH(it.n)}${it.o?" ("+escH(it.o)+")":""}</li>`).join("")}</ul>
     ${o.discount>0?`<p class="mt-1 text-xs text-g2">Saved ${fmt(o.discount)}${o.coupon?" with "+escH(o.coupon):""}</p>`:""}
@@ -624,7 +627,8 @@ function ordHtml(){
 async function loadOrders(quiet){
   const C=SBC(),t=await authToken();
   if(!C||!t){if(!quiet)modal(`<div class="flex justify-end">${xBtn}</div><div class="py-2 text-center"><h2 class="font-serif text-2xl font-bold">Log in to track your orders</h2><p class="mb-4 mt-2 text-neutral-600">Sign in to see where your order is and order again in one tap.</p>${signBtns("orders")}</div>${trackBox()}`);return}
-  try{const r=await fetch(C.url+"/rest/v1/orders?select=ref,status,created_at,total,discount,coupon,items&order=created_at.desc&limit=15",{headers:{apikey:C.key,Authorization:"Bearer "+t},cache:"no-store"});
+  try{const q=f=>fetch(C.url+"/rest/v1/orders?select="+f+"&order=created_at.desc&limit=15",{headers:{apikey:C.key,Authorization:"Bearer "+t},cache:"no-store"});
+    let r=await q("ref,status,created_at,total,discount,coupon,items,kitchen");if(!r.ok)r=await q("ref,status,created_at,total,discount,coupon,items");
     if(!r.ok)throw new Error("x");ORDS=await r.json();await loadMine(C,t);
     const box=$("#ordl");if(box)box.innerHTML=ordHtml();else if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><div id="ordl" class="mt-4 space-y-3">${ordHtml()}</div>${trackBox()}`)}
   catch(e){if(!quiet)modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">My orders</h2>${xBtn}</div><p class="py-8 text-center text-neutral-500">Order tracking isn't switched on yet. Please chat with us on WhatsApp for your order status.</p>`)}
