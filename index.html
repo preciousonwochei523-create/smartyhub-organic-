@@ -75,6 +75,8 @@ body{overflow-x:hidden}
 <div id="ov" class="fixed inset-0 z-40 hidden bg-black/40" data-a="close"></div>
 <aside id="drawer" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Cart"></aside>
 <aside id="menu" class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[88vw] -translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Menu"></aside>
+<section id="profile" class="fixed inset-0 z-50 hidden overflow-y-auto bg-green-100" aria-label="Profile"></section>
+<section id="faq" class="fixed inset-0 z-50 hidden overflow-y-auto bg-green-100" aria-label="FAQ"></section>
 <div id="modal" class="fixed inset-0 z-50 hidden items-end justify-center p-0 sm:items-center sm:p-4"><div id="mbox" class="rise max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl"></div></div>
 <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 translate-y-20 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white opacity-0 transition-all duration-300"></div>
 
@@ -156,8 +158,9 @@ function ecoSwitch(){return `<div class="sticky top-[var(--hh,64px)] z-20 -mx-4 
   <button data-a="eco" data-v="eats" id="t-eats" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="utensils" class="h-4 w-4"></i>Eats</button>
   <button data-a="eco" data-v="supp" id="t-supp" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="leaf" class="h-4 w-4"></i>Supplements</button></nav></div>`}
 function drawHdr(){const h=$("#hauth");if(!h)return;const u=AU.user;
-  h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span></button>`
-  :`<button type="button" data-a="signup" class="pill whitespace-nowrap rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Sign up</button>`}
+  h.innerHTML=u?`<button type="button" data-a="profile" class="pill block rounded-full" aria-label="Open profile"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span></button>`
+  :`<button type="button" data-a="signup" class="pill whitespace-nowrap rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Sign up</button>`;
+  if(typeof drawProfile==="function")drawProfile()}
 function render(){
   const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
   $("#app").innerHTML=S.eco==="eats"?eatsView():suppView();
@@ -607,6 +610,58 @@ function signIn(p,after){const C=SBC();if(!C||(PROV&&PROV[p]===false)){toast("Si
   location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent((location.hostname==="localhost"||location.hostname==="127.0.0.1"?location.origin:"https://smartyhuborganic.com")+location.pathname)}
 async function signOut(){const C=SBC();try{if(C&&AU.tok)await fetch(C.url+"/auth/v1/logout",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+AU.tok}})}catch(e){}authClear();S.cart=[];save();badge();try{localStorage.removeItem("sho-cart-uid")}catch(e){}toast("Signed out")}
 
+/* ---------- PROFILE PAGE (opens from the green circle) ---------- */
+const chev=svgI('<path d="m9 18 6-6-6-6"/>',"h-5 w-5 text-neutral-400");
+const userI='<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>';
+function openProfile(o){const p=$("#profile");if(!p)return;
+  if(o&&!AU.user){openSignIn("");return}
+  p.classList.toggle("hidden",!o);if(o)drawProfile();
+  document.body.style.overflow=o?"hidden":"";if(o)p.scrollTop=0}
+function drawProfile(){const p=$("#profile"),u=AU.user;if(!p||p.classList.contains("hidden"))return;
+  if(!u){openProfile(false);return}
+  const R=(v,ic,t,sub)=>`<button type="button" data-a="pf" data-v="${v}" class="pill flex w-full items-center gap-3 border-b border-neutral-100 px-5 py-4 text-left last:border-0 hover:bg-neutral-50"><span class="shrink-0 text-g2">${svgI(IC[ic])}</span><span class="min-w-0 flex-1"><span class="block font-semibold">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span>${chev}</button>`;
+  const T=(v,d,t)=>`<button type="button" data-a="pf" data-v="${v}" class="pill flex flex-col items-center justify-center gap-3 rounded-3xl bg-white px-4 py-7 shadow-sm hover:shadow-md"><span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 text-g2">${svgI(d,"h-8 w-8")}</span><span class="text-lg font-bold">${t}</span></button>`;
+  p.innerHTML=`<div class="mx-auto w-full max-w-lg px-5 pb-10 pt-4">
+    <div class="flex items-center justify-between"><button type="button" data-a="profilex" class="pill flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm" aria-label="Back">${svgI('<path d="m15 18-6-6 6-6"/>')}</button>
+      <p class="font-serif text-lg font-bold text-g1">SmartyHub Organic</p>
+      <span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span></div>
+    <h1 class="mt-8 font-serif text-4xl font-bold text-g1">Profile</h1>
+    <p class="mt-1 truncate text-sm text-neutral-600">${escH(u.name)}${u.email?" · "+escH(u.email):""}</p>
+    <div class="mt-6 grid grid-cols-2 gap-4">${T("orders",IC.box,"Orders")}${T("account",userI,"Account")}</div>
+    <div class="mt-5 overflow-hidden rounded-3xl bg-white shadow-sm">
+      ${R("offers","tag","Offers &amp; coupons","Promo codes and member deals")}${R("dinfo","truck","Delivery &amp; hours")}${R("menus","img","Printed menus")}${R("wa","chat","Chat on WhatsApp")}${R("ig","insta","Instagram")}${R("faq","chat","FAQ","Answers to common questions")}${R("out","out","Log out")}
+    </div></div>`}
+/* ---------- FAQ PAGE ---------- */
+function openFaq(o){const f=$("#faq");if(!f)return;
+  if(o)drawFaq();f.classList.toggle("hidden",!o);
+  if(o)f.scrollTop=0;
+  const pr=$("#profile");document.body.style.overflow=(o||(pr&&!pr.classList.contains("hidden")))?"hidden":""}
+function drawFaq(){const f=$("#faq");if(!f)return;
+  const hrs=[INFO.hours,INFO.cutoff].filter(Boolean).map(escH).join("<br>");
+  const lk=(v,t)=>`<button type="button" data-a="faqgo" data-v="${v}" class="pill mt-2 block font-bold text-g2 underline">${t}</button>`;
+  const Q=[
+   ["What comes with my order?","Every food order comes with a free sachet of essential vitamins: Vitamin C, D3, Omega 3 and Zinc."],
+   ["Is delivery really free?","Food items show “Free delivery”. Open Delivery &amp; hours to see the areas we cover."+lk("dinfo","See delivery areas")],
+   ["Where do you deliver?","We deliver in Lagos. The list of areas is under Delivery &amp; hours."+lk("dinfo","Delivery &amp; hours")],
+   ["When can I order?",(hrs?hrs+"<br>":"")+"The full opening hours and order cut-off are under Delivery &amp; hours."+lk("dinfo","Delivery &amp; hours")],
+   ["Is the food really fresh?","Yes. We cook every day with clean, natural ingredients, with no preservatives and no artificial additives, and everything is made to order."],
+   ["How do I pay?","At checkout you can pay online by card or bank transfer, or confirm your order with us on WhatsApp."],
+   ["How do I track my order?","Open your profile and tap Orders to see your orders and their progress."+lk("orders","Go to Orders")],
+   ["How do I use a promo code?","Open Offers &amp; coupons and tap a code to save it. It is applied at checkout, or you can type it into the code box in your cart."+lk("offers","Offers &amp; coupons")],
+   ["I forgot my password.","On the log in screen tap Forgot password. We will open WhatsApp so we can confirm it is you and send a temporary password."],
+   ["I still need help.","Chat with us on WhatsApp and we will help you."+lk("wa","Chat on WhatsApp")]
+  ];
+  f.innerHTML=`<div class="mx-auto w-full max-w-lg px-5 pb-10 pt-4">
+    <div class="flex items-center justify-between"><button type="button" data-a="faqx" class="pill flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm" aria-label="Back">${svgI('<path d="m15 18-6-6 6-6"/>')}</button><p class="font-serif text-lg font-bold text-g1">SmartyHub Organic</p><span class="h-10 w-10"></span></div>
+    <h1 class="mt-8 font-serif text-4xl font-bold text-g1">FAQ</h1>
+    <p class="mt-1 text-sm text-neutral-600">Answers to common questions</p>
+    <div class="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm">${Q.map(q=>`<details class="group border-b border-neutral-100 last:border-0"><summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-semibold [&::-webkit-details-marker]:hidden"><span>${q[0]}</span><span class="shrink-0 transition-transform group-open:rotate-90">${chev}</span></summary><div class="px-5 pb-4 text-sm text-neutral-600">${q[1]}</div></details>`).join("")}</div></div>`}
+
+function openAccount(){const u=AU.user;if(!u)return;
+  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Account</h2>${xBtn}</div>
+  <div class="mt-5 flex items-center gap-4"><span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-g2 text-2xl font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span><div class="min-w-0"><p class="truncate text-lg font-bold">${escH(u.name)}</p><p class="truncate text-sm text-neutral-500">${escH(u.email||"")}</p></div></div>
+  <button type="button" data-a="signout" class="pill mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 py-3 text-sm font-bold hover:border-neutral-400">${svgI(IC.out,"h-4 w-4")}Log out</button>`)}
+
 function openMenu(o){
   const m=$("#menu");m.classList.toggle("-translate-x-full",!o);
   if(o){drawMenu();$("#ov").classList.remove("hidden")}
@@ -790,13 +845,23 @@ document.addEventListener("click",e=>{
     else if(v==="orders")openOrders();else if(v==="offers")openOffers();else if(v==="dinfo")openDelivery();
     else if(v==="menus"){S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
     else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank")}
+  else if(a==="profile")openProfile(true);
+  else if(a==="profilex")openProfile(false);
+  else if(a==="pf"){
+    if(v==="orders")openOrders();else if(v==="account")openAccount();else if(v==="offers")openOffers();else if(v==="dinfo")openDelivery();
+    else if(v==="menus"){openProfile(false);S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
+    else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank");
+    else if(v==="faq")openFaq(true);
+    else if(v==="out"){openProfile(false);signOut()}}
+  else if(a==="faqx")openFaq(false);
+  else if(a==="faqgo"){openFaq(false);if(v==="dinfo")openDelivery();else if(v==="offers")openOffers();else if(v==="orders")openOrders();else if(v==="wa")window.open("https://wa.me/"+WA,"_blank")}
   else if(a==="signin")signIn(v,t.dataset.n);
   else if(a==="signsheet"){openMenu(false);openSignIn(t.dataset.n||"")}
   else if(a==="signup"){openMenu(false);openSignUp(t.dataset.n||"")}
   else if(a==="forgot")openForgot(t.dataset.n||"");
   else if(a==="payonline")payOnline(t);
   else if(a==="pwt"){const i=t.parentElement.querySelector("input");i.type=i.type==="password"?"text":"password"}
-  else if(a==="signout"){openMenu(false);signOut()}
+  else if(a==="signout"){openMenu(false);openFaq(false);openProfile(false);modal();signOut()}
   else if(a==="cpn")cpnApply();
   else if(a==="usecode"){S.pendingCode=v;modal();toast("Code "+v+" saved. It is applied at checkout.");if(S.cart.length)openCart(true)}
   else if(a==="reorder")reorder(+v);
