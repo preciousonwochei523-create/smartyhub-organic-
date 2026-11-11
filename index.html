@@ -128,7 +128,7 @@ let GOALS=["All","Immunity","Bone & Joint","Heart & Brain","Daily Vitamins","Org
 let INGS=[...new Set(SUPP.flatMap(x=>x.ing))].sort();
 
 /* Delivery zones: managed in admin (Delivery & Partners). fee:null = confirmed on WhatsApp. */
-let ONLINE=false;
+let ONLINE=false,PAYSHOW=false;
 let ZONES=[{name:"Ikeja",fee:1500},{name:"Alimosho",fee:1500},{name:"Ajah",fee:2000},{name:"Other Lagos area",fee:null}];
 const escH=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cartGroups=()=>{const f=S.cart.filter(x=>x.food),p=S.cart.filter(x=>!x.food);return[f.length&&{key:"food",label:"Food",items:f},p.length&&{key:"supp",label:"Supplements",items:p}].filter(Boolean)};
@@ -454,7 +454,7 @@ async function done(d){
   const sec=o=>`*${o.g.label.toUpperCase()} ORDER ${o.ref}*\n${o.g.items.map(x=>`• ${x.q} × ${x.n}${x.o?" ("+x.o+")":""}`).join("\n")}\nSubtotal: ${fmt(o.s0)}\nDelivery (${d.zone}): Free${o.disc?`\nCoupon ${coupon}: -${fmt(o.disc)}${o.pend?" (please confirm)":""}`:""}\nTotal: ${fmt(T(o))}`;
   const msg=`Hi SmartyHub Organic, new ${multi?"orders":"order "+out[0].ref}\n\n${out.map(sec).join("\n\n")}\n\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.addr}\nLandmark: ${d.landmark}${d.note?"\nNote: "+d.note:""}${multi?"\n\nI understand my food and supplements will arrive separately.":""}`;
   S.cart=[];save();badge();
-  const payOk=!!C&&allSaved&&out.every(o=>!o.pend);LASTPAY=payOk?{refs:out.map(o=>o.ref),phone:d.phone,email:(AU.user&&/@/.test(AU.user.email||"")&&!/^\+/.test(AU.user.email||""))?AU.user.email:""}:null;
+  const payOk=PAYSHOW&&!!C&&allSaved&&out.every(o=>!o.pend);LASTPAY=payOk?{refs:out.map(o=>o.ref),phone:d.phone,email:(AU.user&&/@/.test(AU.user.email||"")&&!/^\+/.test(AU.user.email||""))?AU.user.email:""}:null;
   const title=multi?(allSaved?"Your 2 orders are received":"Your 2 orders are ready to send"):(allSaved?"Order "+out[0].ref+" received":"Order "+out[0].ref+" is ready to send");
   const kl=out.map(o=>KCH[o.g.key]?o.g.label+" prepared by "+escH(KCH[o.g.key]):"").filter(Boolean);
   const rows=multi?`<div class="mt-4 space-y-2 text-left">${out.map(o=>`<div class="flex items-center justify-between rounded-2xl bg-neutral-50 px-4 py-3 text-sm"><span class="font-bold">${o.g.label} · ${o.ref}</span><span class="font-semibold text-g2">${fmt(T(o))}</span></div>`).join("")}</div><div class="mt-3 flex gap-3 rounded-2xl bg-amber-50 p-3 text-left text-sm text-amber-900"><span class="mt-0.5 shrink-0">${svgI(IC.truck)}</span><p>Your food and supplements are packed at different locations, so they will arrive separately, at different times. We will confirm each delivery time on WhatsApp.</p></div>`:"";
@@ -894,7 +894,7 @@ async function sbCatalog(){
     const it=await a.json(),st=Object.fromEntries((await b.json()).map(r=>[r.key,r.value]));
     if(Array.isArray(st.zones)&&st.zones.length)ZONES=st.zones;
     if(st.info&&typeof st.info==="object")INFO=st.info;
-    ONLINE=!!(st.payment&&st.payment.online);
+    const pm=(st.payment&&st.payment.mode)||(st.payment&&st.payment.online?"online":"off");ONLINE=pm==="online";PAYSHOW=pm!=="off"||/[?&]paytest=1/.test(location.search);
     if(!it.length)return null;
     return {eats:it.filter(i=>i.kind==="eat").map(i=>i.data),supps:it.filter(i=>i.kind==="supp").map(i=>i.data),eatCats:st.eatCats,suppCats:st.suppCats,hero:st.hero,eatStory:st.eatStory,eatFlyers:st.eatFlyers};
   }catch(e){return null}
