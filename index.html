@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>if(location.hostname==="smartyhuborganic.vercel.app")location.replace("https://smartyhuborganic.com"+location.pathname+location.search+location.hash);</script>
 <script>if(location.hash.indexOf("type=recovery")>-1)location.replace("admin.html"+location.hash);</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -10,7 +11,7 @@
 <meta property="og:type" content="website"/><meta property="og:site_name" content="SmartyHub Organic"/>
 <meta property="og:title" content="SmartyHub Organic: fresh meals &amp; wellness supplements in Lagos"/>
 <meta property="og:description" content="Fresh drinks, yogurt parfaits, breakfast combos, shawarma and quality supplements delivered in Lagos. Free vitamin sachet with every food order."/>
-<meta property="og:image" content="https://smartyhuborganic.vercel.app/menu-promo.jpg"/>
+<meta property="og:image" content="https://smartyhuborganic.com/menu-promo.jpg"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="icon" href="favicon.ico?v=2" sizes="any"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2"/>
@@ -74,9 +75,12 @@ body{overflow-x:hidden}
 <div id="ov" class="fixed inset-0 z-40 hidden bg-black/40" data-a="close"></div>
 <aside id="drawer" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Cart"></aside>
 <aside id="menu" class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[88vw] -translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300" aria-label="Menu"></aside>
+<section id="profile" class="fixed inset-0 z-50 hidden overflow-y-auto bg-green-100" aria-label="Profile"></section>
+<section id="faq" class="fixed inset-0 z-50 hidden overflow-y-auto bg-green-100" aria-label="FAQ"></section>
 <div id="modal" class="fixed inset-0 z-50 hidden items-end justify-center p-0 sm:items-center sm:p-4"><div id="mbox" class="rise max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl"></div></div>
 <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 translate-y-20 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white opacity-0 transition-all duration-300"></div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="supabase-config.js"></script>
 <script>
 const WA="2348066611017", $=s=>document.querySelector(s), fmt=n=>"₦"+n.toLocaleString("en-NG");
@@ -154,8 +158,9 @@ function ecoSwitch(){return `<div class="sticky top-[var(--hh,64px)] z-20 -mx-4 
   <button data-a="eco" data-v="eats" id="t-eats" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="utensils" class="h-4 w-4"></i>Eats</button>
   <button data-a="eco" data-v="supp" id="t-supp" class="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold"><i data-lucide="leaf" class="h-4 w-4"></i>Supplements</button></nav></div>`}
 function drawHdr(){const h=$("#hauth");if(!h)return;const u=AU.user;
-  h.innerHTML=u?`<button type="button" data-a="menu" class="pill block rounded-full" aria-label="Open account menu">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-10 w-10 rounded-full object-cover"/>`:`<span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}</button>`
-  :`<button type="button" data-a="signup" class="pill whitespace-nowrap rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Sign up</button>`}
+  h.innerHTML=u?`<button type="button" data-a="profile" class="pill block rounded-full" aria-label="Open profile"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span></button>`
+  :`<button type="button" data-a="signup" class="pill whitespace-nowrap rounded-full bg-g2 px-4 py-2 text-sm font-bold text-white hover:bg-g1">Sign up</button>`;
+  if(typeof drawProfile==="function")drawProfile()}
 function render(){
   const base="pill flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold ", on="bg-g2 text-white shadow-md", off="text-neutral-600";
   $("#app").innerHTML=S.eco==="eats"?eatsView():suppView();
@@ -482,7 +487,7 @@ const goBtn=t=>`<button type="submit" data-sb disabled class="pill mt-5 w-full r
 const orLine=t=>`<div class="my-5 flex items-center gap-3 text-neutral-500"><span class="h-px flex-1 bg-neutral-200"></span><span class="text-sm">${t}</span><span class="h-px flex-1 bg-neutral-200"></span></div>`;
 /* Google / Apple only appear once they are switched on in Supabase */
 const socialBtns=a=>{const g=!!SBC()&&PROV&&PROV.google,p=PROV&&PROV.apple;if(!g&&!p)return "";
-  return `${orLine("or continue with")}<div class="space-y-2">${g?`<button type="button" data-a="signin" data-v="google" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl border border-neutral-300 bg-white py-3.5 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl bg-black py-3.5 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
+  return `${orLine("or continue with")}<div class="space-y-2">${g?`<div data-gsi data-n="${a||""}" class="flex min-h-[44px] w-full justify-center"></div>`:""}${p?`<button type="button" data-a="signin" data-v="apple" data-n="${a||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl bg-black py-3.5 text-sm font-bold text-white hover:bg-neutral-800">${aIcon}Continue with Apple</button>`:""}</div>`};
 const signBtns=a=>`<div class="grid grid-cols-2 gap-2"><button type="button" data-a="signsheet" data-n="${a||""}" class="pill rounded-full bg-g2 py-3 text-sm font-bold text-white hover:bg-g1">Log in</button><button type="button" data-a="signup" data-n="${a||""}" class="pill rounded-full border border-neutral-300 bg-white py-3 text-sm font-bold hover:border-neutral-500">Sign up</button></div>`;
 function openSignIn(after,title,msg){modal(`<div class="flex justify-end">${xBtn}</div><form id="lf" data-n="${after||""}" class="pb-2" novalidate><h2 class="text-center font-serif text-2xl font-bold">${title||"Log in to your account"}</h2><p class="mb-6 mt-2 text-center text-neutral-600">${msg||"Welcome back! Enter your phone number and password to log in."}</p><div class="space-y-4">${phoneRow()}${pwBox("current-password","Your password")}</div><p data-er role="alert" class="mt-3 min-h-[1.25rem] text-sm font-semibold text-red-600"></p>${goBtn("Continue")}<p class="mt-3 text-center text-sm"><button type="button" data-a="forgot" data-n="${after||""}" class="font-bold text-g2 underline">Forgot password?</button></p>${orLine("Don’t have an account?")}<button type="button" data-a="signup" data-n="${after||""}" class="pill w-full rounded-2xl bg-green-50 py-4 text-base font-bold text-g2">Sign up</button>${socialBtns(after)}</form>`)}
 function openForgot(after){modal(`<div class="flex justify-end">${xBtn}</div><form id="rf" data-n="${after||""}" class="pb-2" novalidate><h2 class="text-center font-serif text-2xl font-bold">Reset your password</h2><p class="mb-6 mt-2 text-center text-neutral-600">Enter the phone number on your account. We will open WhatsApp with your request, confirm it is you, then send you a temporary password. You will choose your own new password after you log in.</p><div class="space-y-4">${phoneRow()}</div><p data-er role="alert" class="mt-3 min-h-[1.25rem] text-sm font-semibold text-red-600"></p><button type="submit" class="pill mt-3 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white hover:bg-g1">Request reset on WhatsApp</button><p class="mt-4 text-center text-sm"><button type="button" data-a="signsheet" data-n="${after||""}" class="font-bold text-g2 underline">Back to log in</button></p></form>`)}
@@ -531,6 +536,44 @@ async function authGo(f,mode){const C=SBC(),b=f.querySelector("[data-sb]"),er=f.
 const rpc=async(fn,body)=>{const C=SBC();if(!C)throw new Error("off");const t=await authToken();const r=await fetch(C.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+(t||C.key),"Content-Type":"application/json"},body:JSON.stringify(body||{})});let j=null;try{j=await r.json()}catch(e){}return{ok:r.ok,j}};
 const saveAuth=()=>{try{localStorage.setItem("sho-auth",JSON.stringify({tok:AU.tok,ref:AU.ref,exp:AU.exp}))}catch(e){}};
 
+/* Google sign-in popup (Google Identity Services): Google shows smartyhuborganic.com instead of the Supabase address */
+const GCID="414651612509-kqp17t76v27f11hgup6neajpplan6gv4.apps.googleusercontent.com";
+let GSI_P=null,GSI_NONCE="",GSI_AFTER="";
+const hex=u=>Array.from(u,b=>b.toString(16).padStart(2,"0")).join("");
+function gsiReady(){
+  if(GSI_P)return GSI_P;
+  GSI_P=(async()=>{
+    if(!(window.google&&google.accounts&&google.accounts.id))throw new Error("gsi");
+    const raw=hex(crypto.getRandomValues(new Uint8Array(16)));
+    const hashed=hex(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw))));
+    GSI_NONCE=raw;
+    google.accounts.id.initialize({client_id:GCID,nonce:hashed,callback:gsiCb,auto_select:false});
+  })().catch(e=>{GSI_P=null;throw e});
+  return GSI_P;
+}
+async function gsiCb(resp){
+  const C=SBC();if(!C||!resp||!resp.credential){toast("Google sign-in was cancelled");return}
+  try{
+    const r=await fetch(C.url+"/auth/v1/token?grant_type=id_token",{method:"POST",headers:{apikey:C.key,"Content-Type":"application/json"},body:JSON.stringify({provider:"google",id_token:resp.credential,nonce:GSI_NONCE})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.access_token){authFinish(j,GSI_AFTER);return}
+    toast("Google sign-in failed. Please try again")
+  }catch(e){toast("Network problem. Check your connection and try again")}
+}
+function gsiRender(){
+  document.querySelectorAll("[data-gsi]:not([data-done])").forEach(el=>{
+    el.dataset.done="1";
+    gsiReady().then(()=>{
+      GSI_AFTER=el.dataset.n||"";
+      const w=Math.max(200,Math.min(400,Math.round(el.offsetWidth)||320));
+      google.accounts.id.renderButton(el,{type:"standard",theme:"outline",size:"large",text:"continue_with",shape:"pill",width:w,logo_alignment:"center"});
+    }).catch(()=>{
+      el.innerHTML=`<button type="button" data-a="signin" data-v="google" data-n="${el.dataset.n||""}" class="pill flex w-full items-center justify-center gap-3 rounded-2xl border border-neutral-300 bg-white py-3.5 text-sm font-bold hover:border-neutral-500">${gIcon}Continue with Google</button>`;
+    });
+  });
+}
+new MutationObserver(gsiRender).observe(document.documentElement,{childList:true,subtree:true});
+
 function authInit(){
   try{
     const h=location.hash;
@@ -564,8 +607,60 @@ async function authUser(){
 }
 function signIn(p,after){const C=SBC();if(!C||(PROV&&PROV[p]===false)){toast("Sign-in with "+(p==="apple"?"Apple":"Google")+" isn't switched on yet");return}
   try{if(after)sessionStorage.setItem("sho-after",after)}catch(e){}
-  location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent(location.origin+location.pathname)}
+  location.href=C.url+"/auth/v1/authorize?provider="+p+"&redirect_to="+encodeURIComponent((location.hostname==="localhost"||location.hostname==="127.0.0.1"?location.origin:"https://smartyhuborganic.com")+location.pathname)}
 async function signOut(){const C=SBC();try{if(C&&AU.tok)await fetch(C.url+"/auth/v1/logout",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+AU.tok}})}catch(e){}authClear();S.cart=[];save();badge();try{localStorage.removeItem("sho-cart-uid")}catch(e){}toast("Signed out")}
+
+/* ---------- PROFILE PAGE (opens from the green circle) ---------- */
+const chev=svgI('<path d="m9 18 6-6-6-6"/>',"h-5 w-5 text-neutral-400");
+const userI='<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>';
+function openProfile(o){const p=$("#profile");if(!p)return;
+  if(o&&!AU.user){openSignIn("");return}
+  p.classList.toggle("hidden",!o);if(o)drawProfile();
+  document.body.style.overflow=o?"hidden":"";if(o)p.scrollTop=0}
+function drawProfile(){const p=$("#profile"),u=AU.user;if(!p||p.classList.contains("hidden"))return;
+  if(!u){openProfile(false);return}
+  const R=(v,ic,t,sub)=>`<button type="button" data-a="pf" data-v="${v}" class="pill flex w-full items-center gap-3 border-b border-neutral-100 px-5 py-4 text-left last:border-0 hover:bg-neutral-50"><span class="shrink-0 text-g2">${svgI(IC[ic])}</span><span class="min-w-0 flex-1"><span class="block font-semibold">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span>${chev}</button>`;
+  const T=(v,d,t)=>`<button type="button" data-a="pf" data-v="${v}" class="pill flex flex-col items-center justify-center gap-3 rounded-3xl bg-white px-4 py-7 shadow-sm hover:shadow-md"><span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 text-g2">${svgI(d,"h-8 w-8")}</span><span class="text-lg font-bold">${t}</span></button>`;
+  p.innerHTML=`<div class="mx-auto w-full max-w-lg px-5 pb-10 pt-4">
+    <div class="flex items-center justify-between"><button type="button" data-a="profilex" class="pill flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm" aria-label="Back">${svgI('<path d="m15 18-6-6 6-6"/>')}</button>
+      <p class="font-serif text-lg font-bold text-g1">SmartyHub Organic</p>
+      <span class="flex h-10 w-10 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span></div>
+    <h1 class="mt-8 font-serif text-4xl font-bold text-g1">Profile</h1>
+    <p class="mt-1 truncate text-sm text-neutral-600">${escH(u.name)}${u.email?" · "+escH(u.email):""}</p>
+    <div class="mt-6 grid grid-cols-2 gap-4">${T("orders",IC.box,"Orders")}${T("account",userI,"Account")}</div>
+    <div class="mt-5 overflow-hidden rounded-3xl bg-white shadow-sm">
+      ${R("offers","tag","Offers &amp; coupons","Promo codes and member deals")}${R("dinfo","truck","Delivery &amp; hours")}${R("menus","img","Printed menus")}${R("wa","chat","Chat on WhatsApp")}${R("ig","insta","Instagram")}${R("faq","chat","FAQ","Answers to common questions")}${R("out","out","Log out")}
+    </div></div>`}
+/* ---------- FAQ PAGE ---------- */
+function openFaq(o){const f=$("#faq");if(!f)return;
+  if(o)drawFaq();f.classList.toggle("hidden",!o);
+  if(o)f.scrollTop=0;
+  const pr=$("#profile");document.body.style.overflow=(o||(pr&&!pr.classList.contains("hidden")))?"hidden":""}
+function drawFaq(){const f=$("#faq");if(!f)return;
+  const hrs=[INFO.hours,INFO.cutoff].filter(Boolean).map(escH).join("<br>");
+  const lk=(v,t)=>`<button type="button" data-a="faqgo" data-v="${v}" class="pill mt-2 block font-bold text-g2 underline">${t}</button>`;
+  const Q=[
+   ["What comes with my order?","Every food order comes with a free sachet of essential vitamins: Vitamin C, D3, Omega 3 and Zinc."],
+   ["Is delivery really free?","Food items show “Free delivery”. Open Delivery &amp; hours to see the areas we cover."+lk("dinfo","See delivery areas")],
+   ["Where do you deliver?","We deliver in Lagos. The list of areas is under Delivery &amp; hours."+lk("dinfo","Delivery &amp; hours")],
+   ["When can I order?",(hrs?hrs+"<br>":"")+"The full opening hours and order cut-off are under Delivery &amp; hours."+lk("dinfo","Delivery &amp; hours")],
+   ["Is the food really fresh?","Yes. We cook every day with clean, natural ingredients, with no preservatives and no artificial additives, and everything is made to order."],
+   ["How do I pay?","At checkout you can pay online by card or bank transfer, or confirm your order with us on WhatsApp."],
+   ["How do I track my order?","Open your profile and tap Orders to see your orders and their progress."+lk("orders","Go to Orders")],
+   ["How do I use a promo code?","Open Offers &amp; coupons and tap a code to save it. It is applied at checkout, or you can type it into the code box in your cart."+lk("offers","Offers &amp; coupons")],
+   ["I forgot my password.","On the log in screen tap Forgot password. We will open WhatsApp so we can confirm it is you and send a temporary password."],
+   ["I still need help.","Chat with us on WhatsApp, or email support@smartyhuborganic.com and we will help you."+lk("wa","Chat on WhatsApp")]
+  ];
+  f.innerHTML=`<div class="mx-auto w-full max-w-lg px-5 pb-10 pt-4">
+    <div class="flex items-center justify-between"><button type="button" data-a="faqx" class="pill flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm" aria-label="Back">${svgI('<path d="m15 18-6-6 6-6"/>')}</button><p class="font-serif text-lg font-bold text-g1">SmartyHub Organic</p><span class="h-10 w-10"></span></div>
+    <h1 class="mt-8 font-serif text-4xl font-bold text-g1">FAQ</h1>
+    <p class="mt-1 text-sm text-neutral-600">Answers to common questions</p>
+    <div class="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm">${Q.map(q=>`<details class="group border-b border-neutral-100 last:border-0"><summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-semibold [&::-webkit-details-marker]:hidden"><span>${q[0]}</span><span class="shrink-0 transition-transform group-open:rotate-90">${chev}</span></summary><div class="px-5 pb-4 text-sm text-neutral-600">${q[1]}</div></details>`).join("")}</div></div>`}
+
+function openAccount(){const u=AU.user;if(!u)return;
+  modal(`<div class="flex items-start justify-between"><h2 class="font-serif text-2xl font-bold">Account</h2>${xBtn}</div>
+  <div class="mt-5 flex items-center gap-4"><span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-g2 text-2xl font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span><div class="min-w-0"><p class="truncate text-lg font-bold">${escH(u.name)}</p><p class="truncate text-sm text-neutral-500">${escH(u.email||"")}</p></div></div>
+  <button type="button" data-a="signout" class="pill mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 py-3 text-sm font-bold hover:border-neutral-400">${svgI(IC.out,"h-4 w-4")}Log out</button>`)}
 
 function openMenu(o){
   const m=$("#menu");m.classList.toggle("-translate-x-full",!o);
@@ -578,7 +673,7 @@ function drawMenu(){
   const L=(v,ic,t,sub)=>`<button data-a="mn" data-v="${v}" class="pill flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left font-semibold hover:bg-neutral-50"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-50 text-g2">${svgI(IC[ic])}</span><span class="min-w-0"><span class="block">${t}</span>${sub?`<span class="block text-xs font-normal text-neutral-500">${sub}</span>`:""}</span></button>`;
   m.innerHTML=`<div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4"><p class="font-serif text-xl font-bold">Menu</p><button data-a="menux" class="rounded-full bg-neutral-100 p-2 hover:bg-neutral-200" aria-label="Close menu">${svgI(IC.x)}</button></div>
   <div class="flex-1 overflow-y-auto px-3 py-4">
-    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3">${u.pic?`<img src="${escH(u.pic)}" alt="" referrerpolicy="no-referrer" class="h-11 w-11 rounded-full object-cover"/>`:`<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span>`}<div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in with your phone number to follow your delivery and unlock member offers.</p>${signBtns("")}`}</div>
+    <div class="mx-2 mb-4 rounded-2xl bg-green-50 p-4">${u?`<div class="flex items-center gap-3"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-g2 font-bold text-white">${escH((u.name||"?")[0].toUpperCase())}</span><div class="min-w-0"><p class="truncate font-bold">${escH(u.name)}</p><p class="truncate text-xs text-neutral-500">${escH(u.email)}</p></div></div>`:`<p class="font-bold">Sign in to track your orders</p><p class="mb-3 mt-1 text-sm text-neutral-600">Log in with your phone number to follow your delivery and unlock member offers.</p>${signBtns("")}`}</div>
     ${L("eats","food","Breakfast &amp; Eats")}${L("supp","leaf","Supplements")}
     ${L("orders","box","My orders",u?"Track your delivery":"Log in to track your delivery")}${L("offers","tag","Offers &amp; coupons",u?"Promo codes and member deals":"Log in to see offers")}${L("dinfo","truck","Delivery &amp; hours","Free delivery, areas and times")}${L("menus","img","Printed menus")}
     <div class="my-3 border-t border-neutral-100"></div>
@@ -750,13 +845,23 @@ document.addEventListener("click",e=>{
     else if(v==="orders")openOrders();else if(v==="offers")openOffers();else if(v==="dinfo")openDelivery();
     else if(v==="menus"){S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
     else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank")}
+  else if(a==="profile")openProfile(true);
+  else if(a==="profilex")openProfile(false);
+  else if(a==="pf"){
+    if(v==="orders")openOrders();else if(v==="account")openAccount();else if(v==="offers")openOffers();else if(v==="dinfo")openDelivery();
+    else if(v==="menus"){openProfile(false);S.eco="eats";render();setTimeout(()=>{const e=$("#fullmenu");if(e)e.scrollIntoView({behavior:"smooth"})},80)}
+    else if(v==="wa")window.open("https://wa.me/"+WA,"_blank");else if(v==="ig")window.open("https://instagram.com/smartyhuborganic","_blank");
+    else if(v==="faq")openFaq(true);
+    else if(v==="out"){openProfile(false);signOut()}}
+  else if(a==="faqx")openFaq(false);
+  else if(a==="faqgo"){openFaq(false);if(v==="dinfo")openDelivery();else if(v==="offers")openOffers();else if(v==="orders")openOrders();else if(v==="wa")window.open("https://wa.me/"+WA,"_blank")}
   else if(a==="signin")signIn(v,t.dataset.n);
   else if(a==="signsheet"){openMenu(false);openSignIn(t.dataset.n||"")}
   else if(a==="signup"){openMenu(false);openSignUp(t.dataset.n||"")}
   else if(a==="forgot")openForgot(t.dataset.n||"");
   else if(a==="payonline")payOnline(t);
   else if(a==="pwt"){const i=t.parentElement.querySelector("input");i.type=i.type==="password"?"text":"password"}
-  else if(a==="signout"){openMenu(false);signOut()}
+  else if(a==="signout"){openMenu(false);openFaq(false);openProfile(false);modal();signOut()}
   else if(a==="cpn")cpnApply();
   else if(a==="usecode"){S.pendingCode=v;modal();toast("Code "+v+" saved. It is applied at checkout.");if(S.cart.length)openCart(true)}
   else if(a==="reorder")reorder(+v);
@@ -816,11 +921,6 @@ const setHH=()=>{const h=document.querySelector("header");if(h)document.document
 drawHdr();authInit();
 loadCatalog().then(()=>{render();drawCart();drawMenu();loadRatings();try{const t=+sessionStorage.getItem("sho-go-orders")||0;sessionStorage.removeItem("sho-go-orders");if(t&&Date.now()-t<30000)openOrders()}catch(e){}});
 
-/* support email in the footer (site.js builds the footer, so we add this after it and keep it there) */
-(function(){const f=document.getElementById("site-footer");if(!f)return;
-  const put=()=>{if(f.querySelector("[data-support]"))return;f.insertAdjacentHTML("beforeend",'<p data-support class="px-4 pb-5 pt-1 text-center text-sm">Need help? Email us at <a href="mailto:support@smartyhuborganic.com" class="font-semibold underline">support@smartyhuborganic.com</a></p>')};
-  put();new MutationObserver(put).observe(f,{childList:true});
-  document.addEventListener("DOMContentLoaded",put);window.addEventListener("load",()=>setTimeout(put,300))})();
 /* back from Paystack */
 (function(){try{const q=new URLSearchParams(location.search);if(q.get("paid")==="1"){history.replaceState(null,"",location.pathname);setTimeout(()=>modal(`<div class="flex justify-end">${xBtn}</div><div class="pb-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div><h2 class="mt-4 font-serif text-2xl font-bold">Payment received</h2><p class="mt-2 text-neutral-600">Thank you! We are confirming your payment now and will message you on WhatsApp with your delivery time.</p><button data-a="mclose" class="pill mt-5 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white">Back to menu</button></div>`),600)}}catch(e){}})();
 </script>

@@ -33,7 +33,7 @@
     '<li><a href="terms.html" class="hover:text-g2">Terms of Service</a></li>'+
     '<li><a href="policy.html" class="hover:text-g2">Policy</a></li>'+
     '<li><a href="privacy.html" class="hover:text-g2">Privacy</a></li></ul></div>'+
-   '<div class="col-span-2 md:col-span-1"><p class="font-bold">Contact</p><ul class="mt-3 space-y-2.5 text-neutral-600"><li>Lagos, Nigeria</li><li><a href="https://wa.me/'+WA+'" class="hover:text-g2">+234 806 661 1017 (WhatsApp)</a></li></ul></div>'+
+   '<div class="col-span-2 md:col-span-1"><p class="font-bold">Contact</p><ul class="mt-3 space-y-2.5 text-neutral-600"><li>Lagos, Nigeria</li><li><a href="https://wa.me/'+WA+'" class="hover:text-g2">+234 806 661 1017 (WhatsApp)</a></li><li><a href="mailto:support@smartyhuborganic.com" class="break-all hover:text-g2">support@smartyhuborganic.com</a></li></ul></div>'+
   '</div>'+
   /* social (mobile only, after the links) */
   '<div class="md:hidden">'+social+'</div>'+
