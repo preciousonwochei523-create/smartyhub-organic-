@@ -75,7 +75,7 @@ const ago=d=>{const m=Math.max(0,Math.round((Date.now()-new Date(d))/60000));ret
 function beep(){try{navigator.vibrate&&navigator.vibrate([200,100,200]);const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();a.close()},350)}catch(e){}}
 function action(o){
   if(o.status==="new")return ["accept","Accept and call a rider"];
-  if(o.status==="preparing"&&!o.ready)return ["ready","Mark shipped and get paid"];
+  if(o.status==="preparing"&&!o.ready&&o.rider)return ["ready","Mark shipped and get paid"];
   return null}
 function stat(o){
   if(o.status==="new")return '<span class="chip">New</span>';
