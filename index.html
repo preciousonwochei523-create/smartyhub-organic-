@@ -730,6 +730,11 @@ async function loadOrders(quiet){
 }
 /* ---------- TRACK AN ORDER (no sign-in needed) ---------- */
 const trackBox=()=>`<div class="mt-6 rounded-2xl bg-neutral-50 p-4"><p class="font-bold">Track an order</p><p class="mb-3 mt-1 text-sm text-neutral-600">No account needed. Enter your order number and the phone number you ordered with.</p><input id="tk-ref" placeholder="Order number" autocomplete="off" class="mb-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-g3"/><input id="tk-ph" type="tel" placeholder="Phone number" class="mb-3 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-g3"/><button type="button" data-a="track" class="pill w-full rounded-full bg-black py-3 text-sm font-bold text-white">Track</button><div id="trk" class="mt-3"></div></div>`;
+async function showCode(ref,phone,status){
+  if(status!=="preparing"&&status!=="out")return;const C=SBC();if(!C)return;
+  try{const r=await fetch(C.url+"/functions/v1/delivery-code",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify({ref,phone})});
+    const j=await r.json().catch(()=>({}));const card=$("#trk")&&$("#trk").firstElementChild;
+    if(r.ok&&j.code&&card)card.insertAdjacentHTML("beforeend",`<div class="mt-3 rounded-xl bg-green-50 p-3 text-center"><p class="text-xs text-neutral-600">Give this code to your rider only when you receive your order</p><p class="text-3xl font-extrabold tracking-widest text-g1">${j.code}</p></div>`)}catch(e){}}
 async function trackOrder(){
   const box=$("#trk");if(!box)return;const r=($("#tk-ref")||{}).value||"",p=($("#tk-ph")||{}).value||"";
   const err=m=>{box.innerHTML=`<p class="text-sm font-semibold text-red-600">${m}</p>`};
@@ -739,7 +744,7 @@ async function trackOrder(){
     if(!x.ok||!j||typeof j.ok==="undefined"){err("Tracking is not available right now. Please chat with us on WhatsApp.");return}
     if(!j.ok){err(escH(j.msg||"We could not find that order."));return}
     const i=STEPS.findIndex(s=>s[0]===j.status),can=j.status==="cancelled";
-    box.innerHTML=`<div class="rounded-xl border border-neutral-200 bg-white p-3"><p class="font-extrabold">${escH(j.ref)}</p><p class="mt-1 text-sm font-semibold ${can?"text-red-600":"text-g1"}">${STX[j.status]||escH(j.status)}</p>${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}</div>`}
+    box.innerHTML=`<div class="rounded-xl border border-neutral-200 bg-white p-3"><p class="font-extrabold">${escH(j.ref)}</p><p class="mt-1 text-sm font-semibold ${can?"text-red-600":"text-g1"}">${STX[j.status]||escH(j.status)}</p>${can?"":`<div class="mt-2 flex gap-1.5">${STEPS.map((s,k)=>`<div class="flex-1 text-center"><span class="block h-2 rounded-full ${k<=i?"bg-g2":"bg-neutral-200"}"></span><span class="mt-1 block text-[10px] ${k<=i?"font-bold text-g1":"text-neutral-400"}">${s[1]}</span></div>`).join("")}</div>`}</div>`;showCode(r.trim(),p,j.status)}
   catch(e){err("Tracking is not available right now. Please chat with us on WhatsApp.")}
 }
 

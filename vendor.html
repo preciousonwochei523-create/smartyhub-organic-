@@ -74,48 +74,42 @@ function loginView(msg,mode){
 const ago=d=>{const m=Math.max(0,Math.round((Date.now()-new Date(d))/60000));return m<1?"just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":Math.floor(m/1440)+" d ago"};
 function beep(){try{navigator.vibrate&&navigator.vibrate([200,100,200]);const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();a.close()},350)}catch(e){}}
 function action(o){
-  const rider=ROLE==="riders";
-  if(!rider){
-    if(o.status==="new")return ["accept","Accept and start preparing"];
-    if(o.status==="preparing"&&!o.ready)return ["ready","Mark ready for pickup"];
-    return null}
-  if(o.status==="preparing")return ["pickup",o.ready?"Picked up":"Picked up (not marked ready yet)"];
-  if(o.status==="out")return ["delivered","Mark delivered"];
+  if(o.status==="new")return ["accept","Accept and call a rider"];
+  if(o.status==="preparing"&&!o.ready)return ["ready","Mark shipped and get paid"];
   return null}
 function stat(o){
   if(o.status==="new")return '<span class="chip">New</span>';
-  if(o.status==="preparing")return o.ready?'<span class="chip b">Ready for pickup</span>':'<span class="chip">Preparing</span>';
+  if(o.status==="preparing")return o.ready?'<span class="chip b">Shipped</span>':'<span class="chip">Preparing</span>';
   if(o.status==="out")return '<span class="chip b">On the way</span>';
   return '<span class="chip g">Delivered</span>'}
 function card(o,i){
-  const rider=ROLE==="riders",a=action(o),done=o.status==="delivered";
+  const a=action(o),done=o.status==="delivered";
   const items=`<ul>${o.items.map(x=>`<li><b>${esc(x.q)} ×</b> ${esc(x.n)}${x.o?` <span class="mu">(${esc(x.o)})</span>`:""}</li>`).join("")}</ul>`;
-  const place=rider?`<div class="box"><b>Pick up:</b> ${esc(o.pickup.name||"Not set")}${o.pickup.phone?` · <a href="tel:${esc(o.pickup.phone)}">${esc(o.pickup.phone)}</a>`:""}<br>${esc(o.pickup.address||"")}</div>
-   <div class="box"><b>Deliver to:</b> ${esc(o.customer.name)}${o.customer.phone?` · <a href="tel:${esc(o.customer.phone)}">${esc(o.customer.phone)}</a>`:""}<br>${esc(o.customer.address)}${o.customer.landmark?" (near "+esc(o.customer.landmark)+")":""}<br><span class="mu">${esc(o.zone||"")}</span></div>`:`<p class="mu">Area: ${esc(o.zone||"")}</p>`;
-  return `<div class="card"><div class="row"><div><span class="ref">${esc(o.ref)}</span> ${stat(o)}<div class="mu">${ago(o.created_at)}</div></div><div style="text-align:right"><div class="mu">${rider?"Your pay":"You earn"}</div><div class="big">${fmt(o.earn)}</div></div></div>
-  ${items}${o.note?`<p class="mu">Note: ${esc(o.note)}</p>`:""}${place}
+  const rb=o.rider?`<div class="box"><b>Rider:</b> ${esc(o.rider)}${o.rider_phone?` · <a href="tel:${esc(o.rider_phone)}">${esc(o.rider_phone)}</a>`:""}</div>`:(o.status==="preparing"?`<div class="box mu">${o.sent?"Looking for a rider…":"Sending to riders…"}</div>`:"");
+  const pb=o.paid?`<div class="box"><b>Paid ✓</b> ${fmt(o.earn)} sent to your bank account.</div>`:(o.ready?`<div class="box mu">Your payment is on its way. It can take a few minutes.</div>`:"");
+  return `<div class="card"><div class="row"><div><span class="ref">${esc(o.ref)}</span> ${stat(o)}<div class="mu">${ago(o.created_at)}</div></div><div style="text-align:right"><div class="mu">You earn</div><div class="big">${fmt(o.earn)}</div></div></div>
+  ${items}${o.note?`<p class="mu">Note: ${esc(o.note)}</p>`:""}<p class="mu">Area: ${esc(o.zone||"")}</p>${rb}${pb}
   ${a&&!done?`<button class="pri sec" data-i="${i}" data-a="${a[0]}">${a[1]}</button>`:""}</div>`}
 let LIST=[];
 function render(d){
   LIST=d.orders;const act=LIST.filter(o=>o.status!=="delivered").sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)),dn=LIST.filter(o=>o.status==="delivered");
   const total=dn.filter(o=>Date.now()-new Date(o.created_at)<864e5*7).reduce((s,o)=>s+o.earn,0);
-  $("#hn").textContent=d.name;$("#hs").textContent=(ROLE==="riders"?"Rider":"Kitchen / supplier")+" · keep this page open to get new orders";$("#out").style.display="";
+  $("#hn").textContent=d.name;$("#hs").textContent="Kitchen / supplier"+" · keep this page open to get new orders";$("#out").style.display="";
   document.title=(act.length?"("+act.length+") ":"")+"SmartyHub Partner";
   $("#app").innerHTML=`<h2>Active orders (${act.length})</h2>${act.map(o=>card(o,LIST.indexOf(o))).join("")||'<div class="card mu">No active orders right now. New paid orders appear here automatically.</div>'}
-  <h2>Delivered, last 7 days (${dn.length})</h2><div class="card"><div class="row"><span>Total ${ROLE==="riders"?"pay":"earnings"}</span><span class="big">${fmt(total)}</span></div><p class="mu" style="margin:6px 0 0">Payments are made by SmartyHub. This is a record of your orders.</p></div>
+  <h2>Delivered, last 7 days (${dn.length})</h2><div class="card"><div class="row"><span>Total earnings</span><span class="big">${fmt(total)}</span></div><p class="mu" style="margin:6px 0 0">Payments are made by SmartyHub. This is a record of your orders.</p></div>
   ${dn.slice(0,15).map(o=>`<div class="card"><div class="row"><span class="ref">${esc(o.ref)}</span><span>${fmt(o.earn)}</span></div><div class="mu">${o.items.map(x=>x.q+"× "+esc(x.n)).join(", ")}</div></div>`).join("")}`;
 }
 async function load(first){
   if(busy)return;busy=true;
   try{const d=await api({action:"orders",token:T});
-    const fresh=d.orders.filter(o=>o.status==="new"||(ROLE==="riders"&&o.status==="preparing")).map(o=>o.ref);
+    const fresh=d.orders.filter(o=>o.status==="new").map(o=>o.ref);
     if(seen!==null&&fresh.some(r=>!seen.has(r)))beep();seen=new Set(fresh);render(d)}
   catch(e){if(e.message!=="auth"&&first)$("#app").innerHTML=`<div class="card err">${esc(e.message)}</div>`}
   busy=false}
 document.addEventListener("click",async e=>{
   const b=e.target.closest("button[data-a]");if(!b)return;const o=LIST[+b.dataset.i];if(!o)return;
-  if(b.dataset.a==="pickup"&&!o.ready&&!confirm("The kitchen has not marked this order ready yet. Pick up anyway?"))return;
-  if(b.dataset.a==="delivered"&&!confirm("Confirm that "+o.ref+" has been delivered to the customer?"))return;
+  if(b.dataset.a==="ready"&&!confirm("Mark "+o.ref+" as shipped? Your payment will be sent to your bank account."))return;
   b.disabled=true;b.textContent="Please wait…";
   try{await api({action:"update",action2:b.dataset.a,ref:o.ref,token:T});toast("Updated");busy=false;load()}
   catch(err){if(err.message!=="auth")toast(err.message);b.disabled=false;busy=false;load()}});
