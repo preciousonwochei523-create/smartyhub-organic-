@@ -93,11 +93,12 @@ function card(o,i){
 let LIST=[];
 function render(d){
   LIST=d.orders;const act=LIST.filter(o=>o.status!=="delivered").sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)),dn=LIST.filter(o=>o.status==="delivered");
-  const total=dn.filter(o=>Date.now()-new Date(o.created_at)<864e5*7).reduce((s,o)=>s+o.earn,0);
+  const wk=o=>Date.now()-new Date(o.created_at)<864e5*7,paid=LIST.filter(o=>o.paid&&wk(o)).reduce((a,o)=>a+o.earn,0),wait=LIST.filter(o=>o.ready&&!o.paid).reduce((a,o)=>a+o.earn,0),prog=LIST.filter(o=>!o.ready&&o.status!=="delivered").reduce((a,o)=>a+o.earn,0);
   $("#hn").textContent=d.name;$("#hs").textContent="Kitchen / supplier"+" · keep this page open to get new orders";$("#out").style.display="";
   document.title=(act.length?"("+act.length+") ":"")+"SmartyHub Partner";
-  $("#app").innerHTML=`<h2>Active orders (${act.length})</h2>${act.map(o=>card(o,LIST.indexOf(o))).join("")||'<div class="card mu">No active orders right now. New paid orders appear here automatically.</div>'}
-  <h2>Delivered, last 7 days (${dn.length})</h2><div class="card"><div class="row"><span>Total earnings</span><span class="big">${fmt(total)}</span></div><p class="mu" style="margin:6px 0 0">Payments are made by SmartyHub. This is a record of your orders.</p></div>
+  $("#app").innerHTML=`<div class="card"><div class="row"><span>Paid to your bank (7 days)</span><span class="big">${fmt(paid)}</span></div><div class="row" style="margin-top:8px"><span class="mu">Shipped, waiting for payment</span><b>${fmt(wait)}</b></div><div class="row" style="margin-top:4px"><span class="mu">In progress</span><b>${fmt(prog)}</b></div></div>
+  <h2>Active orders (${act.length})</h2>${act.map(o=>card(o,LIST.indexOf(o))).join("")||'<div class="card mu">No active orders right now. New paid orders appear here automatically.</div>'}
+  <h2>Delivered, last 7 days (${dn.length})</h2>
   ${dn.slice(0,15).map(o=>`<div class="card"><div class="row"><span class="ref">${esc(o.ref)}</span><span>${fmt(o.earn)}</span></div><div class="mu">${o.items.map(x=>x.q+"× "+esc(x.n)).join(", ")}</div></div>`).join("")}`;
 }
 async function load(first){
