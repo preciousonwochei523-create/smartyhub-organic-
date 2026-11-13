@@ -922,9 +922,12 @@ async function loadCatalog(){
   if(prev){const b=document.createElement("div");b.textContent="Preview mode: not live yet";b.className="fixed left-0 right-0 top-0 z-[70] bg-amber-400 py-1 text-center text-xs font-bold";document.body.appendChild(b)}
 }
 const setHH=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hh",h.offsetHeight+"px")};setHH();addEventListener("resize",setHH);addEventListener("load",setHH);try{new ResizeObserver(setHH).observe(document.querySelector("header"))}catch(e){}
+try{history.scrollRestoration="manual"}catch(e){}
 drawHdr();authInit();
-loadCatalog().then(()=>{render();drawCart();drawMenu();loadRatings();try{const t=+sessionStorage.getItem("sho-go-orders")||0;sessionStorage.removeItem("sho-go-orders");if(t&&Date.now()-t<30000)openOrders()}catch(e){}});
+loadCatalog().then(()=>{render();if(!location.hash||/^#(eats|supp)$/.test(location.hash))scrollTo(0,0);drawCart();drawMenu();loadRatings();try{const t=+sessionStorage.getItem("sho-go-orders")||0;sessionStorage.removeItem("sho-go-orders");if(t&&Date.now()-t<30000)openOrders()}catch(e){}});
 
+addEventListener("load",()=>{if(!location.hash||/^#(eats|supp)$/.test(location.hash))scrollTo(0,0)});
+addEventListener("pageshow",e=>{if(!e.persisted&&(!location.hash||/^#(eats|supp)$/.test(location.hash)))scrollTo(0,0)});
 /* back from Paystack */
 (function(){try{const q=new URLSearchParams(location.search);if(q.get("paid")==="1"){history.replaceState(null,"",location.pathname);setTimeout(()=>modal(`<div class="flex justify-end">${xBtn}</div><div class="pb-4 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-g2"><i data-lucide="check" class="h-8 w-8"></i></div><h2 class="mt-4 font-serif text-2xl font-bold">Payment received</h2><p class="mt-2 text-neutral-600">Thank you! We are confirming your payment now and will message you on WhatsApp with your delivery time.</p><button data-a="mclose" class="pill mt-5 w-full rounded-2xl bg-g2 py-4 text-base font-bold text-white">Back to menu</button></div>`),600)}}catch(e){}})();
 </script>
