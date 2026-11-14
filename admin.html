@@ -531,7 +531,7 @@ function ordRows(){
   <p class="mt-1 text-xs text-neutral-500">Subtotal ${fmt(o.subtotal)} · Delivery ${fmt(o.delivery_fee)} <button class="underline" onclick="feeSet('${o.id}')">change</button>${o.free_sachet?" · free sachet":""}${o.discount>0?" · coupon "+esc(o.coupon||"")+" −"+fmt(o.discount):""}${o.user_id?" · signed-in customer":""}</p>
   <div class="mt-3 flex flex-wrap gap-1.5">${ST.map(([k,l])=>`<button class="btn ${o.status===k?"bg-g2 text-white":"border border-neutral-300"}" onclick="ordSet('${o.id}',{status:'${k}'})">${l}</button>`).join("")}</div>
   <div class="mt-2 grid grid-cols-2 gap-2"><div><label class="!mt-1">${isSupp(o)?"Supplier":"Kitchen"}</label><select onchange="ordSet('${o.id}',{kitchen:this.value})">${ordOpts(srcOf(o),o.kitchen)}</select></div><div><label class="!mt-1">Delivery (logistics)</label><p class="mt-1 rounded-xl bg-neutral-100 px-3 py-2 text-sm">${o.logistics_ref?esc(o.logistics_ref)+" · "+(o.rider?esc(o.rider)+(o.rider_phone?" · "+esc(o.rider_phone):""):"awaiting rider"):"Not sent yet"}</p></div></div>
-  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-neutral-800 text-white" onclick="sendK('${o.id}')">Send to ${isSupp(o)?"supplier":"kitchen"}</button><button class="btn ${paid?"bg-green-100 text-g1":"border border-neutral-300"}" onclick="ordSet('${o.id}',{payment_status:'${paid?"unpaid":"paid"}'})">${paid?"Paid ✓":"Mark paid"}</button></div></div>`}).join("");
+  <div class="mt-3 flex flex-wrap gap-2"><button class="btn bg-neutral-800 text-white" onclick="sendK('${o.id}')">Send to ${isSupp(o)?"supplier":"kitchen"}</button><button class="btn border border-neutral-300" onclick="retryPay('${o.id}')">Retry payouts</button><button class="btn ${paid?"bg-green-100 text-g1":"border border-neutral-300"}" onclick="ordSet('${o.id}',{payment_status:'${paid?"unpaid":"paid"}'})">${paid?"Paid ✓":"Mark paid"}</button></div></div>`}).join("");
 }
 async function ordSet(id,patch){
   const {error}=await sb.from("orders").update(patch).eq("id",id);if(error)return toast("Failed: "+error.message);
@@ -541,6 +541,7 @@ function feeSet(id){
   const o=ORD.find(x=>x.id===id),v=prompt("Delivery fee for "+o.ref+" (₦)",o.delivery_fee);if(v===null||isNaN(+v)||v==="")return;
   ordSet(id,{delivery_fee:+v,total:Math.max(0,o.subtotal+ +v-(o.discount||0))});
 }
+async function retryPay(id){const o=ORD.find(x=>x.id===id);toast("Retrying payouts…");const {data,error}=await sb.functions.invoke("payout-retry",{body:{ref:o.ref}});if(error)return toast(await fnErr(error));const m=[...(data.vendor||[]),...(data.rider||[])];toast(m.length?m.join(" | "):"Nothing to retry for "+o.ref)}
 function sendK(id){
   const o=ORD.find(x=>x.id===id),sp=isSupp(o),w=sp?"supplier":"kitchen",k=srcOf(o).find(x=>x.name===o.kitchen);
   if(!k||!k.phone)return toast("Assign a "+w+" first (add one under Delivery & Partners)");
@@ -762,7 +763,7 @@ function finSettings(){
   const c=fcfg(),n=(k,l,v,st)=>`<label>${l}</label><input name="${k}" type="number" min="0" step="${st||"any"}" inputmode="decimal" value="${v??""}"/>`;
   return `<form onsubmit="event.preventDefault();finSetSave(this)">
   ${autoReadyHtml()}
-  <div class="blk"><h3>Checkout mode</h3><select name="paymode">${[["off","WhatsApp only (online payment hidden from customers)"],["both","Online payment and WhatsApp"],["online","Online payment only (no WhatsApp ordering)"]].map(([k,l])=>`<option value="${k}" ${((D.payment&&D.payment.mode)||(D.payment&&D.payment.online?"online":"off"))===k?"selected":""}>${l}</option>`).join("")}</select><p class="mt-1 text-xs text-neutral-500">Keep it on WhatsApp only while you test. To test online payment yourself without customers seeing it, add ?paytest=1 to your site address. Switch to Online payment only when partners, riders and payouts are all set up.</p></div>
+  
   <div class="blk"><h3>Gateway fee</h3>${n("gwPct","Percentage (%)",c.gwPct)}${n("gwFlat","Flat fee (₦)",c.gwFlat)}${n("gwMin","Flat fee applies from order total (₦)",c.gwMin)}${n("gwCap","Maximum fee per transaction (₦)",c.gwCap)}<p class="mt-1 text-xs text-neutral-500">Defaults match Paystack Nigeria local payments: 1.5% + ₦100, with the ₦100 waived under ₦2,500 and a ₦2,000 cap. Check your own gateway rate.</p></div>
   <div class="blk"><h3>Packaging per order</h3>${n("packFood","Food order packaging (₦)",c.packFood)}${n("packSupp","Supplement order packaging (₦)",c.packSupp)}${n("sachet","Free vitamin sachet cost (₦, shawarma and breakfast only)",c.sachet)}</div>
   <div class="blk"><h3>Per zone: kitchen, supplier, rider and rider pay</h3>${(D.zones||[]).map(z=>`<label>${esc(z.name)}: pay per delivery (₦)</label><input name="rz" data-z="${esc(z.name)}" type="number" min="0" step="50" inputmode="numeric" value="${c.rider[z.name]??""}"/><label>${esc(z.name)}: food kitchen</label><select name="zk" data-z="${esc(z.name)}"><option value="">Not set</option>${(D.kitchens||[]).map(k=>`<option value="${esc(k.name)}" ${(c.zoneVendor[z.name]||{}).food===k.name?"selected":""}>${esc(k.name)}</option>`).join("")}</select><label>${esc(z.name)}: supplement supplier</label><select name="zs" data-z="${esc(z.name)}"><option value="">Not set</option>${(D.suppliers||[]).map(k=>`<option value="${esc(k.name)}" ${(c.zoneVendor[z.name]||{}).supp===k.name?"selected":""}>${esc(k.name)}</option>`).join("")}</select><label>${esc(z.name)}: fallback rider for food (used only if the kitchen has none)</label><select name="rd" data-z="${esc(z.name)}"><option value="">Not set</option>${(D.riders||[]).map(r=>`<option value="${esc(r.name)}" ${c.riderOf[z.name]===r.name?"selected":""}>${esc(r.name)}</option>`).join("")}</select><label>${esc(z.name)}: fallback rider for supplements (optional)</label><select name="rds" data-z="${esc(z.name)}"><option value="">Same as food rider</option>${(D.riders||[]).map(r=>`<option value="${esc(r.name)}" ${c.riderOfSupp[z.name]===r.name?"selected":""}>${esc(r.name)}</option>`).join("")}</select>`).join("")||'<p class="text-xs text-neutral-500">Add delivery zones first under Delivery &amp; Partners.</p>'}</div>
@@ -777,11 +778,7 @@ async function finSetSave(f){
   c.riderOfSupp={};f.querySelectorAll('select[name="rds"]').forEach(i=>{if(i.value)c.riderOfSupp[i.dataset.z]=i.value});
   c.rider={};f.querySelectorAll('input[name="rz"]').forEach(i=>{if(i.value.trim()!==""&&!isNaN(+i.value))c.rider[i.dataset.z]=Math.max(0,+i.value)});
   if(!await finSaveCfg(c))return;
-  const mode=f.paymode.value,was=(D.payment&&D.payment.mode)||(D.payment&&D.payment.online?"online":"off");
-  if(mode!==was){
-    if(mode==="online"&&!confirm("Turn on online-only checkout? Customers will no longer be able to order on WhatsApp. Areas that are not fully set up will show as not available."))return draw();
-    if(await setting("payment",{mode,online:mode==="online"}))D.payment={mode,online:mode==="online"}
-  }
+  if(!D.payment||D.payment.mode!=="online"){if(await setting("payment",{mode:"online",online:true}))D.payment={mode:"online",online:true}}
   draw();toast("Saved")
 }
 async function finSaveCfg(cfg){const {error}=await sb.from("fin_store").upsert({key:"cfg",value:cfg,updated_at:new Date().toISOString()},{onConflict:"key"});if(error){finErr(error);return false}FIN.cfg=cfg;return true}
