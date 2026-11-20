@@ -434,7 +434,9 @@ async function done(d){
   KCH={};
   if(ONLINE){const C0=SBC(),er=$("#coer"),pb0=$("#pb");pb0.disabled=true;pb0.textContent="Checking your area…";let chk=null;
     try{if(C0){const r=await fetch(C0.url+"/functions/v1/check-cart",{method:"POST",headers:{apikey:C0.key,Authorization:"Bearer "+C0.key,"Content-Type":"application/json"},body:JSON.stringify({zone:d.zone,items:S.cart.map(x=>({n:x.n,q:x.q,p:x.p}))})});chk=await r.json().catch(()=>null)}}catch(e){}
-    KCH=(chk&&chk.ok===true&&chk.kitchens)||{}}
+    KCH=(chk&&chk.ok===true&&chk.kitchens)||{};
+  try{const C1=SBC();if(C1){const rr=await fetch(C1.url+"/rest/v1/rpc/supp_check",{method:"POST",headers:{apikey:C1.key,Authorization:"Bearer "+C1.key,"Content-Type":"application/json"},body:JSON.stringify({p_zone:d.zone,p_items:S.cart.map(x=>({n:x.n,q:x.q}))})});const sc=await rr.json().catch(()=>null);
+    if(rr.ok&&sc&&sc.ok===false){if(er)er.textContent=sc.message||"Some items are not available in your area right now.";pb0.disabled=false;pb0.textContent="Continue to payment";return}}}catch(e){}}
   const pb=$("#pb");pb.disabled=true;pb.textContent="Placing order…";
   const C=SBC(),multi=groups.length>1,coupon=CP?CP.code:"",tg=couponTarget().key,out=[];
   const newRef=()=>"SHO-"+Math.floor(1000+Math.random()*9000);
@@ -912,6 +914,9 @@ async function loadCatalog(){
   }catch(e){}
   if(c&&Array.isArray(c.eats)&&Array.isArray(c.supps)){
     EATS=c.eats.map(x=>x&&x.cat?{...x,cat:rc(x.cat)}:x);SUPP=c.supps;
+    // supplements that pharmacies manage: show "Sold out" when no pharmacy has stock
+    try{const C2=SBC();if(C2){const rs=await fetch(C2.url+"/rest/v1/rpc/supp_status",{method:"POST",headers:{apikey:C2.key,Authorization:"Bearer "+C2.key,"Content-Type":"application/json"},body:"{}"});const ss=await rs.json().catch(()=>null);
+      if(rs.ok&&ss&&Array.isArray(ss.managed)){const mg=new Set(ss.managed),av=new Set(ss.available||[]);SUPP=SUPP.map(x=>mg.has(x.n)&&!av.has(x.n)?{...x,out:true}:x)}}}catch(e){}
     if(c.eatCats)ECATS=["All",...new Set(c.eatCats.map(rc))];
     if(c.suppCats)GOALS=["All",...c.suppCats];
     if(c.hero&&c.hero.length)HERO_SLIDES=c.hero;

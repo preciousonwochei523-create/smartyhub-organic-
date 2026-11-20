@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta name="theme-color" content="#2E7D32"/>
+<title>SmartyHub Pharmacy</title>
+<script src="/supabase-config.js"></script>
+<style>
+:root{--g:#2E7D32;--g1:#1B5E20;--bg:#f6f7f5;--tx:#171717;--mu:#6b7280;--bd:#e5e7eb;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#111513;--tx:#f3f4f6;--mu:#9ca3af;--bd:#2a302c;--card:#1b201d}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:var(--g);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+header b{font-size:17px}header small{display:block;opacity:.85;font-size:12px}
+main{max-width:560px;margin:0 auto;padding:14px 14px 80px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px;margin-bottom:12px}
+h2{font-size:15px;margin:18px 2px 8px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+input{width:100%;padding:13px 14px;border:1px solid var(--bd);border-radius:14px;font:inherit;background:var(--card);color:var(--tx)}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:13px 16px;cursor:pointer}
+.pri{background:var(--g);color:#fff;width:100%}.pri:disabled{opacity:.5}
+.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6);padding:8px 12px;font-size:14px}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ref{font-weight:800}.mu{color:var(--mu);font-size:13px}
+.chip{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;background:#fef3c7;color:#92400e}
+.chip.g{background:#dcfce7;color:#166534}.chip.b{background:#dbeafe;color:#1e40af}
+ul{margin:8px 0;padding-left:18px}li{margin:2px 0}
+.err{color:#dc2626;font-weight:600;min-height:20px;margin-top:10px;font-size:14px}
+.box{background:rgba(46,125,50,.08);border-radius:12px;padding:10px;margin-top:8px;font-size:14px}
+a{color:var(--g)}
+.stabs{display:flex;gap:6px;margin-bottom:10px}.stab{flex:1;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}.stab.on{background:var(--g);color:#fff;border-color:var(--g)}.tabs{display:flex;gap:6px;margin-bottom:6px}.tab{flex:1;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}.tab.on{background:var(--g);color:#fff;border-color:var(--g)}
+.sec{margin-top:10px}
+.big{font-size:20px;font-weight:800}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;display:none;z-index:9}
+</style>
+</head>
+<body>
+<header><div><b id="hn">SmartyHub Pharmacy</b><small id="hs"></small></div><button id="out" class="ghost" style="display:none">Log out</button></header>
+<main id="app"></main>
+<div id="toast"></div>
+<script>
+const C=window.SHO_SB||{},URL_=(C.url||"")+"/functions/v1/partner-api",KEY="sh-partner-pharmacy",PAGE_KIND="suppliers";
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>"₦"+Math.round(+n||0).toLocaleString("en-NG");
+let T=null,ROLE="",NAME="",seen=null,timer=null,busy=false;
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.token&&s.kind===PAGE_KIND){T=s.token;ROLE=s.kind;NAME=s.name}}catch(e){}
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display="none",2800)}
+async function api(body,u){
+  const r=await fetch(u||URL_,{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&body.action!=="login"){logout(j.error);throw new Error("auth")}
+  if(!r.ok)throw new Error(j.error||"Something went wrong");return j}
+function logout(msg){T=null;try{localStorage.removeItem(KEY)}catch(e){}clearInterval(timer);seen=null;$("#out").style.display="none";$("#hn").textContent="SmartyHub Pharmacy";$("#hs").textContent="";loginView(msg)}
+$("#out").onclick=()=>logout();
+function loginView(msg,mode){
+  mode=mode||"login";const first=mode==="first";
+  $("#app").innerHTML=`<div class="card"><div class="tabs"><button class="tab ${first?"":"on"}" data-m="login">Log in</button><button class="tab ${first?"on":""}" data-m="first">First time here</button></div>
+  <form id="lf"><label>Phone number (your WhatsApp number)</label><input name="p" type="tel" inputmode="numeric" autocomplete="username" placeholder="08012345678" required/>
+  ${first?`<label>Activation code from SmartyHub</label><input name="c" autocapitalize="characters" autocomplete="off" required/>
+  <label>Choose your password</label><div style="position:relative"><input name="w" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required style="padding-right:48px"/><button type="button" aria-label="Show password" onclick="const i=this.previousElementSibling,h=i.type==='password';i.type=h?'text':'password';this.setAttribute('aria-label',h?'Hide password':'Show password');this.children[0].style.display=h?'none':'';this.children[1].style.display=h?'':'none'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:8px;cursor:pointer;color:#6b7280;line-height:0;width:auto"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg></span></button></div>
+  <label>Type the password again</label><div style="position:relative"><input name="w2" type="password" autocomplete="new-password" minlength="6" required style="padding-right:48px"/><button type="button" aria-label="Show password" onclick="const i=this.previousElementSibling,h=i.type==='password';i.type=h?'text':'password';this.setAttribute('aria-label',h?'Hide password':'Show password');this.children[0].style.display=h?'none':'';this.children[1].style.display=h?'':'none'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:8px;cursor:pointer;color:#6b7280;line-height:0;width:auto"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg></span></button></div>`
+  :`<label>Password</label><div style="position:relative"><input name="w" type="password" autocomplete="current-password" required style="padding-right:48px"/><button type="button" aria-label="Show password" onclick="const i=this.previousElementSibling,h=i.type==='password';i.type=h?'text':'password';this.setAttribute('aria-label',h?'Hide password':'Show password');this.children[0].style.display=h?'none':'';this.children[1].style.display=h?'':'none'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:8px;cursor:pointer;color:#6b7280;line-height:0;width:auto"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg></span></button></div>`}
+  <p class="err" id="er">${esc(msg||"")}</p><button class="pri" id="lb">${first?"Create my login":"Log in"}</button></form>
+  <p class="mu" style="margin-top:12px">${first?"SmartyHub sends you an activation code on WhatsApp. You use it once to create your own password.":"Forgot your password? Message SmartyHub and we will send a new activation code."}</p></div>`;
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>loginView("",b.dataset.m));
+  $("#lf").onsubmit=async e=>{e.preventDefault();const f=e.target,b=$("#lb");$("#er").textContent="";
+    if(first&&f.w.value!==f.w2.value){$("#er").textContent="The two passwords do not match.";return}
+    b.disabled=true;b.textContent="Please wait…";
+    try{const j=await api(first?{action:"activate",phone:f.p.value,code:f.c.value,password:f.w.value}:{action:"login",phone:f.p.value,password:f.w.value});
+      if(j.kind!==PAGE_KIND)throw new Error(PAGE_KIND==="kitchens"?"This page is for kitchens. Pharmacies sign in at /pharmacy with the same phone number and password.":"This page is for pharmacies. Kitchens sign in at /vendor with the same phone number and password.");
+      T=j.token;ROLE=j.kind;NAME=j.name;localStorage.setItem(KEY,JSON.stringify({token:T,kind:ROLE,name:NAME}));start()}
+    catch(err){$("#er").textContent=err.message;b.disabled=false;b.textContent=first?"Create my login":"Log in"}}}
+const ago=d=>{const m=Math.max(0,Math.round((Date.now()-new Date(d))/60000));return m<1?"just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":Math.floor(m/1440)+" d ago"};
+function beep(){try{navigator.vibrate&&navigator.vibrate([200,100,200]);const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();setTimeout(()=>{o.stop();a.close()},350)}catch(e){}}
+function action(o){
+  if(o.status==="new")return ["accept","Accept and call a rider"];
+  if(o.status==="preparing"&&!o.ready)return ["ready","Mark ready for pickup"];
+  return null}
+function stat(o){
+  if(o.status==="new")return '<span class="chip">New</span>';
+  if(o.status==="preparing")return o.ready?'<span class="chip b">Ready for pickup</span>':'<span class="chip">Preparing</span>';
+  if(o.status==="out")return '<span class="chip b">On the way</span>';
+  return '<span class="chip g">Delivered</span>'}
+function card(o,i){
+  const a=action(o),done=o.status==="delivered";
+  const items=`<ul>${o.items.map(x=>`<li><b>${esc(x.q)} ×</b> ${esc(x.n)}${x.o?` <span class="mu">(${esc(x.o)})</span>`:""}</li>`).join("")}</ul>`;
+  const rb=o.rider?`<div class="box"><b>Rider:</b> ${esc(o.rider)}${o.rider_phone?` · <a href="tel:${esc(o.rider_phone)}">${esc(o.rider_phone)}</a>`:""}</div>`:(o.status==="preparing"?`<div class="box mu">${o.sent?"Looking for a rider…":"Sending to riders…"}</div>`:"");
+  const picked=o.status==="out"||o.status==="delivered",pb=o.paid?`<div class="box"><b>Paid ✓</b> ${fmt(o.earn)} sent to your bank account.</div>`:(picked?`<div class="box mu">Your payment is on its way. It can take a few minutes.</div>`:(o.rider?`<div class="box mu">You are paid as soon as the rider confirms pickup.</div>`:""));
+  return `<div class="card"><div class="row"><div><span class="ref">${esc(o.ref)}</span> ${stat(o)}<div class="mu">${ago(o.created_at)}</div></div><div style="text-align:right"><div class="mu">You earn</div><div class="big">${fmt(o.earn)}</div></div></div>
+  ${items}${o.note?`<p class="mu">Note: ${esc(o.note)}</p>`:""}<p class="mu">Area: ${esc(o.zone||"")}</p>${rb}${pb}
+  ${a&&!done?`<button class="pri sec" data-i="${i}" data-a="${a[0]}">${a[1]}</button>`:""}${ROLE==="suppliers"&&o.status==="new"?`<button class="pri sec" data-i="${i}" data-a="decline" style="background:#fff;color:#b91c1c;border:1px solid #fca5a5;margin-top:8px">I can't supply this order</button>`:""}</div>`}
+let LIST=[],VIEW="orders",STK=null,DIRTY={};
+function render(d){
+  LIST=d.orders;const act=LIST.filter(o=>o.status!=="delivered").sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)),dn=LIST.filter(o=>o.status==="delivered");
+  const wk=o=>Date.now()-new Date(o.created_at)<864e5*7,pk=o=>o.status==="out"||o.status==="delivered",paid=LIST.filter(o=>o.paid&&wk(o)).reduce((a,o)=>a+o.earn,0),wait=LIST.filter(o=>pk(o)&&!o.paid).reduce((a,o)=>a+o.earn,0),prog=LIST.filter(o=>!pk(o)).reduce((a,o)=>a+o.earn,0);
+  $("#hn").textContent=d.name;$("#hs").textContent="Pharmacy"+" · keep this page open to get new orders";$("#out").style.display="";
+  document.title=(act.length?"("+act.length+") ":"")+"SmartyHub Pharmacy";
+  if(VIEW==="stock")return;
+  $("#app").innerHTML=tabsHtml()+`<div class="card"><div class="row"><span>Paid to your bank (7 days)</span><span class="big">${fmt(paid)}</span></div><div class="row" style="margin-top:8px"><span class="mu">Picked up, waiting for payment</span><b>${fmt(wait)}</b></div><div class="row" style="margin-top:4px"><span class="mu">In progress</span><b>${fmt(prog)}</b></div></div>
+  <h2>Active orders (${act.length})</h2>${act.map(o=>card(o,LIST.indexOf(o))).join("")||'<div class="card mu">No active orders right now. New paid orders appear here automatically.</div>'}
+  <h2>Delivered, last 7 days (${dn.length})</h2>
+  ${dn.slice(0,15).map(o=>`<div class="card"><div class="row"><span class="ref">${esc(o.ref)}</span><span>${fmt(o.earn)}</span></div><div class="mu">${o.items.map(x=>x.q+"× "+esc(x.n)).join(", ")}</div></div>`).join("")}`;bindTabs();
+}
+async function load(first){
+  if(busy)return;busy=true;
+  try{const d=await api({action:"orders",token:T});
+    const fresh=d.orders.filter(o=>o.status==="new").map(o=>o.ref);
+    if(seen!==null&&fresh.some(r=>!seen.has(r)))beep();seen=new Set(fresh);render(d)}
+  catch(e){if(e.message!=="auth"&&first)$("#app").innerHTML=`<div class="card err">${esc(e.message)}</div>`}
+  busy=false}
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;const o=LIST[+b.dataset.i];if(!o)return;
+  if(b.dataset.a==="ready"&&!confirm("Mark "+o.ref+" ready for pickup?"))return;
+  if(b.dataset.a==="decline"&&!confirm("Decline "+o.ref+"? It will be offered to another pharmacy."))return;
+  b.disabled=true;b.textContent="Please wait…";
+  try{await api({action:"update",action2:b.dataset.a,ref:o.ref,token:T});toast("Updated");busy=false;load()}
+  catch(err){if(err.message!=="auth")toast(err.message);b.disabled=false;busy=false;load()}});
+let UPMSG="",UNM=[],REQ=[],RQOPEN=false;
+const URLX=(C.url||"")+"/functions/v1/pharmacy-requests";
+function parseCSV(t){const rows=[];let r=[],c="",q=false;t=String(t).replace(/^\uFEFF/,"");
+  for(let i=0;i<t.length;i++){const ch=t[i];
+    if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===","||ch===";"||ch==="\t"){r.push(c);c=""}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&t[i+1]==="\n")i++;r.push(c);c="";if(r.some(x=>x.trim()!==""))rows.push(r);r=[]}
+    else c+=ch}
+  r.push(c);if(r.some(x=>x.trim()!==""))rows.push(r);return rows}
+const norm=s=>String(s||"").toLowerCase().replace(/\s+/g," ").trim();
+function colMap(h){const m={n:-1,cost:-1,stock:-1,qty:-1};
+  h.forEach((x,i)=>{x=norm(x);
+    if(m.qty<0&&/(qty|quantity)/.test(x))m.qty=i;
+    else if(m.n<0&&/(product|item|name)/.test(x))m.n=i;
+    else if(m.cost<0&&/(cost|price|amount)/.test(x))m.cost=i;
+    else if(m.stock<0&&/(stock|available)/.test(x))m.stock=i});return m}
+function loadSheet(text){
+  const rows=parseCSV(text);if(rows.length<1){UPMSG='<p class="mu" style="margin-top:10px">That file looks empty.</p>';return}
+  let m=colMap(rows[0]),data=rows.slice(1);
+  if(m.n<0){m={n:0,cost:1,stock:2,qty:3};data=rows}
+  const by=new Map(STK.map(x=>[norm(x.n),x]));let ok=0;UNM=[];
+  for(const r of data){const nm=String(r[m.n]||"").trim();if(!nm)continue;const it=by.get(norm(nm));
+    if(!it){if(!UNM.includes(nm))UNM.push(nm);continue}
+    if(m.cost>=0){const v=String(r[m.cost]||"").replace(/[^0-9.]/g,"");if(v!=="")it.cost=+v}
+    if(m.stock>=0){const v=norm(r[m.stock]);if(v!=="")it.in_stock=!/^(n|no|0|out|false|nil|none)$/.test(v)}
+    if(m.qty>=0){const v=String(r[m.qty]||"").replace(/[^0-9]/g,"");if(v!=="")it.qty=+v}
+    it.set=true;DIRTY[it.n]=1;ok++}
+  UPMSG=`<p style="margin-top:10px"><b>${ok}</b> product${ok===1?"":"s"} loaded from your file. Check them below, then tap <b>Save changes</b>.</p>`
+    +(UNM.length?`<p class="mu" style="margin-top:8px">${UNM.length} not in SmartyHub's catalog: ${esc(UNM.slice(0,8).join(", "))}${UNM.length>8?"…":""}</p><button class="pri sec" id="rq_un" style="margin-top:8px">Ask SmartyHub to add ${UNM.length>20?"the first 20":"these"}</button>`:"")}
+function downloadTemplate(){
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const lines=["Product,Your cost,In stock,Quantity"].concat(STK.map(x=>[q(x.n),x.cost??"",x.in_stock?"yes":"no",x.qty??""].join(",")));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv"}));a.download="smartyhub-stock.csv";document.body.appendChild(a);a.click();a.remove()}
+function bulkHtml(){
+  const label={new:"Waiting",added:"Added ✓",declined:"Not added"};
+  return `<div class="card"><b>Fill in many items at once</b><p class="mu" style="margin:6px 0 10px">Download the template, fill in your cost and stock in Excel or Google Sheets, save it as CSV and upload it. Product names must match the template.</p><div class="row" style="gap:8px"><button class="pri sec" id="tpl" style="flex:1">Download template</button><button class="pri sec" id="upb" style="flex:1">Upload CSV</button></div><input type="file" id="csvf" accept=".csv,text/csv,text/plain" style="display:none"/>${UPMSG}</div>
+  <div class="card"><b>Can't find a product?</b><p class="mu" style="margin:6px 0 10px">Ask SmartyHub to add it to the catalog. When it is added it appears in your list.</p>
+  ${RQOPEN?`<label>Product name (with strength and pack size)</label><input id="rq_n" placeholder="e.g. Vitamin D3 2000IU, 60 capsules"/><label>Brand (optional)</label><input id="rq_b"/><label>Note (optional)</label><input id="rq_t"/><button class="pri" id="rq_send" style="margin-top:10px">Send request</button>`:`<button class="pri sec" id="rq_open">Request a product</button>`}
+  ${REQ.length?'<div style="margin-top:12px">'+REQ.slice(0,10).map(r=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--bd)"><span>${esc(r.name)}</span><span class="mu">${label[r.status]||r.status}</span></div>`).join("")+'</div>':""}</div>`}
+async function loadReqs(){try{const q=await api({action:"request_list",token:T},URLX);REQ=q.requests||[]}catch(e){if(e.message==="auth")throw e;REQ=[]}}
+function bindBulk(){
+  const t=$("#tpl");if(t)t.onclick=downloadTemplate;
+  const u=$("#upb"),f=$("#csvf");if(u&&f){u.onclick=()=>f.click();f.onchange=async()=>{const file=f.files[0];if(!file)return;if(file.size>1e6)return toast("That file is too big. Keep it under 1 MB.");loadSheet(await file.text());drawStock()}}
+  const o=$("#rq_open");if(o)o.onclick=()=>{RQOPEN=true;drawStock()};
+  const un=$("#rq_un");if(un)un.onclick=async()=>{un.disabled=true;try{const j=await api({action:"request_product",token:T,items:UNM.slice(0,20).map(n=>({name:n}))},URLX);toast(j.sent?"Request sent to SmartyHub":"Already requested");UNM=[];UPMSG="";await loadReqs();drawStock()}catch(e){if(e.message!=="auth")toast(e.message);un.disabled=false}};
+  const s=$("#rq_send");if(s)s.onclick=async()=>{const n=($("#rq_n").value||"").trim();if(n.length<2)return toast("Enter the product name");s.disabled=true;
+    try{const j=await api({action:"request_product",token:T,name:n,brand:$("#rq_b").value,note:$("#rq_t").value},URLX);toast(j.sent?"Request sent to SmartyHub":"That product is already in the catalog or already requested");RQOPEN=false;await loadReqs();drawStock()}catch(e){if(e.message!=="auth")toast(e.message);s.disabled=false}}}
+function tabsHtml(){return ROLE==="suppliers"?`<div class="stabs"><button class="stab ${VIEW==="orders"?"on":""}" data-v="orders">Orders</button><button class="stab ${VIEW==="stock"?"on":""}" data-v="stock">My stock</button></div>`:""}
+function bindTabs(){document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;if(VIEW==="stock")stockView();else{busy=false;load(true)}})}
+async function stockView(){
+  $("#app").innerHTML=tabsHtml()+'<p class="mu" style="text-align:center;padding:30px 0">Loading your stock…</p>';bindTabs();
+  try{const j=await api({action:"stock_list",token:T});STK=j.items||[];DIRTY={};UPMSG="";UNM=[];await loadReqs();drawStock()}
+  catch(e){if(e.message!=="auth"){$("#app").innerHTML=tabsHtml()+`<div class="card err">${esc(e.message)}</div>`;bindTabs()}}}
+function drawStock(){
+  const nd=Object.keys(DIRTY).length;
+  $("#app").innerHTML=tabsHtml()+`<div class="card"><b>Your stock and cost</b><p class="mu" style="margin:6px 0 10px">Tell us what you can supply. Orders go to the cheapest pharmacy that has everything, so keep stock and cost up to date. Customers never see your cost. An item with no cost is not offered.</p><input id="sq" placeholder="Search items"/><button class="pri" id="ssave" style="margin-top:10px" ${nd?"":"disabled"}>Save changes${nd?" ("+nd+")":""}</button></div>`+bulkHtml()
+  +(STK.map(x=>`<div class="card" data-s="${esc((x.n+" "+x.b+" "+x.cat).toLowerCase())}" style="${x.set?"":"opacity:.8"}"><div class="row"><div><b>${esc(x.n)}</b><div class="mu">${esc(x.b||x.cat||"")}${x.set?"":" · not set yet"}</div></div><label style="display:flex;gap:6px;align-items:center;margin:0;width:auto"><input type="checkbox" data-n="${esc(x.n)}" data-f="in_stock" ${x.in_stock?"checked":""} style="width:auto"/> In stock</label></div><div class="row" style="gap:8px;margin-top:8px;align-items:flex-end"><div style="flex:1"><label>Your cost (₦)</label><input type="number" min="0" inputmode="decimal" data-n="${esc(x.n)}" data-f="cost" value="${x.cost??""}"/></div><div style="flex:1"><label>Quantity (optional)</label><input type="number" min="0" inputmode="numeric" data-n="${esc(x.n)}" data-f="qty" value="${x.qty??""}"/></div></div></div>`).join("")||'<div class="card mu">No supplements have been added to the catalog yet.</div>');
+  bindTabs();bindBulk();$("#sq").oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll("[data-s]").forEach(c=>c.style.display=c.dataset.s.includes(q)?"":"none")}}
+["input","change"].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(!t||!t.dataset||!t.dataset.n||!STK)return;const it=STK.find(x=>x.n===t.dataset.n);if(!it)return;
+  it[t.dataset.f]=t.type==="checkbox"?t.checked:(t.value===""?null:+t.value);it.set=true;DIRTY[it.n]=1;
+  const b=$("#ssave");if(b){b.disabled=false;b.textContent="Save changes ("+Object.keys(DIRTY).length+")"}}));
+document.addEventListener("click",async e=>{
+  const s=e.target.closest("#ssave");if(!s||!STK)return;
+  const rows=Object.keys(DIRTY).map(n=>{const x=STK.find(y=>y.n===n);return{n,in_stock:x.in_stock,qty:x.qty,cost:x.cost}});
+  if(!rows.length)return;s.disabled=true;s.textContent="Saving…";
+  try{for(let i=0;i<rows.length;i+=100)await api({action:"stock_save",token:T,rows:rows.slice(i,i+100)});
+    const noCost=rows.some(r=>r.in_stock&&r.cost==null);DIRTY={};drawStock();toast(noCost?"Saved. Items with no cost are not offered until you add a cost.":"Saved")}
+  catch(err){if(err.message!=="auth")toast(err.message);s.disabled=false;s.textContent="Save changes ("+rows.length+")"}});
+function start(){$("#app").innerHTML='<p class="mu" style="text-align:center;padding:40px 0">Loading…</p>';load(true);clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)load()},20000)}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&T)load()});
+if(!C.url||!C.key)$("#app").innerHTML='<div class="card err">This page is not connected yet.</div>';else T?start():loginView();
+</script>
+</body>
+</html>

@@ -102,7 +102,7 @@ async function setPw(f){
 }
 async function boot(){
   $("#so").classList.remove("hidden");$("#main").innerHTML='<p class="py-16 text-center text-neutral-500">Loading…</p>';
-  await load();draw();if(tab==="orders")ordersLoad();
+  await load();draw();reqCount();if(tab==="orders")ordersLoad();
 }
 async function load(){
   const [a,b]=await Promise.all([sb.from("items").select("id,kind,data,sort").order("sort"),sb.from("settings").select("key,value")]);
@@ -119,11 +119,12 @@ function draw(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button onclick="go('${k}')" class="btn shrink-0 ${tab===k?"bg-g2 text-white":"bg-white border border-neutral-300"}">${l}</button>`).join("");
   $("#main").innerHTML=tab==="cust"?custView():tab==="fin"?finView():tab==="orders"?ordersView():tab==="offers"?(CPERR?cpFixHtml():"")+offersView():tab==="ops"?opsView():tab==="cats"?catsView():tab==="content"?contentView():tab==="pub"?pubView():listView(tab);
 }
-function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();if(t==="cust")custInit();if(t==="ops")bankLoad();scrollTo(0,0)}
+function go(t){tab=t;q="";if(t==="offers")CPN=null;draw();if(t==="orders")ordersLoad();if(t==="fin")finLoad();if(t==="cust")custInit();if(t==="supps")reqLoad();if(t==="ops")bankLoad();scrollTo(0,0)}
 function status(x){return x.hide?["Hidden","bg-neutral-200 text-neutral-600"]:x.soon?["Coming soon","bg-amber-100 text-amber-800"]:x.out?["Sold out","bg-red-100 text-red-700"]:["Available","bg-green-100 text-g1"]}
 function listView(k){
   const L=D[k].filter(x=>(x.n+(x.b||"")+(x.cat||x.g||"")).toLowerCase().includes(q.toLowerCase()));
   return `<div class="flex gap-2"><input placeholder="Search items" value="${esc(q)}" oninput="q=this.value;$('#lst').innerHTML=rows('${k}')"/><button class="btn shrink-0 bg-g2 text-white" onclick="edit('${k}')">+ Add</button></div>
+  ${k==="supps"?'<div id="reqblock" class="mt-3"></div>':""}
   <div class="mt-2 flex flex-wrap gap-2"><label class="btn m-0 cursor-pointer border border-neutral-300 bg-white" style="margin:0">Import CSV<input type="file" accept=".csv,text/csv,text/plain" class="hidden" onchange="csvImport('${k}',this)"/></label><button class="btn border border-neutral-300 bg-white" onclick="csvTemplate('${k}')">CSV template</button><button class="btn border border-neutral-300 bg-white" onclick="csvExport('${k}')">Export CSV</button></div>
   <p class="mt-3 text-xs text-neutral-500">${D[k].length} items. Tap an item to edit price, details, photos or stock.</p>
   <div id="lst" class="mt-3 space-y-3">${rows(k)}</div>`;
@@ -138,6 +139,14 @@ function rows(k){
 }
 
 /* ---------- item editor ---------- */
+let REQS=[];
+async function reqFetch(){const {data,error}=await sb.from("product_requests").select("*").eq("status","new").order("created_at",{ascending:false});if(error)return [];
+  const have=new Set((D.supps||[]).map(x=>String(x.n).toLowerCase()));return (data||[]).filter(r=>!have.has(String(r.name).toLowerCase()))}
+async function reqCount(){const n=(await reqFetch()).length;const t=TABS.find(x=>x[0]==="supps");if(t){const l="Supplements"+(n?" ("+n+")":"");if(t[1]!==l){t[1]=l;draw()}}}
+async function reqLoad(){const b=$("#reqblock");if(!b)return;REQS=await reqFetch();
+  b.innerHTML=REQS.length?`<div class="rounded-2xl border border-amber-300 bg-amber-50 p-3"><h3 class="font-bold">Product requests (${REQS.length})</h3><p class="text-xs text-neutral-600">Pharmacies asked you to add these to the catalog.</p>`+REQS.map(r=>`<div class="mt-2 rounded-xl bg-white p-3 text-sm"><b>${esc(r.name)}</b>${r.brand?" · "+esc(r.brand):""}<div class="text-xs text-neutral-500">From ${esc(r.supplier)} · ${new Date(r.created_at).toLocaleDateString()}${r.note?" · "+esc(r.note):""}</div><div class="mt-2 flex gap-2"><button class="btn flex-1 bg-g2 text-white" onclick="reqAdd('${r.id}')">Add to catalog</button><button class="btn flex-1 border border-neutral-300 bg-white" onclick="reqDismiss('${r.id}')">Dismiss</button></div></div>`).join("")+'</div>':""}
+function reqAdd(id){const r=REQS.find(x=>x.id===id);if(!r)return;edit("supps");E.n=r.name;E.b=r.brand||"";sheet();psInit()}
+async function reqDismiss(id){const x=await sb.from("product_requests").update({status:"declined"}).eq("id",id);if(x.error)return toast(x.error.message);reqLoad();reqCount()}
 function edit(k,id){
   EK=k;isNew=!id;
   E=id?JSON.parse(JSON.stringify(D[k].find(x=>x.id===id))):(k==="eats"
@@ -154,10 +163,32 @@ async function finCfgEnsure(){
   if(c.error){FIN.setup=/fin_store|schema cache|does not exist/i.test(c.error.message||"");return false}
   FIN.cfg=(c.data&&c.data.value)||{};FIN.cfgOk=true;FIN.setup=false;return true
 }
+async function psInit(){
+  const b=$("#psblock");if(!b||EK!=="supps")return;
+  if(!E||!E.n){b.innerHTML="";return}
+  const [st,lk,cf]=await Promise.all([sb.from("supplier_stock").select("*").eq("item",E.n).order("cost",{ascending:true}),sb.from("supp_price_lock").select("item").eq("item",E.n),sb.from("supp_settings").select("*").limit(1)]);
+  if(st.error){b.innerHTML="";return}
+  const data=st.data||[],locked=(lk.data||[]).length>0,mk=cf.data&&cf.data[0]?+cf.data[0].markup_pct:15,p=+E.p||0;
+  b.innerHTML=`<div class="blk"><h3>Pharmacy stock and cost</h3><p class="pt-1 text-xs text-neutral-500">${locked?"You set this price yourself.":"The price is automatic: the cheapest pharmacy with stock plus "+mk+"%. It updates whenever a pharmacy changes its cost or stock."} Customers pay ${fmt(p)}.</p><label class="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" id="pslock" style="width:auto" ${locked?"checked":""}/> Set this price myself (turn off the automatic price)</label>`
+  +(data.length?data.map(r=>{const has=r.in_stock&&(r.qty==null||r.qty>0)&&r.cost!=null;return `<div class="mt-2 flex items-start justify-between gap-2 text-sm"><span>${esc(r.supplier)}${has?"":' <span class="text-neutral-400">(not offered)</span>'}</span><span class="text-right">${r.cost==null?"no cost set":fmt(r.cost)+" · margin "+fmt(p-r.cost)}${r.qty!=null?" · qty "+r.qty:""}</span></div>`}).join(""):'<p class="mt-2 text-xs text-neutral-500">No pharmacy has set stock for this item yet. Until one does, the price you set above is used.</p>')+'</div>';
+  const c=$("#pslock");
+  if(c)c.onchange=async()=>{const q=c.checked?await sb.from("supp_price_lock").insert({item:E.n}):await sb.from("supp_price_lock").delete().eq("item",E.n);if(q.error)return toast(q.error.message);
+    if(!c.checked)await sb.rpc("supp_reprice_now",{p_item:E.n});
+    toast(c.checked?"Price locked. Set the price above and save.":"Automatic price is back on. Close and reopen this item to see it.")}}
+async function zcLoad(name){const {data}=await sb.from("supplier_zones").select("zone").eq("supplier",name);return (data||[]).map(r=>r.zone)}
+function zcBlock(name){
+  setTimeout(async()=>{const b=$("#zcblock");if(!b)return;const on=await zcLoad(name);
+    b.innerHTML=`<div class="blk"><h3>Areas this pharmacy delivers to</h3><p class="pt-1 text-xs text-neutral-500">Tick the areas it covers. If none are ticked, it covers every area.</p><div class="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-xl bg-white p-2">${(D.zones||[]).map(z=>`<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="zc" value="${esc(z.name)}" style="width:auto" ${on.includes(z.name)?"checked":""}/> ${esc(z.name)}</label>`).join("")||'<p class="text-xs text-neutral-500">Add delivery areas first.</p>'}</div><button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" data-n="${esc(name)}" onclick="zcSave(this.dataset.n)">Save areas</button></div>`},0);
+  return '<div class="blk"><h3>Areas this pharmacy delivers to</h3><p class="pt-2 text-xs text-neutral-500">Loading…</p></div>'}
+async function zcSave(name){const sel=[...document.querySelectorAll('input[name="zc"]:checked')].map(x=>x.value);
+  const d=await sb.from("supplier_zones").delete().eq("supplier",name);if(d.error)return toast(d.error.message);
+  if(sel.length){const r=await sb.from("supplier_zones").insert(sel.map(z=>({supplier:name,zone:z})));if(r.error)return toast(r.error.message)}
+  toast(sel.length?"Areas saved":"Saved. This pharmacy covers every area.")}
 async function pcInit(){
   const ok=await finCfgEnsure();PCS=ok?"ok":"setup";
   if(ok){const c=fcfg(),n=E.n;PC.vc=c.costs[n]??"";PC.dc=c.deliv[n]??"";PC.pm=c.target;PC.rv={...c.riderOfVendor};PC.vds=n?((EK==="eats"?D.kitchens:D.suppliers)||[]).filter(v=>{const cur=c.kitchenItems[v.name];return !Array.isArray(cur)||!cur.length||cur.includes(n)}).map(v=>v.name):[]}
   const b=$("#pcalc");if(b){b.innerHTML=pcBlock();pcalc(true)}
+  psInit();
 }
 function pcBlock(){
   if(PCS==="load")return '<p class="mt-3 text-xs text-neutral-500">Loading price calculator…</p>';
@@ -200,7 +231,7 @@ function sheet(){
       <label>Name</label><input name="n" required value="${esc(E.n)}"/>
       ${eats?"":`<label>Brand (optional)</label><input name="b" value="${esc(E.b||"")}"/>`}
       <label>${eats?"Category":"Health goal / category"}</label><select name="cat" onchange="pcalc()">${cats.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>
-      <div id="pcalc">${pcBlock()}</div>
+      <div id="pcalc">${pcBlock()}</div>${EK==="supps"?'<div id="psblock"></div>':""}
       <label>Price shown on the site (₦)</label><input name="p" type="number" min="0" step="50" inputmode="numeric" value="${E.p}"/>
       <label>Description</label><textarea name="d" rows="3">${esc(E.d)}</textarea>
       ${eats?"":`<label>Dosage</label><input name="dose" value="${esc(E.dose||"")}" placeholder="1 tablet daily"/>
@@ -239,6 +270,7 @@ async function saveItem(){
   const sort=SORT[E.id]??Math.floor(Date.now()/1000);
   const {error}=await sb.from("items").upsert({id:E.id,kind:EK==="eats"?"eat":"supp",data:E,sort,updated_at:new Date().toISOString()});
   if(error){toast("Save failed: "+error.message);if(btn){btn.disabled=false;btn.textContent="Save"}return}
+  if(EK==="supps"&&EO&&EO!==E.n)await sb.from("supplier_stock").update({item:E.n}).eq("item",EO);
   SORT[E.id]=sort;const L=D[EK],i=L.findIndex(x=>x.id===E.id);if(i<0)L.push(E);else L[i]=E;
   if(pv){const c=fcfg();if(EO&&EO!==E.n){delete c.costs[EO];delete c.deliv[EO];delete c.vendorOf[EO]}
     kiApply(c,(EK==="eats"?D.kitchens:D.suppliers)||[],PC.vds,E.n,EO,D[EK].map(x=>x.n));
@@ -587,7 +619,7 @@ function pEdit(k,i){
   <form id="pf" onsubmit="event.preventDefault();pSave()" class="drawer flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
   <div class="mx-auto mt-2 h-1.5 w-10 rounded-full bg-neutral-300 sm:hidden"></div>
   <div class="flex items-center justify-between px-5 py-3"><h2 class="text-lg font-extrabold">${i>=0?"Edit":"Add"} ${PT[k]}</h2><button type="button" onclick="closeSheet()" class="rounded-full bg-neutral-100 p-2" aria-label="Close">${X}</button></div>
-  <div class="overflow-y-auto px-5 pb-4">${blocks}${k==="zones"?"":i>=0?`<div id="bkblock">${bankBlock(k,x.name)}</div>${k!=="riders"?`<div id="kiblock">${kiBlock(k,x.name)}</div>`:""}<div id="plblock">${plBlock(k,x.name)}</div>`:'<p class="mt-3 text-xs text-neutral-500">Save first, then open this partner again to add their bank details for auto-split.</p>'}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
+  <div class="overflow-y-auto px-5 pb-4">${blocks}${k==="zones"?"":i>=0?`<div id="bkblock">${bankBlock(k,x.name)}</div>${k!=="riders"?`<div id="kiblock">${kiBlock(k,x.name)}</div>`:""}<div id="plblock">${plBlock(k,x.name)}</div>${k==="suppliers"?`<div id="zcblock">${zcBlock(x.name)}</div>`:""}`:'<p class="mt-3 text-xs text-neutral-500">Save first, then open this partner again to add their bank details for auto-split.</p>'}${i>=0&&k!=="zones"?'<p class="mt-3 text-xs text-neutral-500">Renaming only affects new orders. Orders already assigned keep the old name.</p>':""}</div>
   <div class="flex gap-2 border-t border-neutral-100 px-5 py-3">${i>=0?'<button type="button" class="btn border border-red-300 text-red-600" onclick="pDel()">Delete</button>':'<button type="button" class="btn border border-neutral-300" onclick="closeSheet()">Cancel</button>'}<button class="btn flex-1 bg-g2 py-3 text-white">Save</button></div></form></div>`;
 }
 async function pSave(){
@@ -1143,8 +1175,8 @@ notify pgrst, 'reload schema';`}
 function plBlock(k,name){
   if(PLG===null){plLoad().then(()=>{const b=$("#plblock");if(b)b.innerHTML=plBlock(k,name)});return '<div class="blk"><h3>Partner login</h3><p class="pt-2 text-xs text-neutral-500">Loading…</p></div>'}
   if(PLS)return `<div class="blk"><h3>Partner login</h3><p class="pt-2 text-xs text-amber-800">One-time setup needed. Copy this SQL, run it in Supabase, SQL Editor, then reopen this partner.</p><textarea id="sqlbox" readonly rows="6" class="mt-2 font-mono !text-xs" onclick="this.select()">${esc(plSql())}</textarea><button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="finCopy()">Copy SQL</button></div>`;
-  const r=PLG[bkId(k,name)],st=!r?"No login yet. Create an activation code and send it to them.":r.pw_hash?"✓ Active. They log in at /vendor with their phone number and their own password.":"Code sent. Waiting for them to open /vendor, tap First time here, and create their password.";
-  return `<div class="blk"><h3>Partner login <span class="font-normal text-neutral-500">(/vendor)</span></h3>
+  const pg=k==="suppliers"?"/pharmacy":"/vendor",r=PLG[bkId(k,name)],st=!r?"No login yet. Create an activation code and send it to them.":r.pw_hash?"✓ Active. They log in at "+pg+" with their phone number and their own password.":"Code sent. Waiting for them to open "+pg+", tap First time here, and create their password.";
+  return `<div class="blk"><h3>Partner login <span class="font-normal text-neutral-500">(${pg})</span></h3>
   <p class="pt-1 text-xs text-neutral-600">${esc(st)}${r?" Making a new code also resets their password, so use it if they forget it.":""}</p>
   <button type="button" class="btn mt-2 w-full bg-neutral-800 py-3 text-white" onclick="plMake()">${r?"Reset access (new activation code)":"Create activation code"}</button><div id="plout"></div></div>`
 }
@@ -1154,7 +1186,7 @@ async function plMake(){
   const code=custPw().toUpperCase(),id=bkId(PK,nm),rec={id,kind:PK,name:nm,phone:ph,code_hash:await shaHex("sh:"+code),pw_hash:null,pw_salt:null,fails:0,locked_until:null,updated_at:new Date().toISOString()};
   const {error}=await sb.from("partner_logins").upsert(rec,{onConflict:"id"});
   if(error){if(/partner_logins|schema cache|does not exist/i.test(error.message||"")){PLS=true;const b=$("#plblock");if(b)b.innerHTML=plBlock(PK,nm)}else if(/row-level|permission/i.test(error.message||""))finErr(error);else toast("Failed: "+error.message);return}
-  PLG[id]=rec;const link=location.origin+"/vendor",msg=`Hi ${nm}, here is your SmartyHub partner login.\nPage: ${link}\nOpen it, tap "First time here", and enter:\nPhone number: ${f.phone.value.trim()}\nActivation code: ${code}\nThen choose your own password. Keep the page open to receive new paid orders.`;
+  PLG[id]=rec;const link=location.origin+(PK==="suppliers"?"/pharmacy":"/vendor"),msg=`Hi ${nm}, here is your SmartyHub ${PK==="suppliers"?"pharmacy":"kitchen"} login.\nPage: ${link}\nOpen it, tap "First time here", and enter:\nPhone number: ${f.phone.value.trim()}\nActivation code: ${code}\nThen choose your own password. Keep the page open to receive new paid orders.`;
   window.__plmsg=msg;
   $("#plout").innerHTML=`<div class="mt-3 rounded-xl bg-green-50 p-3 text-sm text-g1">Activation code: <b class="font-mono text-lg">${code}</b><br><span class="text-xs">Shown once. Send it to them now.</span></div><div class="mt-2 flex gap-2"><button type="button" class="btn flex-1 border border-neutral-300 py-3" onclick="plCopy()">Copy message</button><a class="btn flex-1 bg-g2 py-3 text-center text-white" target="_blank" rel="noopener" href="https://wa.me/${ph}?text=${encodeURIComponent(msg)}">Send on WhatsApp</a></div>`;
 }
